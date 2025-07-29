@@ -18,7 +18,11 @@
       "Bash(gh pr list:*)",
       "Bash(gh issue list:*)",
       "Bash(gh issue create:*)",
-      "Bash(rm:*)"
+      "Bash(rm:*)",
+      "Bash(playwright install:*)",
+      "Bash(curl:*)",
+      "Bash(pkill:*)",
+      "Bash(cp:*)"
     ],
     "deny": []
   }
