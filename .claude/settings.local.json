@@ -47,7 +47,8 @@
       "Bash(npx tsc:*)",
       "Bash(true)",
       "Bash(./start.sh:*)",
-      "Bash(timeout:*)"
+      "Bash(timeout:*)",
+      "Bash(uv run:*)"
     ],
     "deny": []
   }
