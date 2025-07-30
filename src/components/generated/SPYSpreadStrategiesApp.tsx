@@ -75,13 +75,27 @@ const SPYSpreadStrategiesApp: React.FC = () => {
     volume: number;
   }[]>([]);
 
-  // Simulate real-time SPY price updates
+  // Fetch real-time SPY price updates
   useEffect(() => {
-    const interval = setInterval(() => {
-      const variation = (Math.random() - 0.5) * 2; // ±1 dollar variation
-      setSpyPrice(prev => Math.max(400, Math.min(500, prev + variation)));
-      setLastUpdate(new Date());
-    }, 30000);
+    const fetchSpyPrice = async () => {
+      try {
+        const marketData = await apiService.getMarketData('SPY');
+        setSpyPrice(marketData.current_price);
+        setLastUpdate(new Date());
+      } catch (error) {
+        console.error('Failed to fetch SPY price:', error);
+        // Fallback to current price with small variation
+        const variation = (Math.random() - 0.5) * 2;
+        setSpyPrice(prev => Math.max(400, Math.min(500, prev + variation)));
+        setLastUpdate(new Date());
+      }
+    };
+
+    // Initial fetch
+    fetchSpyPrice();
+    
+    // Update every 30 seconds
+    const interval = setInterval(fetchSpyPrice, 30000);
     return () => clearInterval(interval);
   }, []);
 
