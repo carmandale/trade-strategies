@@ -259,10 +259,10 @@ describe('StrategyList Component', () => {
 		
 		render(<StrategyList strategies={negativeStrategies} />)
 		
-		// Total should be -2501.50 (2 * -1250.75) but displays as positive with red styling
-		const totalPnlElement = screen.getByText('$2,501.50')
+		// Total should be -2501.50 (2 * -1250.75) - in summary, negative shows with minus sign
+		const totalPnlElement = screen.getByText('-2,501.50')
 		expect(totalPnlElement).toBeInTheDocument()
-		expect(totalPnlElement).toHaveClass('text-red-600', 'dark:text-red-400')
+		expect(totalPnlElement.parentElement).toHaveClass('text-red-600', 'dark:text-red-400')
 	})
 
 	it('handles try again button click in error state', async () => {
