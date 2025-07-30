@@ -352,17 +352,17 @@ export class ApiService {
   // Get market data for a symbol
   static async getMarketData(symbol: string): Promise<MarketData> {
     try {
-      const response = await fetch(`${API_BASE_URL}/market_data/${symbol}`);
+      const response = await fetch(`${API_BASE_URL}/current_price/${symbol}`);
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
       const data = await response.json();
       return {
-        current_price: data.current_price,
-        change: data.change || 0,
-        change_percent: data.change_percent || 0,
-        volume: data.volume || 0,
-        timestamp: data.timestamp || new Date().toISOString()
+        current_price: data.price,  // Backend returns { price: number }
+        change: 0,  // Backend doesn't provide change yet
+        change_percent: 0,  // Backend doesn't provide change percent yet
+        volume: 0,  // Backend doesn't provide volume yet
+        timestamp: new Date().toISOString()
       };
     } catch (error) {
       console.error('Error fetching market data:', error);
