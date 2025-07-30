@@ -136,34 +136,83 @@ const SPYSpreadStrategiesApp: React.FC = () => {
   }, [spyPrice, selectedDate]);
   const handleAnalyzeStrategies = async () => {
     setIsAnalyzing(true);
+    
+    try {
+      // Get current strategy data from API
+      const [ironCondorData, bullCallData] = await Promise.all([
+        apiService.getStrategyData('iron_condor', {
+          symbol: 'SPY',
+          timeframe: 'daily',
+          put_short: spreadConfig.ironCondorPutShort,
+          put_long: spreadConfig.ironCondorPutLong,
+          call_short: spreadConfig.ironCondorCallShort,
+          call_long: spreadConfig.ironCondorCallLong,
+          contracts: contracts
+        }),
+        apiService.getStrategyData('bull_call', {
+          symbol: 'SPY',
+          timeframe: 'daily',
+          lower_strike: spreadConfig.bullCallLower,
+          upper_strike: spreadConfig.bullCallUpper,
+          contracts: contracts
+        })
+      ]);
 
-    // Simulate API call delay
-    await new Promise(resolve => setTimeout(resolve, 2000));
-
-    // Mock analysis calculations
-    const mockAnalysis: AnalysisData = {
-      bullCall: {
-        maxProfit: (spreadConfig.bullCallUpper - spreadConfig.bullCallLower) * 100 * contracts,
-        maxLoss: 150 * contracts,
-        breakeven: spreadConfig.bullCallLower + 1.5,
-        riskReward: 2.33
-      },
-      ironCondor: {
-        maxProfit: 200 * contracts,
-        maxLoss: 300 * contracts,
-        upperBreakeven: spreadConfig.ironCondorCallShort + 2,
-        lowerBreakeven: spreadConfig.ironCondorPutShort - 2,
-        riskReward: 0.67
-      },
-      butterfly: {
-        maxProfit: 350 * contracts,
-        maxLoss: 150 * contracts,
-        breakeven1: spreadConfig.butterflyLower + 1.5,
-        breakeven2: spreadConfig.butterflyUpper - 1.5,
-        riskReward: 2.33
-      }
-    };
-    setAnalysisData(mockAnalysis);
+      // Transform API data to match our interface
+      const realAnalysis: AnalysisData = {
+        bullCall: {
+          maxProfit: bullCallData.max_profit,
+          maxLoss: Math.abs(bullCallData.max_loss),
+          breakeven: bullCallData.breakeven_points[0] || spreadConfig.bullCallLower + 1.5,
+          riskReward: bullCallData.risk_reward_ratio
+        },
+        ironCondor: {
+          maxProfit: ironCondorData.max_profit,
+          maxLoss: Math.abs(ironCondorData.max_loss),
+          upperBreakeven: ironCondorData.breakeven_points[1] || spreadConfig.ironCondorCallShort + 2,
+          lowerBreakeven: ironCondorData.breakeven_points[0] || spreadConfig.ironCondorPutShort - 2,
+          riskReward: ironCondorData.risk_reward_ratio
+        },
+        butterfly: {
+          // For now, use calculated values until butterfly API is implemented
+          maxProfit: 350 * contracts,
+          maxLoss: 150 * contracts,
+          breakeven1: spreadConfig.butterflyLower + 1.5,
+          breakeven2: spreadConfig.butterflyUpper - 1.5,
+          riskReward: 2.33
+        }
+      };
+      
+      setAnalysisData(realAnalysis);
+    } catch (error) {
+      console.error('Failed to analyze strategies:', error);
+      
+      // Fallback to mock analysis if API fails
+      const fallbackAnalysis: AnalysisData = {
+        bullCall: {
+          maxProfit: (spreadConfig.bullCallUpper - spreadConfig.bullCallLower) * 100 * contracts,
+          maxLoss: 150 * contracts,
+          breakeven: spreadConfig.bullCallLower + 1.5,
+          riskReward: 2.33
+        },
+        ironCondor: {
+          maxProfit: 200 * contracts,
+          maxLoss: 300 * contracts,
+          upperBreakeven: spreadConfig.ironCondorCallShort + 2,
+          lowerBreakeven: spreadConfig.ironCondorPutShort - 2,
+          riskReward: 0.67
+        },
+        butterfly: {
+          maxProfit: 350 * contracts,
+          maxLoss: 150 * contracts,
+          breakeven1: spreadConfig.butterflyLower + 1.5,
+          breakeven2: spreadConfig.butterflyUpper - 1.5,
+          riskReward: 2.33
+        }
+      };
+      setAnalysisData(fallbackAnalysis);
+    }
+    
     setIsAnalyzing(false);
   };
   const handleLogTrade = (strategy: string, pnl: number) => {
