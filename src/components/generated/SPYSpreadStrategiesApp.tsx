@@ -82,17 +82,7 @@ const SPYSpreadStrategiesApp: React.FC = () => {
   const [contracts, setContracts] = useState<number>(1);
   const [entryTime, setEntryTime] = useState<string>('09:30');
   const [exitTime, setExitTime] = useState<string>('16:00');
-  const [spreadConfig, setSpreadConfig] = useState<SpreadConfig>({
-    bullCallLower: 420,
-    bullCallUpper: 425,
-    ironCondorPutShort: 415,
-    ironCondorPutLong: 410,
-    ironCondorCallShort: 435,
-    ironCondorCallLong: 440,
-    butterflyLower: 420,
-    butterflyBody: 425,
-    butterflyUpper: 430
-  });
+  const [spreadConfig, setSpreadConfig] = useState<SpreadConfig>(() => calculateStrikes(425.50));
   const [analysisData, setAnalysisData] = useState<AnalysisData | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState<boolean>(false);
   const [trades, setTrades] = useState<Trade[]>([]);
