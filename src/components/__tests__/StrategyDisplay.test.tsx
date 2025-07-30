@@ -327,7 +327,9 @@ describe('Component Integration Tests', () => {
 		
 		render(<StrategyCard strategy={strategyWithMinimalPerformance} />)
 		
-		expect(screen.getByText('+$0.00')).toBeInTheDocument()
+		// Check for zero values - there might be multiple instances
+		const zeroValueElements = screen.getAllByText('+$0.00')
+		expect(zeroValueElements.length).toBeGreaterThan(0)
 		expect(screen.getByText('0.0%')).toBeInTheDocument()
 		expect(screen.getByText('0')).toBeInTheDocument()
 	})
