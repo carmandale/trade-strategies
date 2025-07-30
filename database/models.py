@@ -162,6 +162,101 @@ class Trade(Base):
     
     # Relationships (no user for Phase 1)
     strategy = relationship("Strategy", back_populates="trades")
+    
+    @classmethod
+    def get_open_trades(cls, db_session):
+        """Get all open trades."""
+        return db_session.query(cls).filter(cls.status == 'open').all()
+    
+    @classmethod
+    def get_closed_trades(cls, db_session):
+        """Get all closed trades."""
+        return db_session.query(cls).filter(cls.status == 'closed').all()
+    
+    @classmethod
+    def get_trades_by_symbol(cls, db_session, symbol: str):
+        """Get trades for a specific symbol."""
+        return db_session.query(cls).filter(cls.symbol == symbol).all()
+    
+    @classmethod
+    def get_trades_by_date_range(cls, db_session, start_date: datetime, end_date: datetime):
+        """Get trades within a date range."""
+        return db_session.query(cls).filter(
+            cls.trade_date >= start_date,
+            cls.trade_date <= end_date
+        ).all()
+    
+    @classmethod
+    def calculate_total_pnl(cls, db_session) -> Optional[Decimal]:
+        """Calculate total realized P&L across all trades."""
+        from sqlalchemy import func
+        result = db_session.query(func.sum(cls.realized_pnl)).filter(
+            cls.realized_pnl.isnot(None)
+        ).scalar()
+        return result if result is not None else Decimal('0.00')
+    
+    def close_trade(self, exit_price: Decimal, exit_time: datetime = None, notes: str = None):
+        """Close the trade with exit price and time."""
+        self.exit_price = exit_price
+        self.exit_time = exit_time or datetime.utcnow()
+        self.status = 'closed'
+        if notes:
+            self.notes = f"{self.notes or ''}\n{notes}".strip()
+        
+        # Calculate realized P&L based on strategy type
+        self.realized_pnl = self._calculate_pnl()
+    
+    def _calculate_pnl(self) -> Optional[Decimal]:
+        """Calculate P&L based on strategy type and prices."""
+        if not self.exit_price or not self.entry_price:
+            return None
+        
+        price_diff = self.exit_price - self.entry_price
+        
+        if self.strategy_type in ['bull_call', 'bear_put']:
+            # Long positions: profit when price goes up
+            return price_diff * self.contracts * 100  # 100 shares per contract
+        elif self.strategy_type == 'iron_condor':
+            # Iron condor: profit when price stays between strikes
+            # For now, use simple credit - debit calculation
+            return self.credit_debit * self.contracts * 100
+        else:
+            # Default calculation
+            return price_diff * self.contracts * 100
+    
+    def is_profitable(self) -> Optional[bool]:
+        """Check if the trade is profitable."""
+        if self.realized_pnl is None:
+            return None
+        return self.realized_pnl > 0
+    
+    def get_duration_days(self) -> Optional[int]:
+        """Get trade duration in days."""
+        if not self.exit_time:
+            return None
+        return (self.exit_time.date() - self.trade_date.date()).days
+    
+    def to_dict(self) -> Dict[str, Any]:
+        """Convert trade to dictionary."""
+        return {
+            'id': str(self.id),
+            'strategy_id': str(self.strategy_id) if self.strategy_id else None,
+            'trade_date': self.trade_date.isoformat() if self.trade_date else None,
+            'entry_time': self.entry_time.isoformat() if self.entry_time else None,
+            'exit_time': self.exit_time.isoformat() if self.exit_time else None,
+            'symbol': self.symbol,
+            'strategy_type': self.strategy_type,
+            'strikes': self.strikes,
+            'contracts': self.contracts,
+            'entry_price': float(self.entry_price) if self.entry_price else None,
+            'exit_price': float(self.exit_price) if self.exit_price else None,
+            'credit_debit': float(self.credit_debit) if self.credit_debit else None,
+            'realized_pnl': float(self.realized_pnl) if self.realized_pnl else None,
+            'status': self.status,
+            'notes': self.notes,
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+            'updated_at': self.updated_at.isoformat() if self.updated_at else None
+        }
 
 class MarketDataCache(Base):
     """Market data caching model."""
