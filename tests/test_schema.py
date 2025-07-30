@@ -289,8 +289,8 @@ class TestSchemaValidation:
                 # Test valid trade status
                 db.execute(text("""
                     INSERT INTO trades (strategy_type, strikes, contracts, entry_price, 
-                                      credit_debit, trade_date, status) 
-                    VALUES ('iron_condor', '[420, 425]', 1, 422.50, 1.25, CURRENT_DATE, 'open')
+                                      credit_debit, trade_date, entry_time, status) 
+                    VALUES ('iron_condor', '[420, 425]', 1, 422.50, 1.25, CURRENT_DATE, CURRENT_TIMESTAMP, 'open')
                 """))
                 
                 # Clean up
