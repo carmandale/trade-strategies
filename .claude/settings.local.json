@@ -51,7 +51,8 @@
       "Bash(uv run:*)",
       "Bash(kill:*)",
       "Bash(uv add:*)",
-      "Bash(alembic revision:*)"
+      "Bash(alembic revision:*)",
+      "Bash(touch:*)"
     ],
     "deny": []
   }
