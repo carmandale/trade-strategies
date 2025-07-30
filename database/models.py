@@ -94,8 +94,5 @@ class MarketDataCache(Base):
     
     # Unique constraint on symbol, data_date, data_type
     __table_args__ = (
-        Column('symbol', String(10)),
-        Column('data_date', DateTime),
-        Column('data_type', String(50)),
-        {'extend_existing': True}
+        UniqueConstraint('symbol', 'data_date', 'data_type'),
     )
