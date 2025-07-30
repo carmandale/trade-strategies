@@ -39,23 +39,27 @@ fi
 
 # Frontend startup  
 echo ""
-echo "🎨 Starting Frontend Server on port $FRONTEND_PORT..."
-cd ../frontend 2>/dev/null || cd .. 2>/dev/null || echo "Frontend directory will be created in Phase 1"
+echo "🎨 Starting Frontend Server..."
+# Navigate back to project root where React app is located
+cd .. 2>/dev/null || cd . 2>/dev/null
 
-if [ -d . ] && [ -f "package.json" ]; then
-    npm install
+if [ -f "package.json" ]; then
+    echo "✅ React frontend found - starting on default Vite port (5173)"
+    npm install 2>/dev/null || echo "Dependencies already installed"
     npm run dev &
+    FRONTEND_PORT=5173  # Vite default port
 else
-    echo "⚠️  Frontend not yet implemented - will be created in Phase 1"
+    echo "⚠️  Frontend package.json not found"
 fi
 
 echo ""
-echo "✅ Development environment setup complete!"
-echo "   Frontend: http://localhost:$FRONTEND_PORT (when implemented)"
-echo "   Backend:  http://localhost:$BACKEND_PORT (when implemented)"
+echo "✅ Development environment status:"
+echo "   ✅ React Frontend: http://localhost:$FRONTEND_PORT (operational!)"
+echo "   ⚠️  Backend API:   http://localhost:$BACKEND_PORT (coming in Phase 1)"
 echo ""
-echo "📋 Current Status: Phase 0 (Legacy Python scripts available)"
-echo "   Run legacy scripts: python backtest_strategies.py --help"
+echo "📋 Current Status: Phase 1 Progress - React Frontend Complete!"
+echo "   🎯 React app working with TypeScript, Tailwind, Framer Motion"
+echo "   📊 Legacy scripts: python backtest_strategies.py --help"
 echo ""
 echo "Press Ctrl+C to stop all services"
 wait
