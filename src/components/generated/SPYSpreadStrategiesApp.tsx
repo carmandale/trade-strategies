@@ -159,28 +159,6 @@ const SPYSpreadStrategiesApp: React.FC = () => {
       );
       
       setChartData(chartData);
-          maxLoss: Math.abs(bullCallData.max_loss),
-          breakeven: bullCallData.breakeven_points[0] || spreadConfig.bullCallLower + 1.5,
-          riskReward: bullCallData.risk_reward_ratio
-        },
-        ironCondor: {
-          maxProfit: ironCondorData.max_profit,
-          maxLoss: Math.abs(ironCondorData.max_loss),
-          upperBreakeven: ironCondorData.breakeven_points[1] || spreadConfig.ironCondorCallShort + 2,
-          lowerBreakeven: ironCondorData.breakeven_points[0] || spreadConfig.ironCondorPutShort - 2,
-          riskReward: ironCondorData.risk_reward_ratio
-        },
-        butterfly: {
-          // For now, use calculated values until butterfly API is implemented
-          maxProfit: 350 * contracts,
-          maxLoss: 150 * contracts,
-          breakeven1: spreadConfig.butterflyLower + 1.5,
-          breakeven2: spreadConfig.butterflyUpper - 1.5,
-          riskReward: 2.33
-        }
-      };
-      
-      setAnalysisData(realAnalysis);
     } catch (error) {
       console.error('Failed to analyze strategies:', error);
       
