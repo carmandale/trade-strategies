@@ -317,7 +317,7 @@ export class ApiService {
       const trades = await response.json();
       
       // Transform to frontend format
-      return trades.map((trade: any) => ({
+      return trades.map((trade: TradeEntry & { id: number; timestamp: string }) => ({
         id: trade.id.toString(),
         date: trade.date,
         strategy: trade.strategy,
