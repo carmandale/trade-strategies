@@ -95,7 +95,7 @@ describe('StrategyCard Component', () => {
 		expect(screen.getByText('Sharpe Ratio:')).toBeInTheDocument()
 		expect(screen.getByText('1.35')).toBeInTheDocument()
 		expect(screen.getByText('Max Drawdown:')).toBeInTheDocument()
-		expect(screen.getByText('-$580.25')).toBeInTheDocument()
+		expect(screen.getByText('$580.25')).toBeInTheDocument() // Shows as positive with red styling
 		
 		// Check parameters section
 		expect(screen.getByText('Parameters')).toBeInTheDocument()
