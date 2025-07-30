@@ -98,6 +98,169 @@ async def backtest_strategy(request: BacktestRequest):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+# Database-backed strategy endpoints
+@router.post("/", response_model=StrategyResponse, status_code=201)
+async def create_strategy(strategy: StrategyCreate, db: Session = Depends(get_db)):
+    """Create a new strategy."""
+    try:
+        db_strategy = Strategy(
+            name=strategy.name,
+            strategy_type=strategy.strategy_type.value,
+            symbol=strategy.symbol.upper(),
+            parameters=strategy.parameters,
+            is_active=strategy.is_active
+        )
+        
+        db.add(db_strategy)
+        db.commit()
+        db.refresh(db_strategy)
+        
+        return db_strategy
+        
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"Error creating strategy: {str(e)}")
+
+@router.get("/", response_model=List[StrategyResponse])
+async def get_strategies(
+    db: Session = Depends(get_db),
+    active: Optional[bool] = Query(None),
+    strategy_type: Optional[StrategyType] = Query(None),
+    symbol: Optional[str] = Query(None),
+    limit: int = Query(100, ge=1, le=1000),
+    offset: int = Query(0, ge=0)
+):
+    """Get strategies with optional filtering."""
+    try:
+        query = db.query(Strategy)
+        
+        # Apply filters
+        if active is not None:
+            query = query.filter(Strategy.is_active == active)
+        if strategy_type:
+            query = query.filter(Strategy.strategy_type == strategy_type.value)
+        if symbol:
+            query = query.filter(Strategy.symbol == symbol.upper())
+        
+        # Apply pagination and ordering
+        strategies = query.order_by(Strategy.created_at.desc()).offset(offset).limit(limit).all()
+        
+        return strategies
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error retrieving strategies: {str(e)}")
+
+@router.get("/{strategy_id}", response_model=StrategyResponse)
+async def get_strategy(strategy_id: str, db: Session = Depends(get_db)):
+    """Get a specific strategy by ID."""
+    try:
+        strategy = db.query(Strategy).filter(Strategy.id == strategy_id).first()
+        if not strategy:
+            raise HTTPException(status_code=404, detail="Strategy not found")
+        
+        return strategy
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error retrieving strategy: {str(e)}")
+
+@router.put("/{strategy_id}", response_model=StrategyResponse)
+async def update_strategy(strategy_id: str, strategy_update: StrategyUpdate, db: Session = Depends(get_db)):
+    """Update an existing strategy."""
+    try:
+        strategy = db.query(Strategy).filter(Strategy.id == strategy_id).first()
+        if not strategy:
+            raise HTTPException(status_code=404, detail="Strategy not found")
+        
+        # Update only provided fields
+        update_data = strategy_update.dict(exclude_unset=True)
+        for field, value in update_data.items():
+            setattr(strategy, field, value)
+        
+        db.commit()
+        db.refresh(strategy)
+        
+        return strategy
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"Error updating strategy: {str(e)}")
+
+@router.delete("/{strategy_id}")
+async def delete_strategy(strategy_id: str, db: Session = Depends(get_db)):
+    """Delete a strategy."""
+    try:
+        strategy = db.query(Strategy).filter(Strategy.id == strategy_id).first()
+        if not strategy:
+            raise HTTPException(status_code=404, detail="Strategy not found")
+        
+        db.delete(strategy)
+        db.commit()
+        
+        return {"message": "Strategy deleted successfully"}
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"Error deleting strategy: {str(e)}")
+
+@router.get("/{strategy_id}/performance")
+async def get_strategy_performance(strategy_id: str, db: Session = Depends(get_db)):
+    """Get performance metrics for a strategy."""
+    try:
+        strategy = db.query(Strategy).filter(Strategy.id == strategy_id).first()
+        if not strategy:
+            raise HTTPException(status_code=404, detail="Strategy not found")
+        
+        # Get strategy trades
+        trades = db.query(Trade).filter(Trade.strategy_id == strategy_id).all()
+        
+        if not trades:
+            return {
+                "strategy_id": strategy_id,
+                "strategy_name": strategy.name,
+                "total_trades": 0,
+                "open_trades": 0,
+                "closed_trades": 0,
+                "total_realized_pnl": 0,
+                "win_rate": 0,
+                "avg_pnl_per_trade": 0
+            }
+        
+        # Calculate performance metrics using model method
+        total_pnl = strategy.calculate_total_pnl(db)
+        
+        # Calculate other metrics
+        total_trades = len(trades)
+        open_trades = len([t for t in trades if t.status == "open"])
+        closed_trades = len([t for t in trades if t.status == "closed"])
+        
+        realized_trades = [t for t in trades if t.realized_pnl is not None]
+        winning_trades = len([t for t in realized_trades if t.realized_pnl > 0])
+        win_rate = (winning_trades / len(realized_trades) * 100) if realized_trades else 0
+        
+        avg_pnl_per_trade = total_pnl / len(realized_trades) if realized_trades else Decimal('0')
+        
+        return {
+            "strategy_id": strategy_id,
+            "strategy_name": strategy.name,
+            "total_trades": total_trades,
+            "open_trades": open_trades,
+            "closed_trades": closed_trades,
+            "total_realized_pnl": float(total_pnl),
+            "win_rate": round(win_rate, 2),
+            "avg_pnl_per_trade": float(avg_pnl_per_trade)
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error calculating strategy performance: {str(e)}")
+
 def _backtest_iron_condor(data: pd.DataFrame, timeframe: TimeFrame) -> dict:
     """Basic Iron Condor backtesting logic."""
     # Simplified logic based on existing scripts
