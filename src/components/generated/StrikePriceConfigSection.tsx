@@ -340,8 +340,11 @@ const StrikePriceConfigSection: React.FC<StrikePriceConfigSectionProps> = ({
               Upper Wing Strike
             </label>
             <input type="number" step="0.5" value={spreadConfig.butterflyUpper} onChange={e => updateSpreadConfig('butterflyUpper', parseFloat(e.target.value) || 0)} className="w-full bg-slate-700/50 border border-slate-600/50 rounded-xl px-4 py-3 text-slate-100 focus:outline-none focus:ring-2 focus:ring-yellow-500/50 focus:border-yellow-500/50 transition-all duration-200" />
-            <div className="mt-1 text-xs text-slate-500">
-              {getDistanceFromCurrent(spreadConfig.butterflyUpper)}
+            <div className="mt-1 text-xs text-slate-500 flex justify-between">
+              <span>{getDistanceFromCurrent(spreadConfig.butterflyUpper)}</span>
+              <span className="text-yellow-300 font-mono">
+                {formatDelta(calculateStrikeDelta(spreadConfig.butterflyUpper, true))}
+              </span>
             </div>
           </div>
 
