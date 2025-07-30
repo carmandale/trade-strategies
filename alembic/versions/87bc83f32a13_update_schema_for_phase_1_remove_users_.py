@@ -75,6 +75,28 @@ def upgrade() -> None:
     sa.ForeignKeyConstraint(['strategy_id'], ['strategies.id'], ondelete='SET NULL'),
     sa.PrimaryKeyConstraint('id')
     )
+    
+    # Create indexes for optimal query performance
+    # Strategies table indexes
+    op.create_index('idx_strategies_type', 'strategies', ['strategy_type'])
+    op.create_index('idx_strategies_symbol', 'strategies', ['symbol'])
+    op.create_index('idx_strategies_params', 'strategies', ['parameters'], postgresql_using='gin')
+    
+    # Backtests table indexes
+    op.create_index('idx_backtests_strategy', 'backtests', ['strategy_id'])
+    op.create_index('idx_backtests_dates', 'backtests', ['start_date', 'end_date'])
+    op.create_index('idx_backtests_timeframe', 'backtests', ['timeframe'])
+    
+    # Trades table indexes
+    op.create_index('idx_trades_date', 'trades', ['trade_date'])
+    op.create_index('idx_trades_status', 'trades', ['status'])
+    op.create_index('idx_trades_strategy_type', 'trades', ['strategy_type'])
+    op.create_index('idx_trades_pnl', 'trades', ['realized_pnl'], postgresql_where=sa.text('realized_pnl IS NOT NULL'))
+    
+    # Market data cache indexes
+    op.create_index('idx_market_cache_symbol_date', 'market_data_cache', ['symbol', 'data_date'])
+    op.create_index('idx_market_cache_expires', 'market_data_cache', ['expires_at'])
+    
     # ### end Alembic commands ###
 
 
