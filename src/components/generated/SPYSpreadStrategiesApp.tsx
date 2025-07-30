@@ -48,6 +48,33 @@ export interface AnalysisData {
     riskReward: number;
   };
 }
+// Function to round price to nearest $5 for options strikes
+const roundToNearestFive = (price: number): number => {
+  return Math.round(price / 5) * 5;
+};
+
+// Calculate strikes based on current SPY price using common options strategies
+const calculateStrikes = (currentPrice: number): SpreadConfig => {
+  const rounded = roundToNearestFive(currentPrice);
+  
+  return {
+    // Bull Call Spread: ATM and 1 strike OTM (conservative, high probability)
+    bullCallLower: rounded,
+    bullCallUpper: rounded + 5,
+    
+    // Iron Condor: ~5% OTM on each side (targeting 16-delta strikes)
+    ironCondorPutShort: roundToNearestFive(currentPrice * 0.95),  // 5% below
+    ironCondorPutLong: roundToNearestFive(currentPrice * 0.93),   // 7% below  
+    ironCondorCallShort: roundToNearestFive(currentPrice * 1.05), // 5% above
+    ironCondorCallLong: roundToNearestFive(currentPrice * 1.07),  // 7% above
+    
+    // Butterfly: ATM with $10 wings (standard butterfly)
+    butterflyLower: rounded - 10,
+    butterflyBody: rounded,
+    butterflyUpper: rounded + 10
+  };
+};
+
 const SPYSpreadStrategiesApp: React.FC = () => {
   const [spyPrice, setSpyPrice] = useState<number>(425.50);
   const [lastUpdate, setLastUpdate] = useState<Date>(new Date());
