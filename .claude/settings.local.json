@@ -32,7 +32,8 @@
       "Bash(git -C \"/Users/dalecarman/Groove Jones Dropbox/Dale Carman/Projects/dev/trade-strategies\" add .claude/settings.local.json)",
       "Bash(git -C \"/Users/dalecarman/Groove Jones Dropbox/Dale Carman/Projects/dev/trade-strategies\" commit -m \"feat: integrate React frontend components for trading strategies #3\n\n- Add SPYSpreadStrategiesApp main component with real-time price updates\n- Implement HeaderSection with live market data display\n- Add comprehensive TypeScript interfaces for trading data structures\n- Include InputControlsSection, StrikePriceConfigSection, and AnalysisAndChartSection components\n- Set up proper React 19 + TypeScript + Tailwind CSS + Framer Motion stack\n- Integrate professional options trading calculations (Bull Call, Iron Condor, Butterfly)\n- Update Claude settings for development workflow support\n\n🤖 Generated with Claude Code (https://claude.ai/code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\")",
       "Bash(git -C \"/Users/dalecarman/Groove Jones Dropbox/Dale Carman/Projects/dev/trade-strategies\" commit -m \"chore: update Claude Code settings for React development workflow\n\n- Add additional git command permissions for autonomous cleanup\n- Support development workflow patterns\n\n🤖 Generated with Claude Code (https://claude.ai/code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\")",
-      "Bash(npm install)"
+      "Bash(npm install)",
+      "Bash(gh issue view:*)"
     ],
     "deny": []
   }
