@@ -19,47 +19,37 @@ class TradeStatus(str, enum.Enum):
     OPEN = "open"
     CLOSED = "closed"
 
-class User(Base):
-    """User model for authentication."""
-    __tablename__ = "users"
-    
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    email = Column(String(255), unique=True, nullable=False, index=True)
-    created_at = Column(DateTime(timezone=True), server_default=func.now())
-    is_active = Column(Boolean, default=True)
-    
-    # Relationships
-    strategies = relationship("Strategy", back_populates="user")
-    trades = relationship("Trade", back_populates="user")
+# User model removed for Phase 1 - single user application
+# Will be added in Phase 2 for multi-user support
 
 class Strategy(Base):
     """Strategy configuration model."""
     __tablename__ = "strategies"
     
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
     name = Column(String(255), nullable=False)
-    strategy_type = Column(Enum(StrategyType), nullable=False)
-    strikes = Column(JSONB, nullable=False)  # Store strike prices as JSON
-    contracts = Column(Integer, nullable=False, default=1)
+    strategy_type = Column(String(50), nullable=False)  # 'iron_condor', 'bull_call', 'butterfly'
+    symbol = Column(String(10), nullable=False, server_default='SPY')
+    parameters = Column(JSONB, nullable=False)  # Flexible storage for strategy-specific params
+    is_active = Column(Boolean, server_default='true')
     created_at = Column(DateTime(timezone=True), server_default=func.now())
-    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
     
-    # Relationships
-    user = relationship("User", back_populates="strategies")
+    # Relationships (no user for Phase 1)
     backtests = relationship("Backtest", back_populates="strategy")
-    trades = relationship("Trade", back_populates="strategies")
+    trades = relationship("Trade", back_populates="strategy")
 
 class Backtest(Base):
     """Backtest result model."""
     __tablename__ = "backtests"
     
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    strategy_id = Column(UUID(as_uuid=True), ForeignKey("strategies.id"), nullable=False)
-    analysis_date = Column(DateTime, nullable=False)
-    entry_time = Column(String(10), nullable=False)  # "09:30"
-    exit_time = Column(String(10), nullable=False)   # "16:00"
-    results = Column(JSONB, nullable=False)  # P/L, metrics, chart data
+    strategy_id = Column(UUID(as_uuid=True), ForeignKey("strategies.id", ondelete="CASCADE"), nullable=False)
+    start_date = Column(DateTime, nullable=False)
+    end_date = Column(DateTime, nullable=False)
+    timeframe = Column(String(20), nullable=False)  # 'daily', 'weekly', 'monthly'
+    parameters = Column(JSONB, nullable=False)  # Backtest-specific parameters
+    results = Column(JSONB, nullable=False)  # Detailed results including metrics
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     
     # Relationships
@@ -70,23 +60,42 @@ class Trade(Base):
     __tablename__ = "trades"
     
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
-    strategy_id = Column(UUID(as_uuid=True), ForeignKey("strategies.id"), nullable=True)
-    execution_date = Column(DateTime, nullable=False)
-    entry_price = Column(DECIMAL(10, 2), nullable=True)
+    strategy_id = Column(UUID(as_uuid=True), ForeignKey("strategies.id", ondelete="SET NULL"), nullable=True)
+    trade_date = Column(DateTime, nullable=False)
+    entry_time = Column(DateTime, nullable=False)  # Using TIME type for time-only
+    exit_time = Column(DateTime, nullable=True)
+    symbol = Column(String(10), nullable=False, server_default='SPY')
+    strategy_type = Column(String(50), nullable=False)
+    strikes = Column(JSONB, nullable=False)  # Array of strike prices
+    contracts = Column(Integer, nullable=False)
+    entry_price = Column(DECIMAL(10, 2), nullable=False)
     exit_price = Column(DECIMAL(10, 2), nullable=True)
-    pnl = Column(DECIMAL(10, 2), nullable=True)
-    status = Column(Enum(TradeStatus), default=TradeStatus.OPEN)
+    credit_debit = Column(DECIMAL(10, 2), nullable=False)
+    realized_pnl = Column(DECIMAL(10, 2), nullable=True)
+    status = Column(String(20), server_default='open')  # 'open', 'closed'
     notes = Column(Text, nullable=True)
-    contracts = Column(Integer, nullable=False, default=1)
-    
-    # Store original trade data for compatibility
-    strategy_type = Column(String(50), nullable=False)  # For legacy compatibility
-    strikes_data = Column(JSONB, nullable=False)  # Store strikes as JSON
-    
     created_at = Column(DateTime(timezone=True), server_default=func.now())
-    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
     
-    # Relationships
-    user = relationship("User", back_populates="trades")
+    # Relationships (no user for Phase 1)
     strategy = relationship("Strategy", back_populates="trades")
+
+class MarketDataCache(Base):
+    """Market data caching model."""
+    __tablename__ = "market_data_cache"
+    
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    symbol = Column(String(10), nullable=False)
+    data_date = Column(DateTime, nullable=False)
+    data_type = Column(String(50), nullable=False)  # 'intraday', 'daily', 'options'
+    data = Column(JSONB, nullable=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    expires_at = Column(DateTime(timezone=True), nullable=False)
+    
+    # Unique constraint on symbol, data_date, data_type
+    __table_args__ = (
+        Column('symbol', String(10)),
+        Column('data_date', DateTime),
+        Column('data_type', String(50)),
+        {'extend_existing': True}
+    )
