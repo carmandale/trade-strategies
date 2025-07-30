@@ -40,7 +40,8 @@
       "Bash(cd:*)",
       "Bash(cd:*)",
       "Bash(cd:*)",
-      "Bash(cd:*)"
+      "Bash(cd:*)",
+      "Bash(timeout 10s npm run dev)"
     ],
     "deny": []
   }
