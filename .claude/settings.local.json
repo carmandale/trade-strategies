@@ -25,7 +25,11 @@
       "Bash(cp:*)",
       "Bash(gh issue comment:*)",
       "Bash(gh issue close:*)",
-      "Bash(afplay:*)"
+      "Bash(afplay:*)",
+      "mcp__ide__executeCode",
+      "Bash(git -C \"/Users/dalecarman/Groove Jones Dropbox/Dale Carman/Projects/dev/trade-strategies\" status)",
+      "Bash(git -C \"/Users/dalecarman/Groove Jones Dropbox/Dale Carman/Projects/dev/trade-strategies\" add src/)",
+      "Bash(git -C \"/Users/dalecarman/Groove Jones Dropbox/Dale Carman/Projects/dev/trade-strategies\" add .claude/settings.local.json)"
     ],
     "deny": []
   }
