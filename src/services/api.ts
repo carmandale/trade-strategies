@@ -416,7 +416,7 @@ export class ApiService {
   // Get strategy-specific data
   static async getStrategyData(
     strategy: string,
-    params: Record<string, any>
+    params: Record<string, unknown>
   ): Promise<StrategyData> {
     try {
       const response = await fetch(`${API_BASE_URL}/strategy/${strategy}`, {
