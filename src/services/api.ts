@@ -1,7 +1,7 @@
 // API service for connecting React frontend to FastAPI backend
 import { SpreadConfig, AnalysisData, Trade } from '../components/generated/SPYSpreadStrategiesApp';
 
-const API_BASE_URL = 'http://localhost:8000';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
 export interface SpreadAnalysisRequest {
   date: string;
