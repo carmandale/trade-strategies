@@ -2,8 +2,8 @@ import { useMemo } from 'react';
 import { Container, Theme } from './settings/types';
 import SPYSpreadStrategiesApp from './components/generated/SPYSpreadStrategiesApp';
 
-let theme: Theme = 'dark';
-let container: Container = 'none';
+const theme: Theme = 'dark';
+const container: Container = 'none';
 
 function App() {
   function setTheme(theme: Theme) {
