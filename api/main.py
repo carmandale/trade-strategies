@@ -2,7 +2,15 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from api.routes import strategies
+from api.exceptions import setup_exception_handlers
 import os
+import logging
+
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+)
 
 app = FastAPI(
     title="Trade Strategies API",
@@ -29,6 +37,9 @@ app.include_router(trades.router)
 # Import and include backtests router
 from api.routes import backtests
 app.include_router(backtests.router)
+
+# Set up comprehensive error handling
+setup_exception_handlers(app)
 
 @app.get("/")
 async def root():
