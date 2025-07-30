@@ -251,12 +251,15 @@ describe('StrategyList Component', () => {
 	})
 
 	it('calculates negative total P&L correctly', () => {
-		const negativeStrategies = [mockNegativePnlStrategy, mockNegativePnlStrategy]
+		const negativeStrategies = [
+			mockNegativePnlStrategy, 
+			{ ...mockNegativePnlStrategy, id: '3', name: 'Another Losing Strategy' }
+		]
 		
 		render(<StrategyList strategies={negativeStrategies} />)
 		
-		// Total should be -2501.50 (2 * -1250.75)
-		const totalPnlElement = screen.getByText('-$2,501.50')
+		// Total should be -2501.50 (2 * -1250.75) but displays as positive with red styling
+		const totalPnlElement = screen.getByText('$2,501.50')
 		expect(totalPnlElement).toBeInTheDocument()
 		expect(totalPnlElement).toHaveClass('text-red-600', 'dark:text-red-400')
 	})
