@@ -1,6 +1,8 @@
 """SQLAlchemy models for trading strategy application."""
 import uuid
 from datetime import datetime
+from typing import Optional, List, Dict, Any
+from decimal import Decimal
 from sqlalchemy import Column, String, Integer, DECIMAL, Boolean, DateTime, Text, ForeignKey, Enum, UniqueConstraint
 from sqlalchemy.dialects.postgresql import UUID, JSONB
 from sqlalchemy.orm import relationship
