@@ -37,6 +37,7 @@
       "Bash(npm install:*)",
       "Bash(npm run type-check:*)",
       "Bash(npm run dev:*)",
+      "Bash(cd:*)",
       "Bash(cd:*)"
     ],
     "deny": []
