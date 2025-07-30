@@ -89,10 +89,11 @@ class TestDatabaseConnection:
     @pytest.mark.integration
     def test_real_database_connection(self):
         """Test actual database connection (requires PostgreSQL to be running)."""
+        from sqlalchemy import text
         try:
             # Attempt to connect to the database
             with engine.connect() as connection:
-                result = connection.execute("SELECT 1")
+                result = connection.execute(text("SELECT 1"))
                 assert result.scalar() == 1
         except OperationalError as e:
             pytest.skip(f"Database not available: {e}")
@@ -100,11 +101,12 @@ class TestDatabaseConnection:
     @pytest.mark.integration  
     def test_database_session_crud(self):
         """Test basic CRUD operations with a database session."""
+        from sqlalchemy import text
         try:
             db = SessionLocal()
             
             # Test we can execute a simple query
-            result = db.execute("SELECT current_database()")
+            result = db.execute(text("SELECT current_database()"))
             db_name = result.scalar()
             assert db_name is not None
             
