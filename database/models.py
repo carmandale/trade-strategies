@@ -98,6 +98,45 @@ class Backtest(Base):
     
     # Relationships
     strategy = relationship("Strategy", back_populates="backtests")
+    
+    @classmethod
+    def get_by_timeframe(cls, db_session, timeframe: str):
+        """Get backtests by timeframe."""
+        return db_session.query(cls).filter(cls.timeframe == timeframe).all()
+    
+    @classmethod
+    def get_recent_backtests(cls, db_session, limit: int = 10):
+        """Get most recent backtests across all strategies."""
+        return db_session.query(cls).order_by(cls.created_at.desc()).limit(limit).all()
+    
+    def get_win_rate(self) -> Optional[float]:
+        """Extract win rate from results."""
+        return self.results.get('win_rate') if self.results else None
+    
+    def get_total_pnl(self) -> Optional[float]:
+        """Extract total P&L from results."""
+        return self.results.get('total_pnl') if self.results else None
+    
+    def get_sharpe_ratio(self) -> Optional[float]:
+        """Extract Sharpe ratio from results."""
+        return self.results.get('sharpe_ratio') if self.results else None
+    
+    def get_trades_count(self) -> Optional[int]:
+        """Extract trades count from results."""
+        return self.results.get('trades_count') if self.results else None
+    
+    def to_dict(self) -> Dict[str, Any]:
+        """Convert backtest to dictionary."""
+        return {
+            'id': str(self.id),
+            'strategy_id': str(self.strategy_id),
+            'start_date': self.start_date.isoformat() if self.start_date else None,
+            'end_date': self.end_date.isoformat() if self.end_date else None,
+            'timeframe': self.timeframe,
+            'parameters': self.parameters,
+            'results': self.results,
+            'created_at': self.created_at.isoformat() if self.created_at else None
+        }
 
 class Trade(Base):
     """Actual trade execution model."""
