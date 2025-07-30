@@ -279,7 +279,7 @@ class TestSchemaValidation:
                 # Test valid strategy type
                 result = db.execute(text("""
                     INSERT INTO strategies (name, strategy_type, parameters) 
-                    VALUES ('Valid Type Test', 'iron_condor', '{}')
+                    VALUES ('Valid Type Test', 'iron_condor', '{"strikes": [420, 425]}')
                     RETURNING strategy_type
                 """))
                 
