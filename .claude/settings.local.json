@@ -22,7 +22,9 @@
       "Bash(playwright install:*)",
       "Bash(curl:*)",
       "Bash(pkill:*)",
-      "Bash(cp:*)"
+      "Bash(cp:*)",
+      "Bash(gh issue comment:*)",
+      "Bash(gh issue close:*)"
     ],
     "deny": []
   }
