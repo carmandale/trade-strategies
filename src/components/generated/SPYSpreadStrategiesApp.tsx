@@ -138,30 +138,27 @@ const SPYSpreadStrategiesApp: React.FC = () => {
     setIsAnalyzing(true);
     
     try {
-      // Get current strategy data from API
-      const [ironCondorData, bullCallData] = await Promise.all([
-        apiService.getStrategyData('iron_condor', {
-          symbol: 'SPY',
-          timeframe: 'daily',
-          put_short: spreadConfig.ironCondorPutShort,
-          put_long: spreadConfig.ironCondorPutLong,
-          call_short: spreadConfig.ironCondorCallShort,
-          call_long: spreadConfig.ironCondorCallLong,
-          contracts: contracts
-        }),
-        apiService.getStrategyData('bull_call', {
-          symbol: 'SPY',
-          timeframe: 'daily',
-          lower_strike: spreadConfig.bullCallLower,
-          upper_strike: spreadConfig.bullCallUpper,
-          contracts: contracts
-        })
-      ]);
+      // Call the actual /analyze endpoint
+      const analysisData = await apiService.analyzeStrategies(
+        selectedDate,
+        spreadConfig,
+        contracts,
+        entryTime,
+        exitTime
+      );
 
-      // Transform API data to match our interface
-      const realAnalysis: AnalysisData = {
-        bullCall: {
-          maxProfit: bullCallData.max_profit,
+      setAnalysisData(analysisData);
+      
+      // Also fetch chart data
+      const chartData = await apiService.getChartData(
+        selectedDate,
+        spreadConfig,
+        contracts,
+        entryTime,
+        exitTime
+      );
+      
+      setChartData(chartData);
           maxLoss: Math.abs(bullCallData.max_loss),
           breakeven: bullCallData.breakeven_points[0] || spreadConfig.bullCallLower + 1.5,
           riskReward: bullCallData.risk_reward_ratio
