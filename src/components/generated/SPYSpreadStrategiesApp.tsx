@@ -99,26 +99,40 @@ const SPYSpreadStrategiesApp: React.FC = () => {
     return () => clearInterval(interval);
   }, []);
 
-  // Generate mock chart data
+  // Fetch real historical chart data
   useEffect(() => {
-    const generateChartData = () => {
-      const data: {
-        time: string;
-        price: number;
-        volume: number;
-      }[] = [];
-      const basePrice = spyPrice;
-      for (let i = 0; i < 100; i++) {
-        const variation = Math.sin(i * 0.1) * 5 + (Math.random() - 0.5) * 3;
-        data.push({
-          time: new Date(Date.now() - (100 - i) * 60000).toISOString(),
-          price: basePrice + variation,
-          volume: Math.floor(Math.random() * 1000000) + 500000
-        });
+    const fetchChartData = async () => {
+      try {
+        const historicalData = await apiService.getHistoricalData('SPY', '1d', '1m');
+        // Transform the API data to match our chart format
+        const transformedData = historicalData.map(point => ({
+          time: point.timestamp,
+          price: point.close,
+          volume: point.volume
+        }));
+        setChartData(transformedData);
+      } catch (error) {
+        console.error('Failed to fetch chart data:', error);
+        // Fallback to mock data generation
+        const data: {
+          time: string;
+          price: number;
+          volume: number;
+        }[] = [];
+        const basePrice = spyPrice;
+        for (let i = 0; i < 100; i++) {
+          const variation = Math.sin(i * 0.1) * 5 + (Math.random() - 0.5) * 3;
+          data.push({
+            time: new Date(Date.now() - (100 - i) * 60000).toISOString(),
+            price: basePrice + variation,
+            volume: Math.floor(Math.random() * 1000000) + 500000
+          });
+        }
+        setChartData(data);
       }
-      return data;
     };
-    setChartData(generateChartData());
+    
+    fetchChartData();
   }, [spyPrice, selectedDate]);
   const handleAnalyzeStrategies = async () => {
     setIsAnalyzing(true);
