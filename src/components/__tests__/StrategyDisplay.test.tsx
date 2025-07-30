@@ -261,9 +261,11 @@ describe('StrategyList Component', () => {
 		render(<StrategyList strategies={negativeStrategies} />)
 		
 		// Total should be -2501.50 (2 * -1250.75) - check for negative value text and its styling
-		expect(screen.getByText('-2,501.50')).toBeInTheDocument()
-		// Check that the parent div has the correct red styling
-		const totalPnlContainer = screen.getByText('-2,501.50').parentElement
+		// Use a text matcher function to handle the split text nodes
+		const totalPnlContainer = screen.getByText((content, element) => {
+			return element?.textContent === '$-2,501.50'
+		})
+		expect(totalPnlContainer).toBeInTheDocument()
 		expect(totalPnlContainer).toHaveClass('text-2xl', 'font-bold', 'text-red-600', 'dark:text-red-400')
 	})
 
