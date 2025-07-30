@@ -327,8 +327,11 @@ const StrikePriceConfigSection: React.FC<StrikePriceConfigSectionProps> = ({
               Body Strike (2x)
             </label>
             <input type="number" step="0.5" value={spreadConfig.butterflyBody} onChange={e => updateSpreadConfig('butterflyBody', parseFloat(e.target.value) || 0)} className="w-full bg-slate-700/50 border border-slate-600/50 rounded-xl px-4 py-3 text-slate-100 focus:outline-none focus:ring-2 focus:ring-yellow-500/50 focus:border-yellow-500/50 transition-all duration-200" />
-            <div className="mt-1 text-xs text-slate-500">
-              {getDistanceFromCurrent(spreadConfig.butterflyBody)}
+            <div className="mt-1 text-xs text-slate-500 flex justify-between">
+              <span>{getDistanceFromCurrent(spreadConfig.butterflyBody)}</span>
+              <span className="text-yellow-300 font-mono">
+                {formatDelta(calculateStrikeDelta(spreadConfig.butterflyBody, true))}
+              </span>
             </div>
           </div>
 
