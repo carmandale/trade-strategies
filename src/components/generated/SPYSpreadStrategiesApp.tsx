@@ -4,6 +4,7 @@ import HeaderSection from './HeaderSection';
 import InputControlsSection from './InputControlsSection';
 import StrikePriceConfigSection from './StrikePriceConfigSection';
 import AnalysisAndChartSection from './AnalysisAndChartSection';
+import { apiService, type StrategyData, type BacktestResult } from '../../services/api';
 export interface Trade {
   id: string;
   date: string;
