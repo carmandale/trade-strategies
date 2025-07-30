@@ -274,3 +274,68 @@ class MarketDataCache(Base):
     __table_args__ = (
         UniqueConstraint('symbol', 'data_date', 'data_type'),
     )
+    
+    @classmethod
+    def get_cached_data(cls, db_session, symbol: str, data_date: datetime, data_type: str):
+        """Get cached data if not expired."""
+        entry = db_session.query(cls).filter(
+            cls.symbol == symbol,
+            cls.data_date == data_date,
+            cls.data_type == data_type,
+            cls.expires_at > datetime.utcnow()
+        ).first()
+        return entry.data if entry else None
+    
+    @classmethod
+    def cache_data(cls, db_session, symbol: str, data_date: datetime, data_type: str, 
+                   data: Dict[str, Any], expires_at: datetime):
+        """Cache market data with expiration."""
+        # Delete existing entry if it exists
+        existing = db_session.query(cls).filter(
+            cls.symbol == symbol,
+            cls.data_date == data_date,
+            cls.data_type == data_type
+        ).first()
+        if existing:
+            db_session.delete(existing)
+        
+        # Create new cache entry
+        cache_entry = cls(
+            symbol=symbol,
+            data_date=data_date,
+            data_type=data_type,
+            data=data,
+            expires_at=expires_at
+        )
+        db_session.add(cache_entry)
+        return cache_entry
+    
+    @classmethod
+    def cleanup_expired(cls, db_session) -> int:
+        """Remove expired cache entries."""
+        count = db_session.query(cls).filter(
+            cls.expires_at <= datetime.utcnow()
+        ).count()
+        
+        db_session.query(cls).filter(
+            cls.expires_at <= datetime.utcnow()
+        ).delete()
+        
+        return count
+    
+    def is_expired(self) -> bool:
+        """Check if cache entry is expired."""
+        return self.expires_at <= datetime.utcnow()
+    
+    def to_dict(self) -> Dict[str, Any]:
+        """Convert cache entry to dictionary."""
+        return {
+            'id': str(self.id),
+            'symbol': self.symbol,
+            'data_date': self.data_date.isoformat() if self.data_date else None,
+            'data_type': self.data_type,
+            'data': self.data,
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+            'expires_at': self.expires_at.isoformat() if self.expires_at else None,
+            'is_expired': self.is_expired()
+        }
