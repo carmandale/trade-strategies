@@ -214,7 +214,7 @@ class TestDatabaseSchema:
                 # Test that we can create a basic strategy with defaults
                 result = db.execute(text("""
                     INSERT INTO strategies (name, strategy_type, parameters) 
-                    VALUES ('Test Strategy', 'iron_condor', '{}')
+                    VALUES ('Test Strategy', 'iron_condor', '{"strikes": [420, 425, 430, 435]}')
                     RETURNING id, symbol, is_active, created_at
                 """))
                 
