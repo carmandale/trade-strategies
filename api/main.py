@@ -26,6 +26,10 @@ app.include_router(strategies.router)
 from api.routes import trades
 app.include_router(trades.router)
 
+# Import and include backtests router
+from api.routes import backtests
+app.include_router(backtests.router)
+
 @app.get("/")
 async def root():
     return {"message": "Trade Strategies API", "version": "1.0.0"}
