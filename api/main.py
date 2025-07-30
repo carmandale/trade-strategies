@@ -1,6 +1,7 @@
 """FastAPI application for trading strategy backtesting."""
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from api.routes import strategies
 import os
 
 app = FastAPI(
@@ -17,6 +18,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Include routers
+app.include_router(strategies.router)
 
 @app.get("/")
 async def root():
