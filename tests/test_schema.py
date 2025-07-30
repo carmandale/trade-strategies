@@ -79,7 +79,7 @@ class TestDatabaseSchema:
             column_types = {col['name']: str(col['type']) for col in columns}
             assert 'UUID' in column_types['id']
             assert 'JSONB' in column_types['strikes']
-            assert 'DECIMAL' in column_types['entry_price']
+            assert 'NUMERIC' in column_types['entry_price']  # PostgreSQL uses NUMERIC for DECIMAL
             assert 'INTEGER' in column_types['contracts']
             
         except OperationalError as e:
