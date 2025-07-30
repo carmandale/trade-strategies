@@ -43,7 +43,8 @@
       "Bash(cd:*)",
       "Bash(timeout 10s npm run dev)",
       "Bash(npm run:*)",
-      "Bash(tsc --noEmit)"
+      "Bash(tsc --noEmit)",
+      "Bash(npx tsc:*)"
     ],
     "deny": []
   }
