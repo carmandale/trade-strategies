@@ -1,11 +1,16 @@
-"""Strategy backtesting API routes."""
-from fastapi import APIRouter, HTTPException
-from pydantic import BaseModel
-from typing import Optional, List
+"""Strategy backtesting API routes with database integration."""
+from fastapi import APIRouter, HTTPException, Depends, Query
+from pydantic import BaseModel, Field
+from sqlalchemy.orm import Session
+from typing import Optional, List, Dict, Any
 from enum import Enum
+from decimal import Decimal
+from datetime import datetime, timedelta, date
 import yfinance as yf
-from datetime import datetime, timedelta
 import pandas as pd
+
+from database.config import get_db
+from database.models import Strategy, Backtest, Trade
 
 router = APIRouter(prefix="/api/strategies", tags=["strategies"])
 
@@ -18,11 +23,41 @@ class StrategyType(str, Enum):
     IRON_CONDOR = "iron_condor"
     BULL_CALL = "bull_call"
 
+# Database-backed strategy models
+class StrategyCreate(BaseModel):
+    """Request model for creating a new strategy."""
+    name: str = Field(..., min_length=1, max_length=100)
+    strategy_type: StrategyType
+    symbol: str = Field(default="SPY", min_length=1, max_length=10)
+    parameters: Dict[str, Any] = Field(default_factory=dict)
+    is_active: bool = Field(default=True)
+
+class StrategyUpdate(BaseModel):
+    """Request model for updating a strategy."""
+    name: Optional[str] = Field(None, min_length=1, max_length=100)
+    parameters: Optional[Dict[str, Any]] = None
+    is_active: Optional[bool] = None
+
+class StrategyResponse(BaseModel):
+    """Response model for strategy data."""
+    id: str
+    name: str
+    strategy_type: str
+    symbol: str
+    parameters: Dict[str, Any]
+    is_active: bool
+    created_at: datetime
+    updated_at: datetime
+    
+    class Config:
+        from_attributes = True
+
 class BacktestRequest(BaseModel):
     symbol: str = "SPY"
     strategy_type: StrategyType
     timeframe: TimeFrame
     days_back: int = 30
+    strategy_id: Optional[str] = None
 
 class BacktestResult(BaseModel):
     symbol: str
