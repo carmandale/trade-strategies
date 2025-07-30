@@ -40,6 +40,48 @@ class Strategy(Base):
     # Relationships (no user for Phase 1)
     backtests = relationship("Backtest", back_populates="strategy")
     trades = relationship("Trade", back_populates="strategy")
+    
+    @classmethod
+    def get_active_strategies(cls, db_session):
+        """Get all active strategies."""
+        return db_session.query(cls).filter(cls.is_active == True).all()
+    
+    @classmethod
+    def get_by_type(cls, db_session, strategy_type: str):
+        """Get strategies by type."""
+        return db_session.query(cls).filter(cls.strategy_type == strategy_type).all()
+    
+    def get_recent_backtests(self, db_session, limit: int = 5):
+        """Get recent backtests for this strategy."""
+        return db_session.query(Backtest).filter(
+            Backtest.strategy_id == self.id
+        ).order_by(Backtest.created_at.desc()).limit(limit).all()
+    
+    def get_trades_count(self, db_session) -> int:
+        """Get total number of trades for this strategy."""
+        return db_session.query(Trade).filter(Trade.strategy_id == self.id).count()
+    
+    def calculate_total_pnl(self, db_session) -> Optional[Decimal]:
+        """Calculate total realized P&L for this strategy."""
+        from sqlalchemy import func
+        result = db_session.query(func.sum(Trade.realized_pnl)).filter(
+            Trade.strategy_id == self.id,
+            Trade.realized_pnl.isnot(None)
+        ).scalar()
+        return result if result is not None else Decimal('0.00')
+    
+    def to_dict(self) -> Dict[str, Any]:
+        """Convert strategy to dictionary."""
+        return {
+            'id': str(self.id),
+            'name': self.name,
+            'strategy_type': self.strategy_type,
+            'symbol': self.symbol,
+            'parameters': self.parameters,
+            'is_active': self.is_active,
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+            'updated_at': self.updated_at.isoformat() if self.updated_at else None
+        }
 
 class Backtest(Base):
     """Backtest result model."""
