@@ -116,6 +116,18 @@ const SPYSpreadStrategiesApp: React.FC = () => {
     return () => clearInterval(interval);
   }, []);
 
+  // Update strikes when SPY price changes significantly (>$5 move to new strike level)
+  useEffect(() => {
+    const currentRounded = roundToNearestFive(spyPrice);
+    const configRounded = roundToNearestFive(spreadConfig.butterflyBody); // Use butterfly body as ATM reference
+    
+    // Only update if price moved to a different $5 strike level
+    if (Math.abs(currentRounded - configRounded) >= 5) {
+      console.log(`SPY moved to new strike level: ${configRounded} → ${currentRounded}, updating strikes`);
+      setSpreadConfig(calculateStrikes(spyPrice));
+    }
+  }, [spyPrice, spreadConfig.butterflyBody]);
+
   // Fetch real historical chart data
   useEffect(() => {
     const fetchChartData = async () => {
