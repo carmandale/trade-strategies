@@ -168,7 +168,9 @@ describe('StrategyList Component', () => {
 		render(<StrategyList strategies={[]} loading={true} />)
 		
 		expect(screen.getByText('Loading strategies...')).toBeInTheDocument()
-		expect(screen.getByRole('status', { hidden: true })).toBeInTheDocument() // Loader2 icon
+		// Check that loading spinner is present (Loader2 icon)
+		const loader = document.querySelector('.animate-spin')
+		expect(loader).toBeInTheDocument()
 	})
 
 	it('renders error state correctly', () => {
