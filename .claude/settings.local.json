@@ -39,6 +39,7 @@
       "Bash(npm run dev:*)",
       "Bash(cd:*)",
       "Bash(cd:*)",
+      "Bash(cd:*)",
       "Bash(cd:*)"
     ],
     "deny": []
