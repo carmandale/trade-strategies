@@ -8,11 +8,18 @@ from dotenv import load_dotenv
 # Load environment variables
 load_dotenv()
 
+def get_database_url():
+    """Construct database URL from environment variables."""
+    db_user = os.getenv("DB_USER", "postgres")
+    db_password = os.getenv("DB_PASSWORD", "postgres")
+    db_host = os.getenv("DB_HOST", "localhost")
+    db_port = os.getenv("DB_PORT", "5432")
+    db_name = os.getenv("DB_NAME", "trade_strategies")
+    
+    return f"postgresql://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}"
+
 # Database configuration
-DATABASE_URL = os.getenv(
-    "DATABASE_URL", 
-    "postgresql://postgres:postgres@localhost:5432/trade_strategies"
-)
+DATABASE_URL = os.getenv("DATABASE_URL", get_database_url())
 
 # SQLAlchemy engine with connection pooling
 engine = create_engine(
@@ -32,13 +39,17 @@ Base = declarative_base()
 # Metadata for migrations
 metadata = MetaData()
 
-def get_db_session():
-    """Get database session with automatic cleanup."""
+def get_db():
+    """Get database session with automatic cleanup. 
+    This matches the FastAPI dependency injection pattern."""
     db = SessionLocal()
     try:
         yield db
     finally:
         db.close()
+
+# Keep the old name for backward compatibility
+get_db_session = get_db
 
 def create_tables():
     """Create all tables in the database."""
