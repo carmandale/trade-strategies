@@ -50,7 +50,8 @@
       "Bash(timeout:*)",
       "Bash(uv run:*)",
       "Bash(kill:*)",
-      "Bash(uv add:*)"
+      "Bash(uv add:*)",
+      "Bash(alembic revision:*)"
     ],
     "deny": []
   }
