@@ -27,11 +27,10 @@ FRONTEND_PORT=${PORT:-3000}
 # Backend startup
 echo ""
 echo "📡 Starting Backend Server on port $BACKEND_PORT..."
-cd backend 2>/dev/null || echo "Backend directory will be created in Phase 1"
 
-if [ -d . ] && [ -f "main.py" ]; then
-    source .venv/bin/activate || uv venv && source .venv/bin/activate
-    uv pip install -r requirements.txt 2>/dev/null || echo "Requirements.txt will be created in Phase 1"
+if [ -f "main.py" ]; then
+    echo "✅ FastAPI backend found - starting on port $BACKEND_PORT"
+    source .venv/bin/activate 2>/dev/null || echo "Virtual environment will be activated"
     uv run uvicorn main:app --reload --port $BACKEND_PORT &
 else
     echo "⚠️  Backend not yet implemented - will be created in Phase 1"
@@ -39,15 +38,12 @@ fi
 
 # Frontend startup  
 echo ""
-echo "🎨 Starting Frontend Server..."
-# Navigate back to project root where React app is located
-cd .. 2>/dev/null || cd . 2>/dev/null
+echo "🎨 Starting Frontend Server on port $FRONTEND_PORT..."
 
 if [ -f "package.json" ]; then
-    echo "✅ React frontend found - starting on default Vite port (5173)"
+    echo "✅ React frontend found - starting on port $FRONTEND_PORT"
     npm install 2>/dev/null || echo "Dependencies already installed"
-    npm run dev &
-    FRONTEND_PORT=5173  # Vite default port
+    PORT=$FRONTEND_PORT npm run dev &
 else
     echo "⚠️  Frontend package.json not found"
 fi
