@@ -48,7 +48,8 @@
       "Bash(true)",
       "Bash(./start.sh:*)",
       "Bash(timeout:*)",
-      "Bash(uv run:*)"
+      "Bash(uv run:*)",
+      "Bash(kill:*)"
     ],
     "deny": []
   }
