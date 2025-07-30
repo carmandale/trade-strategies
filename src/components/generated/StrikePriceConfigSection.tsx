@@ -19,6 +19,36 @@ const StrikePriceConfigSection: React.FC<StrikePriceConfigSectionProps> = ({
       [field]: value
     });
   };
+
+  // Calculate time to expiration (assuming weekly options for now)
+  const timeToExpiration = calculateTimeToExpiration(getExpirationDate('weekly'));
+  
+  // Function to calculate delta for a given strike
+  const calculateStrikeDelta = (strike: number, isCall: boolean): number => {
+    return calculateDelta(currentPrice, strike, timeToExpiration, 0.05, 0.20, isCall);
+  };
+
+  // Function to format delta display
+  const formatDelta = (delta: number): string => {
+    return `Δ${(delta * 100).toFixed(0)}`;
+  };
+
+  // Function to apply delta strategy presets
+  const applyDeltaStrategy = (strategy: typeof DELTA_STRATEGIES[0]) => {
+    if (!strategy.putDelta || !strategy.callDelta) return;
+    
+    const putStrike = findStrikeForDelta(currentPrice, strategy.putDelta, timeToExpiration, 0.05, 0.20, false);
+    const callStrike = findStrikeForDelta(currentPrice, strategy.callDelta, timeToExpiration, 0.05, 0.20, true);
+    
+    // Update Iron Condor strikes based on delta
+    setSpreadConfig({
+      ...spreadConfig,
+      ironCondorPutShort: putStrike,
+      ironCondorPutLong: putStrike - 10,
+      ironCondorCallShort: callStrike,
+      ironCondorCallLong: callStrike + 10
+    });
+  };
   const validateBullCall = (): {
     isValid: boolean;
     error?: string;
