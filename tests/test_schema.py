@@ -105,7 +105,7 @@ class TestDatabaseSchema:
             # Check specific column types
             column_types = {col['name']: str(col['type']) for col in columns}
             assert 'UUID' in column_types['id']
-            assert 'DATE' in column_types['start_date']
+            assert 'TIMESTAMP' in column_types['start_date']  # We use TIMESTAMP, not DATE
             assert 'JSONB' in column_types['parameters']
             assert 'JSONB' in column_types['results']
             
