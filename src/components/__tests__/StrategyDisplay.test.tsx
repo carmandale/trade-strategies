@@ -212,9 +212,10 @@ describe('StrategyList Component', () => {
 		expect(screen.getByText('SPY Iron Condor Daily')).toBeInTheDocument()
 		expect(screen.getByText('Losing Strategy')).toBeInTheDocument()
 		
-		// Check grid container exists
-		const gridContainer = document.querySelector('.grid.grid-cols-1.lg\\:grid-cols-2.xl\\:grid-cols-3')
+		// Check grid container exists (use simpler selector)
+		const gridContainer = document.querySelector('.grid')
 		expect(gridContainer).toBeInTheDocument()
+		expect(gridContainer).toHaveClass('grid-cols-1', 'lg:grid-cols-2', 'xl:grid-cols-3')
 	})
 
 	it('handles strategy selection correctly', async () => {
