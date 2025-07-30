@@ -1,7 +1,8 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Target, TrendingUp, Zap, AlertTriangle } from 'lucide-react';
+import { Target, TrendingUp, Zap, AlertTriangle, Activity } from 'lucide-react';
 import { SpreadConfig } from './SPYSpreadStrategiesApp';
+import { calculateDelta, calculateTimeToExpiration, getExpirationDate, findStrikeForDelta, DELTA_STRATEGIES } from '../../utils/optionsCalculations';
 interface StrikePriceConfigSectionProps {
   spreadConfig: SpreadConfig;
   setSpreadConfig: (config: SpreadConfig) => void;
