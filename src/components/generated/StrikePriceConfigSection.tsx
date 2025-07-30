@@ -239,6 +239,9 @@ const StrikePriceConfigSection: React.FC<StrikePriceConfigSectionProps> = ({
             <div>
               <label className="block text-xs text-slate-400 mb-1">Long Put</label>
               <input type="number" step="0.5" value={spreadConfig.ironCondorPutLong} onChange={e => updateSpreadConfig('ironCondorPutLong', parseFloat(e.target.value) || 0)} className="w-full bg-slate-700/50 border border-slate-600/50 rounded-lg px-3 py-2 text-slate-100 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50 transition-all duration-200" />
+              <div className="mt-1 text-xs text-purple-300 font-mono">
+                {formatDelta(calculateStrikeDelta(spreadConfig.ironCondorPutLong, false))}
+              </div>
             </div>
             <div>
               <label className="block text-xs text-slate-400 mb-1">Short Put</label>
