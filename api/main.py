@@ -22,6 +22,10 @@ app.add_middleware(
 # Include routers
 app.include_router(strategies.router)
 
+# Import and include trades router
+from api.routes import trades
+app.include_router(trades.router)
+
 @app.get("/")
 async def root():
     return {"message": "Trade Strategies API", "version": "1.0.0"}
