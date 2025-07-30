@@ -36,7 +36,8 @@
       "Bash(gh issue view:*)",
       "Bash(npm install:*)",
       "Bash(npm run type-check:*)",
-      "Bash(npm run dev:*)"
+      "Bash(npm run dev:*)",
+      "Bash(cd:*)"
     ],
     "deny": []
   }
