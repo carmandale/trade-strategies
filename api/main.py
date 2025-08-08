@@ -40,7 +40,11 @@ app.include_router(backtests.router)
 
 # Import and include Iron Condor strategy router
 from api.routes import iron_condor
+from api.routes import market_data
+from api.routes import trade_tickets
 app.include_router(iron_condor.router)
+app.include_router(market_data.router)
+app.include_router(trade_tickets.router)
 
 # Set up comprehensive error handling
 setup_exception_handlers(app)
