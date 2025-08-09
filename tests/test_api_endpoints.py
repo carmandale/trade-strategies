@@ -27,6 +27,9 @@ def test_market_current_price_endpoint():
         body = resp.json()
         assert set(body.keys()) == {"symbol", "price", "timestamp"}
         assert body["symbol"] == "SPY"
+        # Re-hit should prefer cache and still be 200
+        resp2 = client.get("/api/market/current_price/SPY")
+        assert resp2.status_code == 200
 
 
 def test_market_historical_data_endpoint():
@@ -35,6 +38,9 @@ def test_market_historical_data_endpoint():
     if resp.status_code == 200:
         body = resp.json()
         assert isinstance(body.get("data", []), list)
+        # Cache hit
+        resp2 = client.get("/api/market/historical_data/SPY?period=1d&interval=1m")
+        assert resp2.status_code == 200
 
 
 def test_trade_ticket_endpoint_shape():
