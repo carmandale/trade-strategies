@@ -11,7 +11,11 @@ except NameError:  # pragma: no cover
 from sqlalchemy.orm import declarative_base
 from sqlalchemy.orm import sessionmaker
 from dotenv import load_dotenv
-from psycopg2.extras import Json as PsycoJson  # type: ignore
+# Optional JSON binder from psycopg2 if available
+try:  # pragma: no cover - optional dependency in CI
+    from psycopg2.extras import Json as PsycoJson  # type: ignore
+except Exception:  # pragma: no cover
+    PsycoJson = None  # type: ignore
 
 # Load environment variables
 load_dotenv()
@@ -91,7 +95,7 @@ if os.getenv("AUTO_CREATE_TABLES", "false").lower() == "true":
 def _adapt_json_params(conn, cursor, statement, parameters, context, executemany):  # type: ignore[override]
     def _convert(value):
         if isinstance(value, (dict, list)):
-            return PsycoJson(value)
+            return PsycoJson(value) if PsycoJson is not None else json.dumps(value)
         return value
 
     if isinstance(parameters, (list, tuple)):

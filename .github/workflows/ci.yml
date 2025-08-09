@@ -45,6 +45,7 @@ jobs:
           . .venv/bin/activate
           uv pip install -r requirements.txt
           uv pip install pytest
+          uv pip install psycopg2-binary
       - name: Run pytest
         env:
           DB_USER: postgres
