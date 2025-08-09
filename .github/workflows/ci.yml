@@ -44,6 +44,7 @@ jobs:
           uv venv
           . .venv/bin/activate
           uv pip install -r requirements.txt
+          uv pip install pytest
       - name: Run pytest
         env:
           DB_USER: postgres
@@ -66,7 +67,7 @@ jobs:
           node-version: '20'
           cache: 'npm'
       - name: Install deps
-        run: npm ci
+        run: npm ci --legacy-peer-deps
       - name: Run Vitest
         run: npm run test:run
 
