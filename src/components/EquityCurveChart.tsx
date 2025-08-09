@@ -133,7 +133,7 @@ export const EquityCurveChart: React.FC<EquityCurveChartProps> = ({
 
 	if (loading) {
 		return (
-			<div className={`bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6 ${className}`}>
+    <div className={`bg-white dark:bg-gray-800 dark-bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6 ${className}`}>
 				<div className="flex items-center justify-center" style={{ height }}>
 					<div className="text-center">
 						<Loader2 className="animate-spin h-8 w-8 text-blue-600 mx-auto mb-2" />
@@ -307,9 +307,9 @@ export const EquityCurveChart: React.FC<EquityCurveChartProps> = ({
 					{data.length} data points • {formatDate(data[0].date)} to {formatDate(data[data.length - 1].date)}
 				</span>
 				<div className="flex items-center space-x-4">
-					<div className="flex items-center space-x-1">
-						<div className="w-3 h-0.5 bg-green-500"></div>
-						<span>Equity Curve</span>
+                    <div className="flex items-center space-x-1" aria-label="Equity Curve Legend">
+                        <div className="w-3 h-0.5 bg-green-500"></div>
+                        <span>Equity</span>
 					</div>
 					<div className="flex items-center space-x-1">
 						<div className="w-3 h-0.5 bg-gray-400 opacity-60" style={{ backgroundImage: 'repeating-linear-gradient(to right, transparent, transparent 2px, currentColor 2px, currentColor 4px)' }}></div>

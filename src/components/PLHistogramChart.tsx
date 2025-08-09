@@ -103,7 +103,7 @@ export const PLHistogramChart: React.FC<PLHistogramChartProps> = ({
 
 	if (loading) {
 		return (
-			<div className={`bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6 ${className}`}>
+        <div className={`bg-white dark:bg-gray-800 dark-bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6 ${className}`}>
 				<div className="flex items-center justify-center" style={{ height }}>
 					<div className="text-center">
 						<Loader2 className="animate-spin h-8 w-8 text-blue-600 mx-auto mb-2" />
@@ -143,17 +143,12 @@ export const PLHistogramChart: React.FC<PLHistogramChartProps> = ({
 						Profit/Loss Distribution
 					</h3>
 					{stats && (
-						<div className="flex items-center space-x-4 mt-1">
-							<span className="text-sm text-gray-600 dark:text-gray-400">
-								Win Rate:
-							</span>
-							<span className="text-sm font-medium text-green-600 dark:text-green-400">
-								{stats.winRate}%
-							</span>
-							<span className="text-sm text-gray-600 dark:text-gray-400">
-								Total Trades: {stats.totalTrades}
-							</span>
-						</div>
+                        <div className="flex items-center space-x-4 mt-1">
+                            <span className="text-sm text-gray-600 dark:text-gray-400">Win Rate:</span>
+                            <span className="text-sm font-medium text-green-600 dark:text-green-400">{stats.winRate}%</span>
+                            <span className="text-sm text-gray-600 dark:text-gray-400">Total Trades:</span>
+                            <span className="text-sm font-medium text-gray-900 dark:text-gray-100" aria-label="Total Trades Value">{stats.totalTrades}</span>
+                        </div>
 					)}
 				</div>
 			</div>
@@ -210,13 +205,11 @@ export const PLHistogramChart: React.FC<PLHistogramChartProps> = ({
 					<h4 className="text-sm font-medium text-gray-900 dark:text-gray-100 mb-3">
 						Distribution Statistics
 					</h4>
-					<div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
-						<div>
-							<span className="text-gray-600 dark:text-gray-400">Total Trades:</span>
-							<div className="font-medium text-gray-900 dark:text-gray-100">
-								{stats.totalTrades}
-							</div>
-						</div>
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
+                        <div>
+                            <span className="text-gray-600 dark:text-gray-400">Total Trades:</span>
+                            <div className="font-medium text-gray-900 dark:text-gray-100" aria-label="Distribution Total Trades">{stats.totalTrades}</div>
+                        </div>
 						<div>
 							<span className="text-gray-600 dark:text-gray-400">Win Rate:</span>
 							<div className="font-medium text-green-600 dark:text-green-400">

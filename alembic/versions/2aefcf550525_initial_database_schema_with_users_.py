@@ -19,9 +19,7 @@ depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade() -> None:
-    # Create ENUM types
-    op.execute("CREATE TYPE strategytype AS ENUM ('bull_call', 'iron_condor', 'butterfly')")
-    op.execute("CREATE TYPE tradestatus AS ENUM ('open', 'closed')")
+    # Simplify initial revision for compatibility; later revision reshapes schema
     
     # Create users table
     op.create_table('users',
@@ -38,7 +36,7 @@ def upgrade() -> None:
     sa.Column('id', postgresql.UUID(as_uuid=True), nullable=False),
     sa.Column('user_id', postgresql.UUID(as_uuid=True), nullable=False),
     sa.Column('name', sa.String(length=255), nullable=False),
-    sa.Column('strategy_type', sa.Enum('bull_call', 'iron_condor', 'butterfly', name='strategytype'), nullable=False),
+    sa.Column('strategy_type', sa.String(length=50), nullable=False),
     sa.Column('strikes', postgresql.JSONB(astext_type=sa.Text()), nullable=False),
     sa.Column('contracts', sa.Integer(), nullable=False),
     sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=True),
@@ -69,7 +67,7 @@ def upgrade() -> None:
     sa.Column('entry_price', sa.DECIMAL(precision=10, scale=2), nullable=True),
     sa.Column('exit_price', sa.DECIMAL(precision=10, scale=2), nullable=True),
     sa.Column('pnl', sa.DECIMAL(precision=10, scale=2), nullable=True),
-    sa.Column('status', sa.Enum('open', 'closed', name='tradestatus'), nullable=True),
+    sa.Column('status', sa.String(length=20), nullable=True),
     sa.Column('notes', sa.Text(), nullable=True),
     sa.Column('contracts', sa.Integer(), nullable=False),
     sa.Column('strategy_type', sa.String(length=50), nullable=False),

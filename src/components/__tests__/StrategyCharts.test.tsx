@@ -1,6 +1,6 @@
 // Comprehensive tests for strategy visualization components
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen, fireEvent } from '@testing-library/react'
+import { render, screen, fireEvent, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { EquityCurveChart } from '../EquityCurveChart'
 import { PLHistogramChart } from '../PLHistogramChart'
@@ -146,9 +146,14 @@ describe('PLHistogramChart Component', () => {
   it('displays statistics summary', () => {
     render(<PLHistogramChart data={mockPLDistribution} showStats={true} />)
     
-    expect(screen.getByText('Distribution Statistics')).toBeInTheDocument()
-    expect(screen.getByText(/Total Trades:/)).toBeInTheDocument()
-    expect(screen.getByText(/Most Common Range:/)).toBeInTheDocument()
+    // Verify the statistics section and query within that container to avoid duplicate labels elsewhere
+    const statsHeader = screen.getByText('Distribution Statistics')
+    expect(statsHeader).toBeInTheDocument()
+    const statsSection = statsHeader.closest('div') as HTMLElement
+    expect(statsSection).toBeTruthy()
+
+    expect(within(statsSection).getByText(/Total Trades:/)).toBeInTheDocument()
+    expect(within(statsSection).getByText(/Most Common Range:/)).toBeInTheDocument()
   })
 })
 
@@ -318,8 +323,8 @@ describe('Chart Integration Tests', () => {
       </div>
     )
     
-    // Check for consistent dark mode support
-    const charts = container.querySelectorAll('.dark\\\\:bg-gray-800')
+    // Check for consistent dark mode support without relying on Tailwind variant selectors in JSDOM
+    const charts = container.querySelectorAll('[class*="dark:bg-gray-800"]')
     expect(charts.length).toBeGreaterThan(0)
   })
 

@@ -26,9 +26,23 @@ find_free_port() {
 ROOT_DIR="$(cd "$(dirname "$0")" && pwd)"
 VENV_BIN="$ROOT_DIR/.venv/bin"
 
+# Enforce uv-only workflow
+if ! command -v uv >/dev/null 2>&1; then
+  echo "❌ uv is required. Please install uv: https://docs.astral.sh/uv/"
+  echo "   macOS (Homebrew): brew install uv"
+  exit 1
+fi
+
+# Bootstrap environment strictly with uv
 if [[ ! -x "$VENV_BIN/uvicorn" ]]; then
-  echo "⚠️  Python venv not found or uvicorn missing at $VENV_BIN/uvicorn"
-  echo "   Create venv and install deps: python3 -m venv .venv && .venv/bin/pip install -U pip && .venv/bin/pip install -r requirements.txt"
+  echo "🧰 Setting up Python env with uv"
+  uv venv 1>/dev/null
+  "$VENV_BIN/python" -V || true
+  uv pip install -r requirements.txt 1>/dev/null
+fi
+
+if [[ ! -x "$VENV_BIN/uvicorn" ]]; then
+  echo "❌ uvicorn not found after setup at $VENV_BIN/uvicorn"
   exit 1
 fi
 
@@ -38,15 +52,9 @@ REQ_FRONTEND_PORT="${PORT:-3000}"
 BACKEND_PORT="$(find_free_port "$REQ_BACKEND_PORT")"
 FRONTEND_PORT="$(find_free_port "$REQ_FRONTEND_PORT")"
 
-# Decide DB mode: default to SQLite unless Postgres env is provided
-if [[ -n "${DB_USER:-}" || -n "${DATABASE_URL:-}" ]]; then
-  export USE_SQLITE="false"
-  export AUTO_CREATE_TABLES="${AUTO_CREATE_TABLES:-true}"
-  echo "🗄️  Using Postgres (AUTO_CREATE_TABLES=${AUTO_CREATE_TABLES})"
-else
-  export USE_SQLITE="${USE_SQLITE:-true}"
-  echo "🗄️  Using SQLite (USE_SQLITE=${USE_SQLITE})"
-fi
+# Database: PostgreSQL only
+export AUTO_CREATE_TABLES="${AUTO_CREATE_TABLES:-true}"
+echo "🗄️  Using PostgreSQL (AUTO_CREATE_TABLES=${AUTO_CREATE_TABLES})"
 
 # Graceful shutdown
 PIDS=()
