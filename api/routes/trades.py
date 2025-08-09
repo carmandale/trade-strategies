@@ -22,7 +22,7 @@ class TradeCreate(BaseModel):
     contracts: int = Field(..., gt=0)
     entry_price: Decimal = Field(..., gt=0)
     credit_debit: Decimal
-    status: str = Field(default="open", regex="^(open|closed|expired)$")
+    status: str = Field(default="open", pattern="^(open|closed|expired)$")
     notes: Optional[str] = None
     strategy_id: Optional[str] = None
     exit_price: Optional[Decimal] = None
@@ -37,7 +37,7 @@ class TradeUpdate(BaseModel):
     contracts: Optional[int] = Field(None, gt=0)
     entry_price: Optional[Decimal] = Field(None, gt=0)
     credit_debit: Optional[Decimal] = None
-    status: Optional[str] = Field(None, regex="^(open|closed|expired)$")
+    status: Optional[str] = Field(None, pattern="^(open|closed|expired)$")
     notes: Optional[str] = None
     exit_price: Optional[Decimal] = None
     exit_time: Optional[str] = None
@@ -113,7 +113,7 @@ async def create_trade(trade: TradeCreate, db: Session = Depends(get_db)):
 @router.get("/", response_model=List[TradeResponse])
 async def get_trades(
     db: Session = Depends(get_db),
-    status: Optional[str] = Query(None, regex="^(open|closed|expired)$"),
+    status: Optional[str] = Query(None, pattern="^(open|closed|expired)$"),
     symbol: Optional[str] = Query(None, min_length=1, max_length=10),
     strategy_type: Optional[str] = Query(None),
     start_date: Optional[date] = Query(None),

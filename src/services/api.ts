@@ -93,6 +93,23 @@ export interface HistoricalDataPoint {
 }
 
 export class ApiService {
+  // Create options multi-leg trade ticket
+  static async createOptionsTicket(payload: {
+    symbol: string
+    strategy_type?: string
+    contracts: number
+    pricing: { side: 'DEBIT' | 'CREDIT'; net: number; limit?: number; tif: 'DAY' | 'GTC' }
+    legs: Array<{ action: 'BUY' | 'SELL'; type: 'CALL' | 'PUT'; strike: number; expiration: string; quantity: number }>
+    notes?: string
+  }) {
+    const res = await fetch(`${API_BASE_URL}/api/tickets/options-multileg`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    })
+    if (!res.ok) throw new Error(`HTTP ${res.status}`)
+    return res.json()
+  }
   
   // Get current SPY price
   static async getCurrentPrice(ticker: string = 'SPY'): Promise<number> {

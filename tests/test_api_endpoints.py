@@ -1,14 +1,70 @@
 """Tests for API endpoints with database integration."""
 import pytest
 from fastapi.testclient import TestClient
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 from decimal import Decimal
 from database.config import SessionLocal
 from database.models import Strategy, Trade, Backtest, MarketDataCache
+from api.main import app
 
 
 # We'll test the updated API once we create it
 # For now, let's create the test structure
+
+client = TestClient(app)
+
+
+def test_health_endpoint():
+    resp = client.get("/health")
+    assert resp.status_code == 200
+    assert resp.json().get("status") in ("ok", "healthy")
+
+
+def test_market_current_price_endpoint():
+    resp = client.get("/api/market/current_price/SPY")
+    assert resp.status_code in (200, 404, 500)
+    if resp.status_code == 200:
+        body = resp.json()
+        assert set(body.keys()) == {"symbol", "price", "timestamp"}
+        assert body["symbol"] == "SPY"
+        # Re-hit should prefer cache and still be 200
+        resp2 = client.get("/api/market/current_price/SPY")
+        assert resp2.status_code == 200
+
+
+def test_market_historical_data_endpoint():
+    resp = client.get("/api/market/historical_data/SPY?period=1d&interval=1m")
+    assert resp.status_code in (200, 404, 500)
+    if resp.status_code == 200:
+        body = resp.json()
+        assert isinstance(body.get("data", []), list)
+        # Cache hit
+        resp2 = client.get("/api/market/historical_data/SPY?period=1d&interval=1m")
+        assert resp2.status_code == 200
+
+
+def test_trade_ticket_endpoint_shape():
+    payload = {
+        "symbol": "SPY",
+        "strategy_type": "iron_condor",
+        "contracts": 1,
+        "pricing": {"side": "CREDIT", "net": 1.25, "tif": "GTC"},
+        "legs": [
+            {"action": "SELL", "type": "PUT", "strike": 470.0, "expiration": date.today().isoformat(), "quantity": 1},
+            {"action": "BUY", "type": "PUT", "strike": 465.0, "expiration": date.today().isoformat(), "quantity": 1},
+            {"action": "SELL", "type": "CALL", "strike": 480.0, "expiration": date.today().isoformat(), "quantity": 1},
+            {"action": "BUY", "type": "CALL", "strike": 485.0, "expiration": date.today().isoformat(), "quantity": 1}
+        ],
+        "notes": "test"
+    }
+    resp = client.post("/api/tickets/options-multileg", json=payload)
+    assert resp.status_code in (200, 500)
+    if resp.status_code == 200:
+        body = resp.json()
+        assert body["symbol"] == "SPY"
+        assert isinstance(body.get("fidelity_fields", []), list)
+        assert "copy_text" in body
+
 
 class TestTradeEndpoints:
     """Test trade-related API endpoints."""

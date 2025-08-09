@@ -1,0 +1,74 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, feature/** ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  backend:
+    name: Backend (pytest, PostgreSQL)
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        ports: ["5432:5432"]
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: ""
+          POSTGRES_DB: postgres
+          POSTGRES_HOST_AUTH_METHOD: trust
+        options: >-
+          --health-cmd="pg_isready -U postgres" 
+          --health-interval=10s 
+          --health-timeout=5s 
+          --health-retries=10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Install uv
+        run: |
+          curl -LsSf https://astral.sh/uv/install.sh | sh
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
+      - name: Create test database
+        env:
+          PGPASSWORD: ""
+        run: |
+          until pg_isready -h 127.0.0.1 -p 5432 -U postgres; do sleep 1; done
+          createdb -h 127.0.0.1 -p 5432 -U postgres trade_strategies_test || true
+      - name: Install Python dependencies (uv)
+        run: |
+          uv venv
+          . .venv/bin/activate
+          uv pip install -r requirements.txt
+          uv pip install pytest
+          uv pip install psycopg2-binary
+      - name: Run pytest
+        env:
+          DB_USER: postgres
+          DB_PASSWORD: ""
+          DB_HOST: 127.0.0.1
+          DB_PORT: "5432"
+          DB_NAME: trade_strategies_test
+          AUTO_CREATE_TABLES: "true"
+        run: |
+          . .venv/bin/activate
+          pytest -q
+
+  frontend:
+    name: Frontend (Vitest)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      - name: Install deps
+        run: npm ci --legacy-peer-deps
+      - name: Run Vitest
+        run: npm run test:run
+

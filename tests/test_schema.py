@@ -1,5 +1,6 @@
 """Tests for database schema creation and validation."""
 import pytest
+import json
 from sqlalchemy import inspect, text
 from sqlalchemy.exc import OperationalError
 from database.config import engine, Base, SessionLocal
@@ -249,11 +250,12 @@ class TestSchemaValidation:
                     "nested": {"key": "value", "number": 42}
                 }
                 
+                # Use JSON serialization via SQL to ensure proper binding
                 result = db.execute(text("""
                     INSERT INTO strategies (name, strategy_type, parameters) 
-                    VALUES ('JSON Test', 'iron_condor', :params)
+                    VALUES ('JSON Test', 'iron_condor', (:params)::jsonb)
                     RETURNING id, parameters
-                """), {"params": test_params})
+                """), {"params": json.dumps(test_params)})
                 
                 row = result.fetchone()
                 assert row is not None
