@@ -72,6 +72,7 @@ trap cleanup INT TERM EXIT
 
 # Start Backend (FastAPI)
 echo "\n📡 Starting Backend on http://127.0.0.1:${BACKEND_PORT}"
+export FRONTEND_URL="http://localhost:${FRONTEND_PORT}"
 BACKEND_APP="api.main:app"
 "$VENV_BIN/uvicorn" "$BACKEND_APP" --host 127.0.0.1 --port "$BACKEND_PORT" --log-level warning &
 PIDS+=("$!")
@@ -89,8 +90,11 @@ fi
 # Start Frontend (Vite)
 if [[ -f package.json ]]; then
   echo "\n🎨 Starting Frontend on http://localhost:${FRONTEND_PORT}"
-  # Prefer existing install; do not block on installs here
-  (VITE_API_URL="http://127.0.0.1:${BACKEND_PORT}" PORT="$FRONTEND_PORT" npm run dev >/dev/null 2>&1 &)
+  # Run vite with explicit port/host; log to frontend.log
+  (
+    VITE_API_URL="http://127.0.0.1:${BACKEND_PORT}" \
+    npm run dev -- --port "${FRONTEND_PORT}" --host 0.0.0.0 > frontend.log 2>&1 &
+  )
   PIDS+=("$!")
 else
   echo "\n⚠️  Frontend not found (missing package.json)."
@@ -100,6 +104,7 @@ echo "\n✅ Services"
 echo "   API:      http://127.0.0.1:${BACKEND_PORT}"
 echo "   Health:   http://127.0.0.1:${BACKEND_PORT}/health"
 [[ -f package.json ]] && echo "   Frontend: http://localhost:${FRONTEND_PORT}"
+[[ -f frontend.log ]] && echo "   Frontend Log: $(pwd)/frontend.log"
 echo "\nPress Ctrl+C to stop."
 
 # Keep script alive to manage background jobs
