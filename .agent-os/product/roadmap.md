@@ -21,6 +21,8 @@ The following features have been implemented:
 - [x] **API Service Integration** - Frontend-backend communication layer with fallback handling `M`
 - [x] **uv-only & Postgres-only Standardization** - Project uses `uv` for Python and PostgreSQL exclusively for the backend database
 - [x] **Test Infrastructure Setup** - Vitest for unit/integration tests, Playwright for E2E testing `M`
+- [x] **Trade Ticket Generation** - Options multi-leg trade ticket endpoint with Fidelity-style formatting `L`
+- [x] **Market Data Endpoints** - Real-time price and historical data endpoints with caching `M`
 
 ## Current Work In Progress
 
