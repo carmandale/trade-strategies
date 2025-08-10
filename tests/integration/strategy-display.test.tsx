@@ -99,7 +99,7 @@ describe('Strategy Display Integration Tests', () => {
 
 	describe('Full Strategy Display Workflow', () => {
 		it('should display loading state initially', () => {
-			vi.mocked(StrategyApi.getIronCondorAll).mockImplementation(() => 
+			vi.mocked(StrategyApiService.getIronCondorAll).mockImplementation(() => 
 				new Promise(() => {}) // Never resolves to keep loading state
 			)
 
@@ -110,7 +110,7 @@ describe('Strategy Display Integration Tests', () => {
 		})
 
 		it('should fetch and display all strategy timeframes', async () => {
-			vi.mocked(StrategyApi.getIronCondorAll).mockResolvedValue(mockStrategyData)
+			vi.mocked(StrategyApiService.getIronCondorAll).mockResolvedValue(mockStrategyData)
 
 			render(<StrategyDashboard symbol="SPY" />)
 
@@ -127,7 +127,7 @@ describe('Strategy Display Integration Tests', () => {
 		})
 
 		it('should display strategy cards with correct data', async () => {
-			vi.mocked(StrategyApi.getIronCondorAll).mockResolvedValue(mockStrategyData)
+			vi.mocked(StrategyApiService.getIronCondorAll).mockResolvedValue(mockStrategyData)
 
 			render(<StrategyDashboard symbol="SPY" />)
 
@@ -153,7 +153,7 @@ describe('Strategy Display Integration Tests', () => {
 		})
 
 		it('should display visualization components when data is loaded', async () => {
-			vi.mocked(StrategyApi.getIronCondorAll).mockResolvedValue(mockStrategyData)
+			vi.mocked(StrategyApiService.getIronCondorAll).mockResolvedValue(mockStrategyData)
 
 			render(<StrategyDashboard symbol="SPY" />)
 
@@ -173,7 +173,7 @@ describe('Strategy Display Integration Tests', () => {
 		})
 
 		it('should handle timeframe switching', async () => {
-			vi.mocked(StrategyApi.getIronCondorAll).mockResolvedValue(mockStrategyData)
+			vi.mocked(StrategyApiService.getIronCondorAll).mockResolvedValue(mockStrategyData)
 
 			render(<StrategyDashboard symbol="SPY" />)
 
@@ -206,7 +206,7 @@ describe('Strategy Display Integration Tests', () => {
 	describe('API Error Handling', () => {
 		it('should display error message when API call fails', async () => {
 			const errorMessage = 'Failed to fetch strategies'
-			vi.mocked(StrategyApi.getIronCondorAll).mockRejectedValue(new Error(errorMessage))
+			vi.mocked(StrategyApiService.getIronCondorAll).mockRejectedValue(new Error(errorMessage))
 
 			render(<StrategyDashboard symbol="SPY" />)
 
@@ -218,7 +218,7 @@ describe('Strategy Display Integration Tests', () => {
 		})
 
 		it('should display network error message on connection failure', async () => {
-			vi.mocked(StrategyApi.getIronCondorAll).mockRejectedValue(new Error('Network Error'))
+			vi.mocked(StrategyApiService.getIronCondorAll).mockRejectedValue(new Error('Network Error'))
 
 			render(<StrategyDashboard symbol="SPY" />)
 
@@ -229,7 +229,7 @@ describe('Strategy Display Integration Tests', () => {
 		})
 
 		it('should handle timeout errors gracefully', async () => {
-			vi.mocked(StrategyApi.getIronCondorAll).mockRejectedValue(new Error('Request timeout'))
+			vi.mocked(StrategyApiService.getIronCondorAll).mockRejectedValue(new Error('Request timeout'))
 
 			render(<StrategyDashboard symbol="SPY" />)
 
@@ -240,7 +240,7 @@ describe('Strategy Display Integration Tests', () => {
 		})
 
 		it('should retry API call when retry button is clicked', async () => {
-			vi.mocked(StrategyApi.getIronCondorAll)
+			vi.mocked(StrategyApiService.getIronCondorAll)
 				.mockRejectedValueOnce(new Error('First failure'))
 				.mockResolvedValueOnce(mockStrategyData)
 
@@ -268,7 +268,7 @@ describe('Strategy Display Integration Tests', () => {
 
 	describe('Data Flow Verification', () => {
 		it('should correctly pass data from API to visualization components', async () => {
-			vi.mocked(StrategyApi.getIronCondorAll).mockResolvedValue(mockStrategyData)
+			vi.mocked(StrategyApiService.getIronCondorAll).mockResolvedValue(mockStrategyData)
 
 			render(<StrategyDashboard symbol="SPY" />)
 
@@ -300,7 +300,7 @@ describe('Strategy Display Integration Tests', () => {
 				}
 			}
 
-			vi.mocked(StrategyApi.getIronCondorAll).mockResolvedValue(emptyData)
+			vi.mocked(StrategyApiService.getIronCondorAll).mockResolvedValue(emptyData)
 
 			render(<StrategyDashboard symbol="SPY" />)
 
@@ -321,7 +321,7 @@ describe('Strategy Display Integration Tests', () => {
 				}
 			}
 
-			vi.mocked(StrategyApi.getIronCondorAll).mockResolvedValue(partialData)
+			vi.mocked(StrategyApiService.getIronCondorAll).mockResolvedValue(partialData)
 
 			render(<StrategyDashboard symbol="SPY" />)
 
@@ -353,7 +353,7 @@ describe('Strategy Display Integration Tests', () => {
 				}
 			}
 
-			vi.mocked(StrategyApi.getIronCondorAll).mockResolvedValue(largeData)
+			vi.mocked(StrategyApiService.getIronCondorAll).mockResolvedValue(largeData)
 
 			const startTime = performance.now()
 			render(<StrategyDashboard symbol="SPY" />)
@@ -370,7 +370,7 @@ describe('Strategy Display Integration Tests', () => {
 		})
 
 		it('should implement proper memoization for expensive calculations', async () => {
-			vi.mocked(StrategyApi.getIronCondorAll).mockResolvedValue(mockStrategyData)
+			vi.mocked(StrategyApiService.getIronCondorAll).mockResolvedValue(mockStrategyData)
 
 			const { rerender } = render(<StrategyDashboard symbol="SPY" />)
 
@@ -395,7 +395,7 @@ describe('Strategy Display Integration Tests', () => {
 			window.innerWidth = 375
 			window.innerHeight = 667
 
-			vi.mocked(StrategyApi.getIronCondorAll).mockResolvedValue(mockStrategyData)
+			vi.mocked(StrategyApiService.getIronCondorAll).mockResolvedValue(mockStrategyData)
 
 			render(<StrategyDashboard symbol="SPY" />)
 
@@ -416,7 +416,7 @@ describe('Strategy Display Integration Tests', () => {
 			// Mock touch device
 			window.ontouchstart = () => {}
 
-			vi.mocked(StrategyApi.getIronCondorAll).mockResolvedValue(mockStrategyData)
+			vi.mocked(StrategyApiService.getIronCondorAll).mockResolvedValue(mockStrategyData)
 
 			render(<StrategyDashboard symbol="SPY" />)
 
