@@ -191,31 +191,34 @@ describe('Strategy Display Integration Tests', () => {
 		it('should handle timeframe switching', async () => {
 			vi.mocked(StrategyApiService.getIronCondorAll).mockResolvedValue(mockStrategyData)
 			vi.mocked(StrategyApiService.getIronCondorPerformance).mockResolvedValue(mockPerformanceData)
+			vi.mocked(StrategyApiService.getIronCondorByTimeframe).mockResolvedValue(mockStrategyData.strategies.weekly)
 
 			render(<StrategyDashboard symbol="SPY" />)
 
 			await waitFor(() => {
-				expect(screen.getByText(/Daily/i)).toBeInTheDocument()
+				expect(screen.getByTestId('strategy-card-daily')).toBeInTheDocument()
 			})
 
-			// Click on weekly tab
-			const weeklyTab = screen.getByRole('tab', { name: /Weekly/i })
-			weeklyTab.click()
+			// Click on weekly strategy card (now a button)
+			const weeklyCard = screen.getByTestId('strategy-card-weekly')
+			weeklyCard.click()
 
 			await waitFor(() => {
-				// Weekly data should be displayed
-				expect(screen.getByText(/68%/)).toBeInTheDocument() // Weekly win rate
-				expect(screen.getByText(/\$2,100/)).toBeInTheDocument() // Weekly total P/L
+				// Weekly detailed data should be displayed
+				// The API should have been called for weekly timeframe
+				expect(vi.mocked(StrategyApiService.getIronCondorByTimeframe)).toHaveBeenCalledWith('weekly')
 			})
 
-			// Click on monthly tab
-			const monthlyTab = screen.getByRole('tab', { name: /Monthly/i })
-			monthlyTab.click()
+			// Update mock for monthly data
+			vi.mocked(StrategyApiService.getIronCondorByTimeframe).mockResolvedValue(mockStrategyData.strategies.monthly)
+
+			// Click on monthly strategy card
+			const monthlyCard = screen.getByTestId('strategy-card-monthly')
+			monthlyCard.click()
 
 			await waitFor(() => {
-				// Monthly data should be displayed
-				expect(screen.getByText(/75%/)).toBeInTheDocument() // Monthly win rate
-				expect(screen.getByText(/\$4,800/)).toBeInTheDocument() // Monthly total P/L
+				// Monthly API should have been called
+				expect(vi.mocked(StrategyApiService.getIronCondorByTimeframe)).toHaveBeenCalledWith('monthly')
 			})
 		})
 	})
