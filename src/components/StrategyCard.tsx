@@ -41,14 +41,15 @@ export const StrategyCard: React.FC<StrategyCardProps> = ({
 	}
 
 	return (
-		<div 
+    <div 
 			className={`
 				bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 
 				p-6 shadow-sm hover:shadow-md transition-all duration-200
 				${onClick ? 'cursor-pointer hover:border-blue-300 dark:hover:border-blue-600' : ''}
 			`}
-			onClick={onClick}
-			role={onClick ? 'button' : 'article'}
+            data-testid={`strategy-card-${strategy.timeframe}`}
+            onClick={onClick}
+            role={onClick ? 'tab' : 'article'}
 			tabIndex={onClick ? 0 : undefined}
 			onKeyDown={onClick ? (e) => {
 				if (e.key === 'Enter' || e.key === ' ') {
@@ -60,9 +61,9 @@ export const StrategyCard: React.FC<StrategyCardProps> = ({
 			{/* Header */}
 			<div className="flex items-start justify-between mb-4">
 				<div>
-					<h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-1">
-						{strategy.name}
-					</h3>
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-1" aria-label={`strategy-${strategy.timeframe}`}>
+                        {strategy.name}
+                    </h3>
 					<div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
 						<span className="flex items-center gap-1">
 							<Target className="w-4 h-4" />

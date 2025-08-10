@@ -222,7 +222,7 @@ export class ApiService {
     }
   }
 
-  // Get chart data for visualization
+  // Get chart data for visualization (legacy /analyze removed)
   static async getChartData(
     selectedDate: Date,
     spreadConfig: SpreadConfig,
@@ -232,45 +232,12 @@ export class ApiService {
     ticker: string = 'SPY'
   ): Promise<{ time: string; price: number; volume: number }[]> {
     try {
-      const requestData: SpreadAnalysisRequest = {
-        date: selectedDate.toISOString().split('T')[0],
-        ticker,
-        contracts,
-        bull_call_strikes: [spreadConfig.bullCallLower, spreadConfig.bullCallUpper],
-        iron_condor_strikes: [
-          spreadConfig.ironCondorPutLong,
-          spreadConfig.ironCondorPutShort,
-          spreadConfig.ironCondorCallShort,
-          spreadConfig.ironCondorCallLong
-        ],
-        butterfly_strikes: [
-          spreadConfig.butterflyLower,
-          spreadConfig.butterflyBody,
-          spreadConfig.butterflyUpper
-        ],
-        entry_time: `${entryTime}:00`,
-        exit_time: `${exitTime}:00`
-      };
-
-      const response = await fetch(`${API_BASE_URL}/analyze`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(requestData),
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const data: SpreadAnalysisResponse = await response.json();
-
-      // Transform chart data
-      return data.chart_data.map(item => ({
-        time: item.time,
-        price: item.price,
-        volume: Math.floor(Math.random() * 1000000) + 500000 // Mock volume for now
+      // Use the market data endpoint for intraday data
+      const historical = await this.getHistoricalData(ticker, '1d', '1m');
+      return historical.map(point => ({
+        time: point.timestamp,
+        price: point.close,
+        volume: point.volume,
       }));
     } catch (error) {
       console.error('Error fetching chart data:', error);
@@ -289,10 +256,10 @@ export class ApiService {
     }
   }
 
-  // Save a trade
+  // Save a trade (use DB-backed API)
   static async saveTrade(trade: TradeEntry): Promise<Trade> {
     try {
-      const response = await fetch(`${API_BASE_URL}/trades`, {
+      const response = await fetch(`${API_BASE_URL}/api/trades`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -323,10 +290,10 @@ export class ApiService {
     }
   }
 
-  // Get all trades
+  // Get all trades (use DB-backed API)
   static async getTrades(): Promise<Trade[]> {
     try {
-      const response = await fetch(`${API_BASE_URL}/trades`);
+      const response = await fetch(`${API_BASE_URL}/api/trades`);
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
@@ -350,10 +317,10 @@ export class ApiService {
     }
   }
 
-  // Delete a trade
+  // Delete a trade (use DB-backed API)
   static async deleteTrade(tradeId: string): Promise<void> {
     try {
-      const response = await fetch(`${API_BASE_URL}/trades/${tradeId}`, {
+      const response = await fetch(`${API_BASE_URL}/api/trades/${tradeId}`, {
         method: 'DELETE',
       });
 

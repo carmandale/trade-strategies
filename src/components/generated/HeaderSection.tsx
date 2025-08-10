@@ -65,7 +65,7 @@ const HeaderSection: React.FC<HeaderSectionProps> = ({
               <span className="text-slate-400 text-sm font-medium">SPY Price</span>
             </div>
             <div className="flex items-baseline gap-2">
-              <span className="text-2xl font-bold text-slate-100">
+              <span className="text-2xl font-bold text-slate-100" data-testid="current-price">
                 ${formatPrice(spyPrice)}
               </span>
               <div className={`flex items-center gap-1 text-sm font-medium ${priceChange.isPositive ? 'text-green-400' : 'text-red-400'}`}>

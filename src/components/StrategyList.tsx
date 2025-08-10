@@ -10,16 +10,16 @@ export const StrategyList: React.FC<StrategyListProps> = ({
 	onStrategySelect
 }) => {
 	// Loading state
-	if (loading) {
-		return (
-			<div className="flex flex-col items-center justify-center py-12 px-4">
-				<Loader2 className="w-8 h-8 animate-spin text-blue-600 mb-4" />
-				<p className="text-gray-600 dark:text-gray-400 text-center">
-					Loading strategies...
-				</p>
-			</div>
-		)
-	}
+    if (loading) {
+        return (
+            <div className="flex flex-col items-center justify-center py-12 px-4">
+                <Loader2 data-testid="loading-spinner" className="w-8 h-8 animate-spin text-blue-600 mb-4" />
+                <p className="text-gray-600 dark:text-gray-400 text-center">
+                    Loading strategies...
+                </p>
+            </div>
+        )
+    }
 
 	// Error state
 	if (error) {
@@ -106,8 +106,8 @@ export const StrategyList: React.FC<StrategyListProps> = ({
 				</div>
 			</div>
 
-			{/* Strategy Cards Grid */}
-			<div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+            {/* Strategy Cards Grid */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6" role="tablist" data-swipeable="true">
 				{strategies.map((strategy) => (
 					<StrategyCard
 						key={strategy.id}

@@ -168,9 +168,9 @@ const AnalysisAndChartSection: React.FC<AnalysisAndChartSectionProps> = ({
   return <div className="space-y-6">
       {/* Strategy Analysis Cards */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        <StrategyCard title="Bull Call Spread" icon={<TrendingUp className="w-5 h-5 text-green-400" />} data={analysisData?.bullCall} color="bg-green-500/20" strategy="Bull Call" />
+        <StrategyCard title="Bull Call" icon={<TrendingUp className="w-5 h-5 text-green-400" />} data={analysisData?.bullCall} color="bg-green-500/20" strategy="Bull Call" />
         <StrategyCard title="Iron Condor" icon={<Target className="w-5 h-5 text-purple-400" />} data={analysisData?.ironCondor} color="bg-purple-500/20" strategy="Iron Condor" />
-        <StrategyCard title="Butterfly Spread" icon={<Zap className="w-5 h-5 text-yellow-400" />} data={analysisData?.butterfly} color="bg-yellow-500/20" strategy="Butterfly" />
+        <StrategyCard title="Butterfly" icon={<Zap className="w-5 h-5 text-yellow-400" />} data={analysisData?.butterfly} color="bg-yellow-500/20" strategy="Butterfly" />
       </div>
 
       {/* Basic Strategy Display (Issue #6) */}
@@ -207,7 +207,7 @@ const AnalysisAndChartSection: React.FC<AnalysisAndChartSectionProps> = ({
           </div>
         </div>
 
-        <div className="h-80">
+        <div className="h-80" data-testid="equity-curve-chart">
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={chartData}>
               <CartesianGrid strokeDasharray="3 3" stroke="#334155" />

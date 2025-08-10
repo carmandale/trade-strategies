@@ -37,11 +37,13 @@ When asked to work on this codebase:
 
 ## Legacy Codebase Overview
 
-This repository contains Python scripts for backtesting options trading strategies, specifically Iron Condor strategies on the SPX (S&P 500 Index). The codebase is organized by trading timeframes:
+The repository originally included a standalone root FastAPI app (`main.py`) with a `/analyze` endpoint, a `static/index.html`, and file-based `trades.json`. These have been removed in favor of the database‑backed API under `api/` and React frontend in `src/`.
 
-- **`daily/`** - Contains backtesting for 0DTE (zero days to expiration) strategies
-- **`monthly/`** - Contains backtesting for monthly expiration strategies
-- **`weekly/`** - Directory for weekly strategies
+Historical prototype scripts are organized by timeframe:
+
+- **`daily/`** – 0DTE prototypes
+- **`monthly/`** – monthly expiration prototypes
+- **`weekly/`** – weekly prototypes
 
 ## Core Strategy: Iron Condor
 
@@ -65,12 +67,9 @@ Scripts use a percentage-based approach for strike selection:
 
 ## Legacy Scripts
 
-```bash
-# Run consolidated backtester
-python backtest_strategies.py --timeframe daily --plot --export
+Reference-only utilities are kept for exploration. Use `api/main.py` as the canonical API; do not rely on the removed root `main.py` or `/analyze`.
 
-# Run individual legacy scripts
-python daily/daily.py
-python monthly/monthly.py
-python weekly/weekly.py
+```bash
+# Example legacy backtester (reference only)
+python backtest_strategies.py --timeframe daily --plot --export
 ```

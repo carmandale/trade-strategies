@@ -90,8 +90,10 @@ export const StrategyDashboard: React.FC<{ symbol?: string }> = ({ symbol = 'SPY
     }
   }
 
+  const isSelected = (tf: 'daily' | 'weekly' | 'monthly') => selectedTimeframe === tf
+
   return (
-    <div className="mt-8 space-y-6">
+    <div className="mt-8 space-y-6 flex flex-col" data-testid="strategy-dashboard">
       {summary && (
         <div className="bg-gradient-to-r from-indigo-50 to-blue-50 dark:from-indigo-900/20 dark:to-blue-900/20 rounded-lg p-6">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -123,7 +125,16 @@ export const StrategyDashboard: React.FC<{ symbol?: string }> = ({ symbol = 'SPY
         </div>
       )}
 
-      <StrategyList strategies={strategies} loading={loading} error={error} onStrategySelect={handleSelect} />
+      {/* Tablist of strategies/timeframes */}
+      <div role="tablist" aria-label="Timeframes" className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+        {strategies.map((s) => (
+          <div key={s.id} role="presentation">
+            <div id={`tab-${s.timeframe}`} role="tab" aria-selected={isSelected(s.timeframe)} aria-controls={`panel-${s.timeframe}`}>
+              <StrategyList strategies={[s]} loading={false} error={null} onStrategySelect={() => handleSelect(s)} />
+            </div>
+          </div>
+        ))}
+      </div>
 
       {/* Timeframe details */}
       {selectedTimeframe && (
@@ -138,7 +149,7 @@ export const StrategyDashboard: React.FC<{ symbol?: string }> = ({ symbol = 'SPY
             <div className="text-red-600 dark:text-red-400 text-sm">{timeframeError}</div>
           )}
           {timeframeData && (
-            <div className="space-y-4">
+            <div className="space-y-4" id={`panel-${selectedTimeframe}`} role="tabpanel" aria-labelledby={`tab-${selectedTimeframe}`}>
               {/* Metrics row */}
               <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
                 <div className="text-center">

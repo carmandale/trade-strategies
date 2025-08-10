@@ -80,6 +80,14 @@ pkill -f vite || true
 
 - Ensure the extension for UUID defaults is present; this is handled automatically when `AUTO_CREATE_TABLES=true`.
 
+## Legacy Notes Cleanup
+
+- The old root FastAPI app (`main.py`) and its `/analyze` endpoint have been removed. Use the API under `api/main.py` and routes in `api/routes/*`.
+- Frontend should call:
+  - `GET /current_price/{symbol}` and `GET /historical_data/{symbol}` for market data
+  - `POST /api/strategies/backtest` for backtests
+  - `GET/POST/DELETE /api/trades` for trade management
+
 ## Canonical Sources
 
 - Tech stack and commands: `.agent-os/product/tech-stack.md`
