@@ -124,14 +124,6 @@ describe('Strategy Display Integration Tests', () => {
 		it('should fetch and display all strategy timeframes', async () => {
 			vi.mocked(StrategyApiService.getIronCondorAll).mockResolvedValue(mockStrategyData)
 			vi.mocked(StrategyApiService.getIronCondorPerformance).mockResolvedValue(mockPerformanceData)
-			vi.mocked(StrategyApiService.getIronCondorPerformance).mockResolvedValue({
-				summary: {
-					total_trades: 87,
-					overall_win_rate: 0.71,
-					total_pnl: 10500.00,
-					best_timeframe: 'monthly'
-				}
-			})
 
 			render(<StrategyDashboard symbol="SPY" />)
 
@@ -151,14 +143,6 @@ describe('Strategy Display Integration Tests', () => {
 		it('should display strategy cards with correct data', async () => {
 			vi.mocked(StrategyApiService.getIronCondorAll).mockResolvedValue(mockStrategyData)
 			vi.mocked(StrategyApiService.getIronCondorPerformance).mockResolvedValue(mockPerformanceData)
-			vi.mocked(StrategyApiService.getIronCondorPerformance).mockResolvedValue({
-				summary: {
-					total_trades: 87,
-					overall_win_rate: 0.71,
-					total_pnl: 10500.00,
-					best_timeframe: 'monthly'
-				}
-			})
 
 			render(<StrategyDashboard symbol="SPY" />)
 
@@ -185,7 +169,6 @@ describe('Strategy Display Integration Tests', () => {
 
 		it('should display visualization components when data is loaded', async () => {
 			vi.mocked(StrategyApiService.getIronCondorAll).mockResolvedValue(mockStrategyData)
-			vi.mocked(StrategyApiService.getIronCondorPerformance).mockResolvedValue(mockPerformanceData)
 			vi.mocked(StrategyApiService.getIronCondorPerformance).mockResolvedValue(mockPerformanceData)
 
 			render(<StrategyDashboard symbol="SPY" />)
