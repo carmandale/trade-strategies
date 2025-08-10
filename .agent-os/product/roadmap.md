@@ -45,11 +45,11 @@ The following features have been implemented:
 
 ### Must-Have Features
 
-- [ ] FastAPI Backend Setup - Migrate existing backtesting logic to REST API endpoints `L`
+- [x] FastAPI Backend Setup - Migrate existing backtesting logic to REST API endpoints `L`
 - [x] React Frontend Bootstrap - Create responsive UI with Tailwind CSS and shadcn/ui `L`
 - [x] Database Schema Design - PostgreSQL setup for storing strategies and backtest results `M`
-- [ ] Basic Strategy Display - Show existing Iron Condor results in web interface `M`
-- [ ] Real-Time Data Pipeline - Replace hardcoded data with live yfinance integration `L`
+- [x] Basic Strategy Display - Show existing Iron Condor results in web interface `M`
+- [x] Real-Time Data Pipeline - Replace hardcoded data with live yfinance integration `L`
 
 ### Should-Have Features
 
