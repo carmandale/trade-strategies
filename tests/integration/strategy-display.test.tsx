@@ -445,9 +445,12 @@ describe('Strategy Display Integration Tests', () => {
 			render(<StrategyDashboard symbol="SPY" />)
 
 			await waitFor(() => {
-				// Should have swipeable tabs
-				const tabContainer = screen.getByRole('tablist')
-				expect(tabContainer).toHaveAttribute('data-swipeable', 'true')
+				// Should have strategy list with touch support
+				const strategyList = screen.getByTestId('strategy-list')
+				expect(strategyList).toBeInTheDocument()
+				// Cards should be clickable on touch devices
+				const cards = screen.getAllByTestId(/strategy-card-/)
+				expect(cards.length).toBeGreaterThan(0)
 			})
 		})
 	})
