@@ -107,7 +107,7 @@ export const StrategyList: React.FC<StrategyListProps> = ({
 			</div>
 
             {/* Strategy Cards Grid */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6" role="tablist" data-swipeable="true">
+            <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6" data-testid="strategy-list">
 				{strategies.map((strategy) => (
 					<StrategyCard
 						key={strategy.id}
