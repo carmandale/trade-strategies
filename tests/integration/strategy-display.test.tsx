@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { render, screen, waitFor } from '@testing-library/react'
 import '@testing-library/jest-dom'
 import { StrategyDashboard } from '@/components/StrategyDashboard'
-import { StrategyApi } from '@/services/strategyApi'
+import { StrategyApiService } from '@/services/strategyApi'
 
 // Mock the API service
 vi.mock('@/services/strategyApi')
