@@ -102,6 +102,9 @@ describe('Strategy Display Integration Tests', () => {
 			vi.mocked(StrategyApiService.getIronCondorAll).mockImplementation(() => 
 				new Promise(() => {}) // Never resolves to keep loading state
 			)
+			vi.mocked(StrategyApiService.getIronCondorPerformance).mockImplementation(() =>
+				new Promise(() => {}) // Never resolves to keep loading state
+			)
 
 			render(<StrategyDashboard symbol="SPY" />)
 			
@@ -111,13 +114,22 @@ describe('Strategy Display Integration Tests', () => {
 
 		it('should fetch and display all strategy timeframes', async () => {
 			vi.mocked(StrategyApiService.getIronCondorAll).mockResolvedValue(mockStrategyData)
+			vi.mocked(StrategyApiService.getIronCondorPerformance).mockResolvedValue({
+				summary: {
+					total_trades: 87,
+					overall_win_rate: 0.71,
+					total_pnl: 10500.00,
+					best_timeframe: 'monthly'
+				}
+			})
 
 			render(<StrategyDashboard symbol="SPY" />)
 
 			await waitFor(() => {
-				expect(screen.getByText(/Daily/i)).toBeInTheDocument()
-				expect(screen.getByText(/Weekly/i)).toBeInTheDocument()
-				expect(screen.getByText(/Monthly/i)).toBeInTheDocument()
+				// Check that strategy cards exist by data-testid
+				expect(screen.getByTestId('strategy-card-daily')).toBeInTheDocument()
+				expect(screen.getByTestId('strategy-card-weekly')).toBeInTheDocument()
+				expect(screen.getByTestId('strategy-card-monthly')).toBeInTheDocument()
 			})
 
 			// Check performance metrics are displayed
@@ -128,6 +140,14 @@ describe('Strategy Display Integration Tests', () => {
 
 		it('should display strategy cards with correct data', async () => {
 			vi.mocked(StrategyApiService.getIronCondorAll).mockResolvedValue(mockStrategyData)
+			vi.mocked(StrategyApiService.getIronCondorPerformance).mockResolvedValue({
+				summary: {
+					total_trades: 87,
+					overall_win_rate: 0.71,
+					total_pnl: 10500.00,
+					best_timeframe: 'monthly'
+				}
+			})
 
 			render(<StrategyDashboard symbol="SPY" />)
 
