@@ -49,7 +49,7 @@ export const StrategyCard: React.FC<StrategyCardProps> = ({
 			`}
             data-testid={`strategy-card-${strategy.timeframe}`}
             onClick={onClick}
-            role={onClick ? 'tab' : 'article'}
+            role={onClick ? 'button' : 'article'}
 			tabIndex={onClick ? 0 : undefined}
 			onKeyDown={onClick ? (e) => {
 				if (e.key === 'Enter' || e.key === ' ') {
