@@ -41,6 +41,55 @@ export class StrategyApiService {
 		}
 	}
 
+	// Get Iron Condor strategies across all timeframes
+	static async getIronCondorAll(options?: { limit?: number; offset?: number }): Promise<any> {
+		try {
+			const params = new URLSearchParams()
+			if (options?.limit) params.append('limit', String(options.limit))
+			if (options?.offset) params.append('offset', String(options.offset))
+			const url = `${API_BASE_URL}/api/strategies/iron-condor${params.toString() ? '?' + params.toString() : ''}`
+			const response = await fetch(url)
+			if (!response.ok) throw new Error(`HTTP ${response.status}`)
+			return await response.json()
+		} catch (err) {
+			console.error('Error fetching iron condor strategies:', err)
+			return { strategies: {} }
+		}
+	}
+
+	// Get Iron Condor by timeframe
+	static async getIronCondorByTimeframe(
+		timeframe: 'daily' | 'weekly' | 'monthly',
+		options?: { start_date?: string; end_date?: string; limit?: number; offset?: number }
+	): Promise<any> {
+		try {
+			const params = new URLSearchParams()
+			if (options?.start_date) params.append('start_date', options.start_date)
+			if (options?.end_date) params.append('end_date', options.end_date)
+			if (options?.limit) params.append('limit', String(options.limit))
+			if (options?.offset) params.append('offset', String(options.offset))
+			const url = `${API_BASE_URL}/api/strategies/iron-condor/${timeframe}${params.toString() ? '?' + params.toString() : ''}`
+			const response = await fetch(url)
+			if (!response.ok) throw new Error(`HTTP ${response.status}`)
+			return await response.json()
+		} catch (err) {
+			console.error(`Error fetching iron condor ${timeframe}:`, err)
+			return null
+		}
+	}
+
+	// Get Iron Condor performance summary
+	static async getIronCondorPerformance(): Promise<any> {
+		try {
+			const response = await fetch(`${API_BASE_URL}/api/strategies/iron-condor/performance`)
+			if (!response.ok) throw new Error(`HTTP ${response.status}`)
+			return await response.json()
+		} catch (err) {
+			console.error('Error fetching iron condor performance:', err)
+			return null
+		}
+	}
+
 	// Get a specific strategy by ID
 	static async getStrategy(strategyId: string): Promise<StrategyData | null> {
 		try {

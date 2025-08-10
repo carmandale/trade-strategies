@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts';
 import { TrendingUp, Target, Zap, BookOpen, Trash2, Plus, DollarSign, Percent, BarChart3 } from 'lucide-react';
 import { AnalysisData, SpreadConfig, Trade } from './SPYSpreadStrategiesApp';
+import { StrategyDashboard } from '../StrategyDashboard';
 interface AnalysisAndChartSectionProps {
   analysisData: AnalysisData | null;
   chartData: {
@@ -170,6 +171,20 @@ const AnalysisAndChartSection: React.FC<AnalysisAndChartSectionProps> = ({
         <StrategyCard title="Bull Call Spread" icon={<TrendingUp className="w-5 h-5 text-green-400" />} data={analysisData?.bullCall} color="bg-green-500/20" strategy="Bull Call" />
         <StrategyCard title="Iron Condor" icon={<Target className="w-5 h-5 text-purple-400" />} data={analysisData?.ironCondor} color="bg-purple-500/20" strategy="Iron Condor" />
         <StrategyCard title="Butterfly Spread" icon={<Zap className="w-5 h-5 text-yellow-400" />} data={analysisData?.butterfly} color="bg-yellow-500/20" strategy="Butterfly" />
+      </div>
+
+      {/* Basic Strategy Display (Issue #6) */}
+      <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700/50 rounded-2xl p-6">
+        <div className="flex items-center gap-3 mb-4">
+          <div className="p-2 bg-indigo-500/20 rounded-lg">
+            <BarChart3 className="w-5 h-5 text-indigo-400" />
+          </div>
+          <div>
+            <h3 className="font-semibold text-slate-100">Strategy Portfolio</h3>
+            <p className="text-xs text-slate-400">Iron Condor results by timeframe (from API)</p>
+          </div>
+        </div>
+        <StrategyDashboard symbol="SPY" />
       </div>
 
       {/* Price Chart */}

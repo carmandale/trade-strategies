@@ -53,6 +53,52 @@ Base = declarative_base()
 metadata = MetaData()
 
 
+def _ensure_uuid_defaults_and_extensions() -> None:
+    """Ensure required DB extensions and UUID defaults exist at the DB level.
+
+    Some tests perform raw SQL INSERTs without specifying the `id` value and
+    expect the database itself to generate UUIDs via `gen_random_uuid()`.
+    This function makes sure the `pgcrypto` extension is available and that
+    `id` columns on core tables have a server-side default of `gen_random_uuid()`.
+    """
+    try:
+        from sqlalchemy import text as _text
+
+        with engine.begin() as conn:
+            # Ensure pgcrypto is available for gen_random_uuid()
+            conn.execute(_text('CREATE EXTENSION IF NOT EXISTS "pgcrypto"'))
+
+            # Helper DO block to set default only if not already present
+            def _set_default_for(table: str, column: str = "id") -> None:
+                conn.execute(_text(f"""
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1
+        FROM pg_attrdef d
+        JOIN pg_class c ON c.oid = d.adrelid
+        JOIN pg_namespace n ON n.oid = c.relnamespace
+        JOIN pg_attribute a ON a.attrelid = c.oid AND a.attnum = d.adnum
+        WHERE n.nspname = 'public' AND c.relname = '{table}' AND a.attname = '{column}'
+    ) THEN
+        ALTER TABLE {table} ALTER COLUMN {column} SET DEFAULT gen_random_uuid();
+    END IF;
+END$$;
+"""))
+
+            # Apply to all core tables that use UUID primary keys
+            for tbl in ("strategies", "backtests", "trades", "market_data_cache"):
+                _set_default_for(tbl)
+    except Exception:
+        # Non-fatal: if we cannot modify DB defaults (e.g., permissions), leave as-is.
+        # Tests that rely on these defaults will surface issues if this fails.
+        pass
+
+
+# Ensure DB-side UUID defaults are present as early as possible
+_ensure_uuid_defaults_and_extensions()
+
+
 def get_db():
     """Get database session with automatic cleanup.
     This matches the FastAPI dependency injection pattern.

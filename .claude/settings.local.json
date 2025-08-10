@@ -63,7 +63,13 @@
       "Bash(git -C \"/Users/dalecarman/Groove Jones Dropbox/Dale Carman/Projects/dev/trade-strategies\" commit -m \"chore: update Claude settings for development workflow #6\n\n🤖 Generated with Claude Code (https://claude.ai/code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\")",
       "Bash(git -C \"/Users/dalecarman/Groove Jones Dropbox/Dale Carman/Projects/dev/trade-strategies\" add src/components/PLHistogramChart.tsx)",
       "Bash(git -C \"/Users/dalecarman/Groove Jones Dropbox/Dale Carman/Projects/dev/trade-strategies\" commit -m \"feat: create PLHistogramChart component with distribution analysis #6\n\n- Implement P/L histogram visualization matching Python matplotlib logic\n- Add bar chart showing profit/loss distribution with color-coded ranges (green for profits, red for losses)\n- Include custom tooltips with range, trade count, and midpoint information\n- Calculate and display distribution statistics (total trades, win rate, most common range)\n- Support optional statistics panel with detailed breakdown\n- Use responsive container for cross-device compatibility\n- Handle loading and empty states with appropriate UI feedback\n- Add color legend distinguishing large/small profits and losses\n- Include proper axis labeling and formatting for financial data\n- Support dark mode theming throughout component\n\n🤖 Generated with Claude Code (https://claude.ai/code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\")",
-      "Bash(git -C \"/Users/dalecarman/Groove Jones Dropbox/Dale Carman/Projects/dev/trade-strategies\" commit -m \"chore: update Claude settings for component development workflow #6\n\n🤖 Generated with Claude Code (https://claude.ai/code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\")"
+      "Bash(git -C \"/Users/dalecarman/Groove Jones Dropbox/Dale Carman/Projects/dev/trade-strategies\" commit -m \"chore: update Claude settings for component development workflow #6\n\n🤖 Generated with Claude Code (https://claude.ai/code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\")",
+<<<<<<< Updated upstream
+      "Bash(mv:*)"
+=======
+      "Bash(npm test:*)",
+      "Bash(git -C \"/Users/dalecarman/Groove Jones Dropbox/Dale Carman/Projects/dev/trade-strategies\" stash push -m \"Stashing temporary changes while completing Task 3\")"
+>>>>>>> Stashed changes
     ],
     "deny": []
   }

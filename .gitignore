@@ -88,6 +88,10 @@ coverage.xml
 .hypothesis/
 .pytest_cache/
 
+# Playwright test results
+test-results/
+playwright-report/
+
 # Generated plot files
 spy_plot_*.png
 *.png
