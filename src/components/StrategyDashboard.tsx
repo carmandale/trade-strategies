@@ -125,16 +125,13 @@ export const StrategyDashboard: React.FC<{ symbol?: string }> = ({ symbol = 'SPY
         </div>
       )}
 
-      {/* Tablist of strategies/timeframes */}
-      <div role="tablist" aria-label="Timeframes" className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-        {strategies.map((s) => (
-          <div key={s.id} role="presentation">
-            <div id={`tab-${s.timeframe}`} role="tab" aria-selected={isSelected(s.timeframe)} aria-controls={`panel-${s.timeframe}`}>
-              <StrategyList strategies={[s]} loading={false} error={null} onStrategySelect={() => handleSelect(s)} />
-            </div>
-          </div>
-        ))}
-      </div>
+      {/* Display strategies using StrategyList */}
+      <StrategyList 
+        strategies={strategies} 
+        loading={loading} 
+        error={error} 
+        onStrategySelect={handleSelect}
+      />
 
       {/* Timeframe details */}
       {selectedTimeframe && (
