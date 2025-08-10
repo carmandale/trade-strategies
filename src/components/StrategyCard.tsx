@@ -69,7 +69,7 @@ export const StrategyCard: React.FC<StrategyCardProps> = ({
 							<Target className="w-4 h-4" />
 							{getStrategyTypeName(strategy.strategy_type)}
 						</span>
-						<span className="flex items-center gap-1">
+						<span className="flex items-center gap-1" aria-hidden="true">
 							<Calendar className="w-4 h-4" />
 							{getTimeframeName(strategy.timeframe)}
 						</span>
