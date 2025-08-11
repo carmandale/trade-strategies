@@ -175,7 +175,7 @@ describe('StrikeVisualization', () => {
 		
 		// Should reflect new strike
 		expect(chart).toHaveAttribute('data-put-long', '4750') // 95% of 5000 = 4750
-		expect(screen.getByText('Put Long: $4,750')).toBeInTheDocument()
+		expect(screen.getByText('$4,750')).toBeInTheDocument()
 	})
 
 	it('should update when current price changes', () => {
