@@ -364,9 +364,9 @@ Format your response as JSON with this structure:
                 temperature=Decimal('0.30'),
                 max_tokens=800,
                 cache_ttl=300,
-                reasoning_effort='medium',
+                reasoning_effort='medium',  # Use lowercase for enum
                 auto_assess=False
             )
             db.add(settings)
-            db.commit()
+            # Don't commit here as it's called within another transaction
         return settings
