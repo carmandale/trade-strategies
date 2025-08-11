@@ -172,7 +172,7 @@ describe('AIAssessmentResult', () => {
   it('renders assessment result with GO recommendation', () => {
     render(<AIAssessmentResult assessment={mockAssessment} />)
     
-    expect(screen.getByText('GO')).toBeInTheDocument()
+    expect(screen.getByText(/✓ GO/)).toBeInTheDocument()
     expect(screen.getByText('78% confident')).toBeInTheDocument()
     expect(screen.getByText('Low volatility environment with neutral sentiment')).toBeInTheDocument()
   })
