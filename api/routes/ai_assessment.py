@@ -173,7 +173,8 @@ async def get_service_status():
         
         # Get configuration
         model = os.getenv('OPENAI_MODEL', 'gpt-4')
-        cache_ttl = int(os.getenv('AI_ASSESSMENT_CACHE_TTL', '300'))
+        cache_ttl_str = os.getenv('AI_ASSESSMENT_CACHE_TTL', '300')
+        cache_ttl = int(cache_ttl_str) if cache_ttl_str is not None else 300
         
         # Get usage statistics
         with SessionLocal() as db:
