@@ -125,7 +125,6 @@ describe('StrikeSelector Component', () => {
 	})
 
 	it('calls onStrikesChange callback with debounce', async () => {
-		const user = userEvent.setup()
 		vi.useFakeTimers()
 		
 		render(
@@ -138,9 +137,8 @@ describe('StrikeSelector Component', () => {
 
 		const putShortInput = screen.getByLabelText(/Put Short Strike/i)
 		
-		// Type new value
-		await user.clear(putShortInput)
-		await user.type(putShortInput, '96.5')
+		// Simulate input change directly
+		fireEvent.change(putShortInput, { target: { value: '96.5' } })
 
 		// Callback should not be called immediately
 		expect(mockOnStrikesChange).not.toHaveBeenCalled()
@@ -149,19 +147,17 @@ describe('StrikeSelector Component', () => {
 		vi.advanceTimersByTime(300)
 
 		// Now callback should be called with new values
-		await waitFor(() => {
-			expect(mockOnStrikesChange).toHaveBeenCalledWith({
-				put_short_pct: 96.5,
-				put_long_pct: 97.0,
-				call_short_pct: 102.5,
-				call_long_pct: 103.0
-			})
+		expect(mockOnStrikesChange).toHaveBeenCalledWith({
+			put_short_pct: 96.5,
+			put_long_pct: 97.0,
+			call_short_pct: 102.5,
+			call_long_pct: 103.0
 		})
 
 		vi.useRealTimers()
 	})
 
-	it('handles slider movements correctly', async () => {
+	it('handles slider movements correctly', () => {
 		render(
 			<StrikeSelector
 				strikes={defaultStrikes}
@@ -178,15 +174,11 @@ describe('StrikeSelector Component', () => {
 		// Check that the input reflects the change
 		expect(screen.getByLabelText(/Put Short Strike/i)).toHaveValue(95)
 		
-		// Check price updates
-		await waitFor(() => {
-			expect(screen.getByTestId('put-short-price')).toHaveTextContent('$475')
-		})
+		// Check price updates (500 * 0.95 = 475)
+		expect(screen.getByTestId('put-short-price')).toHaveTextContent('$475')
 	})
 
-	it('maintains strike order constraints (long < short)', async () => {
-		const user = userEvent.setup()
-		
+	it('maintains strike order constraints (long < short)', () => {
 		render(
 			<StrikeSelector
 				strikes={defaultStrikes}
@@ -198,16 +190,13 @@ describe('StrikeSelector Component', () => {
 		const putLongInput = screen.getByLabelText(/Put Long Strike/i)
 		
 		// Try to set put long higher than put short (97.5)
-		await user.clear(putLongInput)
-		await user.type(putLongInput, '98')
+		fireEvent.change(putLongInput, { target: { value: '98' } })
 
-		// Should show error or adjust automatically
+		// Should show error
 		expect(screen.getByText(/Put long strike must be lower than put short/i)).toBeInTheDocument()
 	})
 
-	it('supports keyboard navigation for accessibility', async () => {
-		const user = userEvent.setup()
-		
+	it('supports keyboard navigation for accessibility', () => {
 		render(
 			<StrikeSelector
 				strikes={defaultStrikes}
@@ -223,11 +212,11 @@ describe('StrikeSelector Component', () => {
 		expect(putShortInput).toHaveFocus()
 
 		// Use arrow keys to adjust value
-		await user.keyboard('{ArrowUp}')
+		fireEvent.keyDown(putShortInput, { key: 'ArrowUp' })
 		expect(putShortInput).toHaveValue(98.5) // Increments by 1
 
-		await user.keyboard('{ArrowDown}')
-		await user.keyboard('{ArrowDown}')
+		fireEvent.keyDown(putShortInput, { key: 'ArrowDown' })
+		fireEvent.keyDown(putShortInput, { key: 'ArrowDown' })
 		expect(putShortInput).toHaveValue(96.5) // Decrements by 1
 	})
 
