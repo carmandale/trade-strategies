@@ -44,18 +44,20 @@ export const StrikeSelector: React.FC<StrikeSelectorProps> = ({
 	}
 
 	// Validate strike values
-	const validateStrikes = (field: keyof StrikeConfig, value: number): string | null => {
+	const validateStrikes = (field: keyof StrikeConfig, value: number, newStrikes?: StrikeConfig): string | null => {
+		const strikes = newStrikes || localStrikes
+		
 		// Put strikes must be between 0-100%
 		if (field === 'put_short_pct' || field === 'put_long_pct') {
 			if (value < 0 || value > 100) {
 				return 'Put strikes must be between 0-100%'
 			}
-			// Put long must be lower than put short
-			if (field === 'put_long_pct' && value >= localStrikes.put_short_pct) {
+			// Check ordering after value is updated
+			const putShort = field === 'put_short_pct' ? value : strikes.put_short_pct
+			const putLong = field === 'put_long_pct' ? value : strikes.put_long_pct
+			
+			if (putLong >= putShort) {
 				return 'Put long strike must be lower than put short'
-			}
-			if (field === 'put_short_pct' && value <= localStrikes.put_long_pct) {
-				return 'Put short strike must be higher than put long'
 			}
 		}
 
@@ -64,12 +66,12 @@ export const StrikeSelector: React.FC<StrikeSelectorProps> = ({
 			if (value < 100 || value > 200) {
 				return 'Call strikes must be between 100-200%'
 			}
-			// Call long must be higher than call short
-			if (field === 'call_short_pct' && value >= localStrikes.call_long_pct) {
+			// Check ordering after value is updated
+			const callShort = field === 'call_short_pct' ? value : strikes.call_short_pct
+			const callLong = field === 'call_long_pct' ? value : strikes.call_long_pct
+			
+			if (callShort >= callLong) {
 				return 'Call short strike must be lower than call long'
-			}
-			if (field === 'call_long_pct' && value <= localStrikes.call_short_pct) {
-				return 'Call long strike must be higher than call short'
 			}
 		}
 
