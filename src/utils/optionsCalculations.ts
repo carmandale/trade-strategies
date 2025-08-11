@@ -138,8 +138,10 @@ export function getExpirationDate(timeframe: 'daily' | 'weekly' | 'monthly'): Da
 // Helper function to get third Friday of a month
 function getThirdFriday(year: number, month: number): Date {
   const firstDay = new Date(year, month, 1);
-  const firstFriday = new Date(year, month, 1 + (5 - firstDay.getDay() + 7) % 7);
-  return new Date(year, month, firstDay.getDate() + 14);
+  const firstDayOfWeek = firstDay.getDay();
+  const firstFriday = new Date(year, month, 1 + (5 - firstDayOfWeek + 7) % 7);
+  // Third Friday is 14 days after the first Friday
+  return new Date(year, month, firstFriday.getDate() + 14);
 }
 
 // Calculate implied volatility (simplified estimate)
