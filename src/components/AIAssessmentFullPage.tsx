@@ -98,6 +98,39 @@ export const AIAssessmentFullPage: React.FC<AIAssessmentFullPageProps> = ({
     ]
   }
   
+  // Generate AI price prediction data
+  const generatePredictionData = () => {
+    const timePoints = []
+    const startTime = new Date()
+    
+    // Create hourly predictions for the trading day (6.5 hours)
+    for (let i = 0; i <= 13; i++) {
+      const time = new Date(startTime.getTime() + (i * 30 * 60 * 1000)) // 30-minute intervals
+      
+      // Generate prediction based on recommendation
+      let priceChange = 0
+      if (assessment.recommendation === 'GO') {
+        // Bullish prediction - price should move favorably for the strategy
+        priceChange = Math.sin(i * 0.3) * 2 + (i * 0.5) // Upward trend with volatility
+      } else if (assessment.recommendation === 'CAUTION') {
+        // Sideways prediction with some volatility
+        priceChange = Math.sin(i * 0.5) * 1.5
+      } else {
+        // Bearish prediction
+        priceChange = Math.sin(i * 0.4) * 2 - (i * 0.3) // Downward trend
+      }
+      
+      timePoints.push({
+        time: time.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
+        predicted_price: currentPrice + priceChange,
+        confidence: Math.max(50, assessment.confidence - (i * 2)), // Confidence decreases over time
+        actual_price: null // Will be filled in as day progresses
+      })
+    }
+    
+    return timePoints
+  }
+  
   const plData = generatePLChart()
   const marketRegimeData = generateMarketData()
   const greeksData = generateGreeksData()
