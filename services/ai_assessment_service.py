@@ -310,6 +310,7 @@ Format your response as JSON with this structure:
         )
         
         db.add(assessment)
+        db.flush()  # Flush to get the ID without committing the transaction
         return assessment
     
     def _log_usage(self, db: Session, assessment_id: Optional[str], operation: str,
