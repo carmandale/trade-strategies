@@ -222,6 +222,46 @@ export const Calculations = {
    */
   getDayOfWeek(date: Date): string {
     return date.toLocaleDateString('en-US', { weekday: 'short' });
+  },
+
+  /**
+   * Verify currency formatting
+   */
+  formatCurrency(amount: number): string {
+    return `$${Math.round(amount).toLocaleString()}`;
+  },
+
+  /**
+   * Verify percentage formatting
+   */
+  formatPercentage(value: number, decimals: number = 1): string {
+    return `${value.toFixed(decimals)}%`;
+  },
+
+  /**
+   * Verify delta formatting
+   */
+  formatDelta(delta: number): string {
+    return `Δ${Math.round(Math.abs(delta) * 100)}`;
+  },
+
+  /**
+   * Check if date is weekend
+   */
+  isWeekend(date: Date): boolean {
+    const day = date.getDay();
+    return day === 0 || day === 6;
+  },
+
+  /**
+   * Check if date is past
+   */
+  isPastDate(date: Date): boolean {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const target = new Date(date);
+    target.setHours(0, 0, 0, 0);
+    return target < today;
   }
 };
 
