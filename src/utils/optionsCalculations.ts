@@ -111,7 +111,7 @@ export function findStrikeForDelta(
 }
 
 // Get expiration date for different timeframes
-export function getExpirationDate(timeframe: 'daily' | 'weekly' | 'monthly'): Date {
+export function getExpirationDate(timeframe: 'daily' | 'weekly' | 'monthly' | '0dte', selectedDate?: Date): Date {
   const now = new Date();
   const expiration = new Date(now);
   
