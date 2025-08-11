@@ -31,6 +31,7 @@ const AnalysisAndChartSection: React.FC<AnalysisAndChartSectionProps> = ({
 }) => {
   // AI Assessment state
   const [aiAssessments, setAiAssessments] = useState<Record<string, AIAssessment>>({})
+  const [showFullAssessment, setShowFullAssessment] = useState<string | null>(null)
   
   // Convert strategy data to AI service format
   const convertToAIStrategyParams = (strategyType: string, data: any): StrategyParams => {
