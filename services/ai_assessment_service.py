@@ -213,9 +213,9 @@ STRATEGY DETAILS:
 - Breakeven: {strategy_params.get('breakeven', [])}
 
 CURRENT MARKET CONDITIONS:
-- SPX: {market_data.get('spx_price', 0)} ({market_data.get('spx_change', 0):+.2f}, {market_data.get('spx_change_percent', 0):+.2f}%)
-- VIX: {market_data.get('vix_level', 0)} ({market_data.get('vix_change', 0):+.2f})
-- Volume: {market_data.get('volume_vs_avg', 1):.1%} of average
+- SPX: {spx_price} ({spx_change:+.2f}, {spx_change_percent:+.2f}%)
+- VIX: {vix_level} ({vix_change:+.2f})
+- Volume: {volume_vs_avg:.1%} of average
 - Technical Indicators: {json.dumps(market_data.get('technical_indicators', {}))}
 
 ASSESSMENT REQUEST:
