@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { Container, Theme } from './settings/types';
 import SPYSpreadStrategiesApp from './components/generated/SPYSpreadStrategiesApp';
+import { AccuracyReport } from './components/AccuracyReport';
 
 const theme: Theme = 'dark';
 const container: Container = 'none';
@@ -23,12 +24,20 @@ function App() {
 
   if (container === 'centered') {
     return (
-      <div className="h-full w-full flex flex-col items-center justify-center">
-        {generatedComponent}
-      </div>
+      <>
+        <div className="h-full w-full flex flex-col items-center justify-center">
+          {generatedComponent}
+        </div>
+        <AccuracyReport />
+      </>
     );
   } else {
-    return generatedComponent;
+    return (
+      <>
+        {generatedComponent}
+        <AccuracyReport />
+      </>
+    );
   }
 }
 
