@@ -28,7 +28,8 @@ const AnalysisAndChartSection: React.FC<AnalysisAndChartSectionProps> = ({
   trades,
   onLogTrade,
   onDeleteTrade,
-  isAnalyzing
+  isAnalyzing,
+  currentPrice = 425.50
 }) => {
   // AI Assessment state
   const [aiAssessments, setAiAssessments] = useState<Record<string, AIAssessment>>({})
