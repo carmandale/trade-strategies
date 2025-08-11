@@ -1,6 +1,6 @@
 """Market data collection service for AI assessment."""
 import logging
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from decimal import Decimal
 from typing import Dict, Any, Optional
 import pandas as pd
@@ -311,7 +311,8 @@ class MarketDataCollector:
         Returns:
             Saved MarketDataSnapshot instance
         """
-        snapshot_id = f"market_{datetime.utcnow().strftime('%Y-%m-%d_%H:%M')}"
+        # Use seconds in snapshot_id to avoid duplicate key errors in tests
+        snapshot_id = f"market_{datetime.now(timezone.utc).strftime('%Y-%m-%d_%H:%M:%S')}"
         
         snapshot = MarketDataSnapshot(
             snapshot_id=snapshot_id,
@@ -323,7 +324,7 @@ class MarketDataCollector:
             volume=snapshot_data['volume'],
             volume_vs_avg=snapshot_data['volume_vs_avg'],
             technical_indicators=snapshot_data['technical_indicators'],
-            expires_at=datetime.utcnow() + timedelta(minutes=self.cache_ttl_minutes)
+            expires_at=datetime.now(timezone.utc) + timedelta(minutes=self.cache_ttl_minutes)
         )
         
         db.add(snapshot)
