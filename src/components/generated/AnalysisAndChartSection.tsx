@@ -21,6 +21,7 @@ interface AnalysisAndChartSectionProps {
   isAnalyzing: boolean;
   currentPrice?: number;
   contracts?: number;
+  selectedDate?: Date;
 }
 const AnalysisAndChartSection: React.FC<AnalysisAndChartSectionProps> = ({
   analysisData,
