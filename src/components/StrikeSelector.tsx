@@ -145,18 +145,25 @@ export const StrikeSelector: React.FC<StrikeSelectorProps> = ({
 				</div>
 				
 				<div className="flex items-center space-x-3">
-					{/* Slider */}
-					<input
-						type="range"
+					{/* Radix UI Slider */}
+					<Slider.Root
 						data-testid={`${testIdPrefix}-slider`}
 						min={min}
 						max={max}
 						step={0.5}
-						value={value}
-						onChange={(e) => handleInputChange(field, parseFloat(e.target.value))}
+						value={[value]}
+						onValueChange={([newValue]) => handleInputChange(field, newValue)}
 						disabled={loading}
-						className="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer disabled:opacity-50"
-					/>
+						className="relative flex items-center select-none touch-none flex-1 h-5"
+						aria-label={label}
+					>
+						<Slider.Track className="bg-gray-200 relative grow rounded-full h-2">
+							<Slider.Range className="absolute bg-blue-500 rounded-full h-full" />
+						</Slider.Track>
+						<Slider.Thumb 
+							className="block w-5 h-5 bg-white border-2 border-blue-500 rounded-full shadow-lg hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none"
+						/>
+					</Slider.Root>
 					
 					{/* Input field */}
 					<input
