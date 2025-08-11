@@ -329,7 +329,7 @@ const SPYSpreadStrategiesApp: React.FC = () => {
           duration: 0.6,
           delay: 0.3
         }}>
-            <AnalysisAndChartSection analysisData={analysisData} chartData={chartData} spreadConfig={spreadConfig} trades={trades} onLogTrade={handleLogTrade} onDeleteTrade={handleDeleteTrade} isAnalyzing={isAnalyzing} currentPrice={spyPrice} />
+            <AnalysisAndChartSection analysisData={analysisData} chartData={chartData} spreadConfig={spreadConfig} trades={trades} onLogTrade={handleLogTrade} onDeleteTrade={handleDeleteTrade} isAnalyzing={isAnalyzing} currentPrice={spyPrice} contracts={contracts} />
           </motion.div>
         </div>
       </div>
