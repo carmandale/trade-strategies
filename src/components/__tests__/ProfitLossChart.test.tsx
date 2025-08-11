@@ -27,8 +27,8 @@ vi.mock('recharts', () => ({
 	Tooltip: ({ content }: { content: any }) => (
 		<div data-testid="tooltip" data-custom-content={content ? 'custom' : 'default'} />
 	),
-	ReferenceLine: ({ y, label }: { y: number, label?: string }) => (
-		<div data-testid={`reference-line-${label || 'unlabeled'}`} data-y={y} />
+	ReferenceLine: ({ y, x, label }: { y?: number, x?: number, label?: string }) => (
+		<div data-testid={`reference-line-${label || 'unlabeled'}`} data-y={y} data-x={x} />
 	)
 }))
 
