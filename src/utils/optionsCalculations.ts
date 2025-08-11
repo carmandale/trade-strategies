@@ -63,9 +63,24 @@ export function findStrikeForDelta(
   volatility: number = 0.20,
   isCall: boolean = true
 ): number {
+  // For very short expiration or when delta calculation isn't meaningful,
+  // use a simplified percentage-based approach
+  if (timeToExpiration < 0.02) { // Less than ~7 days
+    // Simplified approach based on target delta
+    if (isCall) {
+      // 16-delta = ~2% OTM, 25-delta = ~1.5% OTM, 35-delta = ~1% OTM, 50-delta = ATM
+      const percentageOTM = (1 - targetDelta) * 0.03;
+      return Math.round((spotPrice * (1 + percentageOTM)) / 5) * 5;
+    } else {
+      // Put strikes below current price (targetDelta is negative)
+      const percentageOTM = Math.abs(targetDelta) * 0.03;
+      return Math.round((spotPrice * (1 - percentageOTM)) / 5) * 5;
+    }
+  }
+  
   // Use binary search to find strike that produces target delta
-  let lowStrike = spotPrice * 0.5;
-  let highStrike = spotPrice * 1.5;
+  let lowStrike = spotPrice * 0.8;
+  let highStrike = spotPrice * 1.2;
   
   for (let i = 0; i < 50; i++) { // 50 iterations should give us good precision
     const midStrike = (lowStrike + highStrike) / 2;
