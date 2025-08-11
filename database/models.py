@@ -1,6 +1,6 @@
 """SQLAlchemy models for trading strategy application."""
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional, List, Dict, Any
 from decimal import Decimal
 from sqlalchemy import (
@@ -594,13 +594,13 @@ class MarketDataSnapshot(Base):
     def get_latest_snapshot(cls, db_session):
         """Get the most recent valid market snapshot."""
         snapshot = db_session.query(cls).filter(
-            cls.expires_at > datetime.utcnow()
+            cls.expires_at > datetime.now(timezone.utc)
         ).order_by(cls.created_at.desc()).first()
         return snapshot
     
     def is_expired(self) -> bool:
         """Check if snapshot is expired."""
-        return self.expires_at <= datetime.utcnow()
+        return self.expires_at <= datetime.now(timezone.utc)
     
     def to_dict(self) -> Dict[str, Any]:
         """Convert snapshot to dictionary."""
