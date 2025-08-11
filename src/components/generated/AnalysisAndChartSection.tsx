@@ -5,6 +5,7 @@ import { TrendingUp, Target, Zap, BookOpen, Trash2, Plus, DollarSign, Percent, B
 import { AnalysisData, SpreadConfig, Trade } from './SPYSpreadStrategiesApp';
 import { AIAssessmentButton } from '../AIAssessmentButton';
 import { AIAssessmentResult } from '../AIAssessmentResult';
+import { AIAssessmentFullPage } from '../AIAssessmentFullPage';
 import { AIAssessment, StrategyParams } from '../../services/aiAssessmentService';
 interface AnalysisAndChartSectionProps {
   analysisData: AnalysisData | null;
