@@ -27,7 +27,7 @@ export const AIAssessmentFullPage: React.FC<AIAssessmentFullPageProps> = ({
   marketData,
   currentPrice
 }) => {
-  const [activeTab, setActiveTab] = useState<'overview' | 'technical' | 'greeks' | 'scenarios'>('overview')
+  const [activeTab, setActiveTab] = useState<'overview' | 'technical' | 'greeks' | 'scenarios' | 'prediction'>('overview')
   
   // Generate profit/loss chart data
   const generatePLChart = () => {
