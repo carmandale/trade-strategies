@@ -134,6 +134,7 @@ export const AIAssessmentFullPage: React.FC<AIAssessmentFullPageProps> = ({
   const plData = generatePLChart()
   const marketRegimeData = generateMarketData()
   const greeksData = generateGreeksData()
+  const predictionData = generatePredictionData()
   
   const getRecommendationColor = (rec: string) => {
     switch (rec) {
