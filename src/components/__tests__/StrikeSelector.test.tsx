@@ -66,7 +66,7 @@ describe('StrikeSelector Component', () => {
 			/>
 		)
 
-		const putShortInput = screen.getByLabelText(/Put Short Strike/i)
+		const putShortInput = screen.getByRole('spinbutton', { name: /Put Short Strike/i })
 		
 		// Clear and type new value
 		await user.clear(putShortInput)
@@ -93,7 +93,7 @@ describe('StrikeSelector Component', () => {
 			/>
 		)
 
-		const putShortInput = screen.getByLabelText(/Put Short Strike/i)
+		const putShortInput = screen.getByRole('spinbutton', { name: /Put Short Strike/i })
 		
 		// Try to enter invalid value > 100
 		await user.clear(putShortInput)
@@ -135,7 +135,7 @@ describe('StrikeSelector Component', () => {
 			/>
 		)
 
-		const putShortInput = screen.getByLabelText(/Put Short Strike/i)
+		const putShortInput = screen.getByRole('spinbutton', { name: /Put Short Strike/i })
 		
 		// Simulate input change directly (use valid value that doesn't violate ordering)
 		fireEvent.change(putShortInput, { target: { value: '98' } })
@@ -205,7 +205,7 @@ describe('StrikeSelector Component', () => {
 			/>
 		)
 
-		const putShortInput = screen.getByLabelText(/Put Short Strike/i)
+		const putShortInput = screen.getByRole('spinbutton', { name: /Put Short Strike/i })
 		
 		// Focus the input
 		putShortInput.focus()
