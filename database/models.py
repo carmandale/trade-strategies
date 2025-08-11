@@ -386,3 +386,236 @@ class MarketDataCache(Base):
             'expires_at': self.expires_at.isoformat() if self.expires_at else None,
             'is_expired': self.is_expired()
         }
+
+
+class AIAssessment(Base):
+    """AI assessment for trading strategies."""
+    __tablename__ = "ai_assessments"
+    
+    id = Column(UUIDType, primary_key=True, default=uuid.uuid4, server_default=UUID_SERVER_DEFAULT)
+    assessment_id = Column(String(100), unique=True, nullable=False)  # Unique identifier for assessment
+    strategy_hash = Column(String(200), nullable=False)  # Hash of strategy parameters for caching
+    strategy_type = Column(String(50), nullable=False)
+    symbol = Column(String(10), nullable=False)
+    strategy_params = Column(JSONType, nullable=False)  # Complete strategy parameters
+    recommendation = Column(Enum(AIRecommendation), nullable=False)
+    confidence = Column(Integer, nullable=False)  # 0-100
+    reasoning = Column(JSONType, nullable=False)  # Structured reasoning with supporting/risk factors
+    market_conditions = Column(JSONType, nullable=False)  # Market snapshot at assessment time
+    model_used = Column(String(50), server_default='gpt-5')
+    token_usage = Column(Integer, nullable=True)
+    cost_usd = Column(DECIMAL(10, 4), nullable=True)
+    processing_time_ms = Column(Integer, nullable=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    expires_at = Column(DateTime(timezone=True), nullable=False)  # Assessment expiration time
+    
+    # Constraints
+    __table_args__ = (
+        CheckConstraint('confidence >= 0 AND confidence <= 100', name='check_confidence_range'),
+        Index('idx_ai_assessments_strategy_hash', 'strategy_hash'),
+        Index('idx_ai_assessments_expires', 'expires_at'),
+    )
+    
+    @classmethod
+    def get_cached_assessment(cls, db_session, strategy_hash: str):
+        """Get cached assessment if not expired."""
+        assessment = db_session.query(cls).filter(
+            cls.strategy_hash == strategy_hash,
+            cls.expires_at > datetime.utcnow()
+        ).first()
+        return assessment
+    
+    def is_expired(self) -> bool:
+        """Check if assessment is expired."""
+        return self.expires_at <= datetime.utcnow()
+    
+    def to_dict(self) -> Dict[str, Any]:
+        """Convert assessment to dictionary."""
+        return {
+            'id': str(self.id),
+            'assessment_id': self.assessment_id,
+            'strategy_hash': self.strategy_hash,
+            'strategy_type': self.strategy_type,
+            'symbol': self.symbol,
+            'strategy_params': self.strategy_params,
+            'recommendation': self.recommendation.value if self.recommendation else None,
+            'confidence': self.confidence,
+            'reasoning': self.reasoning,
+            'market_conditions': self.market_conditions,
+            'model_used': self.model_used,
+            'token_usage': self.token_usage,
+            'cost_usd': float(self.cost_usd) if self.cost_usd else None,
+            'processing_time_ms': self.processing_time_ms,
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+            'expires_at': self.expires_at.isoformat() if self.expires_at else None,
+            'is_expired': self.is_expired()
+        }
+
+
+class AISettings(Base):
+    """AI settings configuration."""
+    __tablename__ = "ai_settings"
+    
+    id = Column(UUIDType, primary_key=True, default=uuid.uuid4, server_default=UUID_SERVER_DEFAULT)
+    user_id = Column(Integer, nullable=True)  # NULL for single-user app, ready for Phase 2
+    model = Column(String(50), server_default='gpt-5')
+    temperature = Column(DECIMAL(3, 2), server_default='0.30')  # 0.00 to 1.00
+    max_tokens = Column(Integer, server_default='800')
+    cache_ttl = Column(Integer, server_default='300')  # 5 minutes default
+    reasoning_effort = Column(Enum(ReasoningEffort), server_default='medium')
+    auto_assess = Column(Boolean, server_default='false')
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+    
+    # Constraints
+    __table_args__ = (
+        CheckConstraint('temperature >= 0 AND temperature <= 1', name='check_temperature_range'),
+        CheckConstraint('max_tokens > 0 AND max_tokens <= 4096', name='check_max_tokens_range'),
+        CheckConstraint('cache_ttl >= 0 AND cache_ttl <= 3600', name='check_cache_ttl_range'),
+    )
+    
+    @classmethod
+    def get_settings(cls, db_session, user_id: Optional[int] = None):
+        """Get settings for user or default settings."""
+        settings = db_session.query(cls).filter(cls.user_id == user_id).first()
+        if not settings:
+            # Create default settings if none exist
+            settings = cls(user_id=user_id)
+            db_session.add(settings)
+            db_session.commit()
+        return settings
+    
+    def to_dict(self) -> Dict[str, Any]:
+        """Convert settings to dictionary."""
+        return {
+            'id': str(self.id),
+            'user_id': self.user_id,
+            'model': self.model,
+            'temperature': float(self.temperature) if self.temperature else None,
+            'max_tokens': self.max_tokens,
+            'cache_ttl': self.cache_ttl,
+            'reasoning_effort': self.reasoning_effort.value if self.reasoning_effort else None,
+            'auto_assess': self.auto_assess,
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+            'updated_at': self.updated_at.isoformat() if self.updated_at else None
+        }
+
+
+class AIUsageLog(Base):
+    """AI usage tracking for monitoring and cost control."""
+    __tablename__ = "ai_usage_log"
+    
+    id = Column(UUIDType, primary_key=True, default=uuid.uuid4, server_default=UUID_SERVER_DEFAULT)
+    assessment_id = Column(String(100), nullable=True)  # Reference to assessment
+    operation = Column(String(50), nullable=False)  # 'assess_strategy', 'market_analysis', etc.
+    model = Column(String(50), nullable=False)
+    tokens_input = Column(Integer, nullable=False)
+    tokens_output = Column(Integer, nullable=False)
+    tokens_total = Column(Integer, nullable=False)
+    cost_usd = Column(DECIMAL(10, 4), nullable=False)
+    response_time_ms = Column(Integer, nullable=False)
+    success = Column(Boolean, nullable=False)
+    error_message = Column(Text, nullable=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    
+    # Indexes
+    __table_args__ = (
+        Index('idx_ai_usage_log_created', 'created_at'),
+        Index('idx_ai_usage_log_assessment', 'assessment_id'),
+    )
+    
+    @classmethod
+    def get_usage_stats(cls, db_session, start_date: datetime = None, end_date: datetime = None):
+        """Get usage statistics for a date range."""
+        query = db_session.query(
+            func.count(cls.id).label('total_requests'),
+            func.sum(cls.tokens_total).label('total_tokens'),
+            func.sum(cls.cost_usd).label('total_cost'),
+            func.avg(cls.response_time_ms).label('avg_response_time'),
+            func.sum(func.cast(cls.success, Integer)).label('successful_requests')
+        )
+        
+        if start_date:
+            query = query.filter(cls.created_at >= start_date)
+        if end_date:
+            query = query.filter(cls.created_at <= end_date)
+        
+        result = query.first()
+        return {
+            'total_requests': result.total_requests or 0,
+            'total_tokens': result.total_tokens or 0,
+            'total_cost': float(result.total_cost) if result.total_cost else 0.0,
+            'avg_response_time': float(result.avg_response_time) if result.avg_response_time else 0.0,
+            'successful_requests': result.successful_requests or 0,
+            'success_rate': (result.successful_requests / result.total_requests * 100) if result.total_requests else 0
+        }
+    
+    def to_dict(self) -> Dict[str, Any]:
+        """Convert usage log to dictionary."""
+        return {
+            'id': str(self.id),
+            'assessment_id': self.assessment_id,
+            'operation': self.operation,
+            'model': self.model,
+            'tokens_input': self.tokens_input,
+            'tokens_output': self.tokens_output,
+            'tokens_total': self.tokens_total,
+            'cost_usd': float(self.cost_usd) if self.cost_usd else None,
+            'response_time_ms': self.response_time_ms,
+            'success': self.success,
+            'error_message': self.error_message,
+            'created_at': self.created_at.isoformat() if self.created_at else None
+        }
+
+
+class MarketDataSnapshot(Base):
+    """Market data snapshot for AI assessment context."""
+    __tablename__ = "market_data_snapshots"
+    
+    id = Column(UUIDType, primary_key=True, default=uuid.uuid4, server_default=UUID_SERVER_DEFAULT)
+    snapshot_id = Column(String(100), unique=True, nullable=False)
+    spx_price = Column(DECIMAL(10, 2), nullable=False)
+    spx_change = Column(DECIMAL(10, 2), nullable=False)
+    spx_change_percent = Column(DECIMAL(5, 2), nullable=False)
+    vix_level = Column(DECIMAL(10, 2), nullable=False)
+    vix_change = Column(DECIMAL(10, 2), nullable=False)
+    volume = Column(Integer, nullable=False)
+    volume_vs_avg = Column(DECIMAL(5, 2), nullable=False)  # Ratio vs average volume
+    technical_indicators = Column(JSONType, nullable=False)  # RSI, moving averages, etc.
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    expires_at = Column(DateTime(timezone=True), nullable=False)
+    
+    # Indexes
+    __table_args__ = (
+        Index('idx_market_snapshots_expires', 'expires_at'),
+    )
+    
+    @classmethod
+    def get_latest_snapshot(cls, db_session):
+        """Get the most recent valid market snapshot."""
+        snapshot = db_session.query(cls).filter(
+            cls.expires_at > datetime.utcnow()
+        ).order_by(cls.created_at.desc()).first()
+        return snapshot
+    
+    def is_expired(self) -> bool:
+        """Check if snapshot is expired."""
+        return self.expires_at <= datetime.utcnow()
+    
+    def to_dict(self) -> Dict[str, Any]:
+        """Convert snapshot to dictionary."""
+        return {
+            'id': str(self.id),
+            'snapshot_id': self.snapshot_id,
+            'spx_price': float(self.spx_price) if self.spx_price else None,
+            'spx_change': float(self.spx_change) if self.spx_change else None,
+            'spx_change_percent': float(self.spx_change_percent) if self.spx_change_percent else None,
+            'vix_level': float(self.vix_level) if self.vix_level else None,
+            'vix_change': float(self.vix_change) if self.vix_change else None,
+            'volume': self.volume,
+            'volume_vs_avg': float(self.volume_vs_avg) if self.volume_vs_avg else None,
+            'technical_indicators': self.technical_indicators,
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+            'expires_at': self.expires_at.isoformat() if self.expires_at else None,
+            'is_expired': self.is_expired()
+        }
