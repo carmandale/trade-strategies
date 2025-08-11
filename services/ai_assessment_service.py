@@ -319,7 +319,7 @@ Format your response as JSON with this structure:
             assessment_id=f"assess_{datetime.now().strftime('%Y%m%d%H%M%S')}_{strategy_params.get('symbol', 'SPY')}",
             strategy_hash=self._calculate_strategy_hash(strategy_params),
             strategy_type=strategy_params.get('strategy_type', 'unknown'),
-            symbol=strategy_params.get('symbol', 'SPX'),
+            symbol=strategy_params.get('symbol', 'SPY'),
             strategy_params=strategy_params,
             recommendation=assessment_data['recommendation'],
             confidence=assessment_data['confidence'],
