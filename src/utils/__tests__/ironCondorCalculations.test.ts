@@ -107,9 +107,12 @@ describe('ironCondorCalculations', () => {
 				credit: 30
 			}
 			const maxPnL = getMaxProfitLoss(widePosition)
+			// Put spread width: 4950 - 4800 = 150
+			// Call spread width: 5200 - 5050 = 150
+			// Max loss = credit - spread width = 30 - 150 = -120
 			expect(maxPnL).toEqual({
 				maxProfit: 30,  // Credit
-				maxLoss: -70    // 100 - 30 = -70
+				maxLoss: -120   // 30 - 150 = -120
 			})
 		})
 
