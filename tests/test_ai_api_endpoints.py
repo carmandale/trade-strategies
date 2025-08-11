@@ -163,6 +163,13 @@ class TestAIAssessmentEndpoints:
             mock_snapshot = Mock()
             mock_snapshot.to_dict.return_value = {
                 "spx_price": 5635.50,
+                "spx_change": 17.25,
+                "spx_change_percent": 0.31,
+                "vix_level": 14.2,
+                "vix_change": -0.9,
+                "volume": 2200000,
+                "volume_vs_avg": 1.09,
+                "technical_indicators": {"rsi_14": 72.4},
                 "cached": True,
                 "expires_at": "2025-08-11T10:35:00Z"
             }
