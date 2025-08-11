@@ -243,7 +243,7 @@ class Trade(Base):
     def close_trade(self, exit_price: Decimal, exit_time: datetime = None, notes: str = None):
         """Close the trade with exit price and time."""
         self.exit_price = exit_price
-        self.exit_time = exit_time or datetime.utcnow()
+        self.exit_time = exit_time or datetime.now(timezone.utc)
         self.status = 'closed'
         if notes:
             self.notes = f"{self.notes or ''}\n{notes}".strip()
@@ -329,7 +329,7 @@ class MarketDataCache(Base):
             cls.symbol == symbol,
             cls.data_date == data_date,
             cls.data_type == data_type,
-            cls.expires_at > datetime.utcnow()
+            cls.expires_at > datetime.now(timezone.utc)
         ).first()
         return entry.data if entry else None
     
@@ -361,18 +361,18 @@ class MarketDataCache(Base):
     def cleanup_expired(cls, db_session) -> int:
         """Remove expired cache entries."""
         count = db_session.query(cls).filter(
-            cls.expires_at <= datetime.utcnow()
+            cls.expires_at <= datetime.now(timezone.utc)
         ).count()
         
         db_session.query(cls).filter(
-            cls.expires_at <= datetime.utcnow()
+            cls.expires_at <= datetime.now(timezone.utc)
         ).delete()
         
         return count
     
     def is_expired(self) -> bool:
         """Check if cache entry is expired."""
-        return self.expires_at <= datetime.utcnow()
+        return self.expires_at <= datetime.now(timezone.utc)
     
     def to_dict(self) -> Dict[str, Any]:
         """Convert cache entry to dictionary."""
@@ -421,13 +421,13 @@ class AIAssessment(Base):
         """Get cached assessment if not expired."""
         assessment = db_session.query(cls).filter(
             cls.strategy_hash == strategy_hash,
-            cls.expires_at > datetime.utcnow()
+            cls.expires_at > datetime.now(timezone.utc)
         ).first()
         return assessment
     
     def is_expired(self) -> bool:
         """Check if assessment is expired."""
-        return self.expires_at <= datetime.utcnow()
+        return self.expires_at <= datetime.now(timezone.utc)
     
     def to_dict(self) -> Dict[str, Any]:
         """Convert assessment to dictionary."""

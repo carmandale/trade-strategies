@@ -1,6 +1,6 @@
 """Tests for AI assessment SQLAlchemy models."""
 import pytest
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from decimal import Decimal
 from sqlalchemy.exc import IntegrityError
 from database.config import SessionLocal
@@ -53,7 +53,7 @@ class TestAIAssessmentModel:
                 token_usage=450,
                 cost_usd=Decimal("0.025"),
                 processing_time_ms=2150,
-                expires_at=datetime.utcnow() + timedelta(minutes=5)
+                expires_at=datetime.now(timezone.utc) + timedelta(minutes=5)
             )
             
             db.add(assessment)
@@ -84,7 +84,7 @@ class TestAIAssessmentModel:
                 confidence=75,
                 reasoning={"supporting_factors": [], "risk_factors": []},
                 market_conditions={"test": "conditions"},
-                expires_at=datetime.utcnow() + timedelta(minutes=5)
+                expires_at=datetime.now(timezone.utc) + timedelta(minutes=5)
             )
             db.add(assessment1)
             db.commit()
@@ -100,7 +100,7 @@ class TestAIAssessmentModel:
                 confidence=65,
                 reasoning={"supporting_factors": [], "risk_factors": []},
                 market_conditions={"test": "conditions"},
-                expires_at=datetime.utcnow() + timedelta(minutes=5)
+                expires_at=datetime.now(timezone.utc) + timedelta(minutes=5)
             )
             
             with pytest.raises(IntegrityError):
@@ -121,7 +121,7 @@ class TestAIAssessmentModel:
                 confidence=50,
                 reasoning={"supporting_factors": [], "risk_factors": []},
                 market_conditions={"test": "conditions"},
-                expires_at=datetime.utcnow() + timedelta(minutes=5)
+                expires_at=datetime.now(timezone.utc) + timedelta(minutes=5)
             )
             
             with pytest.raises(IntegrityError):
@@ -143,7 +143,7 @@ class TestAIAssessmentModel:
                 confidence=150,  # Invalid - too high
                 reasoning={"supporting_factors": [], "risk_factors": []},
                 market_conditions={"test": "conditions"},
-                expires_at=datetime.utcnow() + timedelta(minutes=5)
+                expires_at=datetime.now(timezone.utc) + timedelta(minutes=5)
             )
             
             with pytest.raises(IntegrityError):
@@ -276,7 +276,7 @@ class TestMarketDataSnapshotModel:
                     "ma_50": 5598.75,
                     "bollinger_position": "upper_half"
                 },
-                expires_at=datetime.utcnow() + timedelta(minutes=30)
+                expires_at=datetime.now(timezone.utc) + timedelta(minutes=30)
             )
             
             db.add(snapshot)
@@ -307,7 +307,7 @@ class TestMarketDataSnapshotModel:
                 volume=2000000,
                 volume_vs_avg=Decimal("0.90"),
                 technical_indicators={"test": "data1"},
-                expires_at=datetime.utcnow() + timedelta(minutes=30)
+                expires_at=datetime.now(timezone.utc) + timedelta(minutes=30)
             )
             db.add(snapshot1)
             db.commit()
@@ -323,7 +323,7 @@ class TestMarketDataSnapshotModel:
                 volume=2200000,
                 volume_vs_avg=Decimal("0.80"),
                 technical_indicators={"test": "data2"},
-                expires_at=datetime.utcnow() + timedelta(minutes=30)
+                expires_at=datetime.now(timezone.utc) + timedelta(minutes=30)
             )
             
             with pytest.raises(IntegrityError):

@@ -46,6 +46,77 @@ export function calculateDelta(
   }
 }
 
+// Black-Scholes gamma calculation (same for calls and puts)
+export function calculateGamma(
+  spotPrice: number,
+  strikePrice: number,
+  timeToExpiration: number,
+  riskFreeRate: number = 0.05,
+  volatility: number = 0.20
+): number {
+  if (timeToExpiration <= 0) {
+    return 0; // Gamma is 0 at expiration
+  }
+
+  const d1 = (Math.log(spotPrice / strikePrice) + (riskFreeRate + 0.5 * volatility * volatility) * timeToExpiration) / 
+             (volatility * Math.sqrt(timeToExpiration));
+  
+  // Standard normal probability density function
+  const phi_d1 = Math.exp(-0.5 * d1 * d1) / Math.sqrt(2 * Math.PI);
+  
+  return phi_d1 / (spotPrice * volatility * Math.sqrt(timeToExpiration));
+}
+
+// Black-Scholes theta calculation (time decay)
+export function calculateTheta(
+  spotPrice: number,
+  strikePrice: number,
+  timeToExpiration: number,
+  riskFreeRate: number = 0.05,
+  volatility: number = 0.20,
+  isCall: boolean = true
+): number {
+  if (timeToExpiration <= 0) {
+    return 0; // No time decay at expiration
+  }
+
+  const d1 = (Math.log(spotPrice / strikePrice) + (riskFreeRate + 0.5 * volatility * volatility) * timeToExpiration) / 
+             (volatility * Math.sqrt(timeToExpiration));
+  const d2 = d1 - volatility * Math.sqrt(timeToExpiration);
+  
+  const phi_d1 = Math.exp(-0.5 * d1 * d1) / Math.sqrt(2 * Math.PI);
+  
+  if (isCall) {
+    const theta = -(spotPrice * phi_d1 * volatility) / (2 * Math.sqrt(timeToExpiration)) 
+                  - riskFreeRate * strikePrice * Math.exp(-riskFreeRate * timeToExpiration) * normalCDF(d2);
+    return theta / 365; // Convert to per-day theta
+  } else {
+    const theta = -(spotPrice * phi_d1 * volatility) / (2 * Math.sqrt(timeToExpiration)) 
+                  + riskFreeRate * strikePrice * Math.exp(-riskFreeRate * timeToExpiration) * normalCDF(-d2);
+    return theta / 365; // Convert to per-day theta
+  }
+}
+
+// Black-Scholes vega calculation (same for calls and puts)
+export function calculateVega(
+  spotPrice: number,
+  strikePrice: number,
+  timeToExpiration: number,
+  riskFreeRate: number = 0.05,
+  volatility: number = 0.20
+): number {
+  if (timeToExpiration <= 0) {
+    return 0; // No vega at expiration
+  }
+
+  const d1 = (Math.log(spotPrice / strikePrice) + (riskFreeRate + 0.5 * volatility * volatility) * timeToExpiration) / 
+             (volatility * Math.sqrt(timeToExpiration));
+  
+  const phi_d1 = Math.exp(-0.5 * d1 * d1) / Math.sqrt(2 * Math.PI);
+  
+  return spotPrice * phi_d1 * Math.sqrt(timeToExpiration) / 100; // Convert to per 1% volatility change
+}
+
 // Calculate time to expiration in years from trading date to expiration date
 export function calculateTimeToExpiration(expirationDate: Date, tradingDate?: Date): number {
   const referenceDate = tradingDate || new Date();
