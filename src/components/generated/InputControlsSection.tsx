@@ -35,7 +35,9 @@ const InputControlsSection: React.FC<InputControlsSectionProps> = ({
     return `${year}-${month}-${day}`;
   };
   const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newDate = new Date(e.target.value);
+    // Parse the date string and create a date in local timezone
+    const [year, month, day] = e.target.value.split('-').map(Number);
+    const newDate = new Date(year, month - 1, day);
     setSelectedDate(newDate);
   };
   const handleContractsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
