@@ -215,12 +215,21 @@ export class ApiService {
     } catch (error) {
       console.error('Error analyzing strategies:', error);
       // Return fallback data if API fails
-      const bcFallbackProfit = (spreadConfig.bullCallUpper - spreadConfig.bullCallLower) * 100 * contracts;
-      const bcFallbackLoss = 150 * contracts;
-      const icFallbackProfit = 200 * contracts;
-      const icFallbackLoss = 300 * contracts;
-      const bfFallbackProfit = 350 * contracts;
-      const bfFallbackLoss = 150 * contracts;
+      // Fallback calculations using same formulas
+      const bullCallSpreadWidth = spreadConfig.bullCallUpper - spreadConfig.bullCallLower;
+      const bcFallbackProfit = (bullCallSpreadWidth - 1.5) * 100 * contracts;
+      const bcFallbackLoss = 1.5 * 100 * contracts;
+      
+      const icSpreadWidth = Math.min(
+        spreadConfig.ironCondorPutShort - spreadConfig.ironCondorPutLong,
+        spreadConfig.ironCondorCallLong - spreadConfig.ironCondorCallShort
+      );
+      const icFallbackProfit = 2.0 * 100 * contracts;
+      const icFallbackLoss = (icSpreadWidth - 2.0) * 100 * contracts;
+      
+      const bfSpreadWidth = (spreadConfig.butterflyBody - spreadConfig.butterflyLower);
+      const bfFallbackProfit = (bfSpreadWidth - 1.5) * 100 * contracts;
+      const bfFallbackLoss = 1.5 * 100 * contracts;
       
       return {
         bullCall: {
