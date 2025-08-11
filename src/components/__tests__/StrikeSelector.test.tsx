@@ -187,7 +187,7 @@ describe('StrikeSelector Component', () => {
 			/>
 		)
 
-		const putLongInput = screen.getByLabelText(/Put Long Strike/i)
+		const putLongInput = screen.getByRole('spinbutton', { name: /Put Long Strike/i })
 		
 		// Try to set put long higher than put short (97.5)
 		fireEvent.change(putLongInput, { target: { value: '98' } })
