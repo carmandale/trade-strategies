@@ -221,7 +221,7 @@ CURRENT {symbol} MARKET CONDITIONS:
 - {symbol} Price: ${spy_price:.2f} ({spy_change:+.2f}, {spy_change_percent:+.2f}% today)
 - VIX (Fear Index): {vix_level:.1f} ({vix_change:+.1f} change)
 - Trading Volume: {volume_vs_avg:.0%} of average
-- Market Sentiment: {json.dumps(market_data.get('technical_indicators', {{}}))}
+- Market Sentiment: {json.dumps(market_data.get('technical_indicators', {}))}}
 
 PROVIDE ACTIONABLE TRADING ADVICE:
 Be specific about why this {symbol} options strategy makes sense (or doesn't) right now.
