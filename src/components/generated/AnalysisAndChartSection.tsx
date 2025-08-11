@@ -28,6 +28,58 @@ const AnalysisAndChartSection: React.FC<AnalysisAndChartSectionProps> = ({
   onDeleteTrade,
   isAnalyzing
 }) => {
+  // AI Assessment state
+  const [aiAssessments, setAiAssessments] = useState<Record<string, AIAssessment>>({})
+  
+  // Convert strategy data to AI service format
+  const convertToAIStrategyParams = (strategyType: string, data: any): StrategyParams => {
+    const now = new Date()
+    let strikes: Record<string, number> = {}
+    let expiration = now.toISOString().split('T')[0] // Default to today
+    
+    switch (strategyType) {
+      case 'bull_call':
+        strikes = {
+          long_strike: spreadConfig.bullCallLower,
+          short_strike: spreadConfig.bullCallUpper
+        }
+        break
+      case 'iron_condor':
+        strikes = {
+          put_long: spreadConfig.ironCondorPutLong,
+          put_short: spreadConfig.ironCondorPutShort,
+          call_short: spreadConfig.ironCondorCallShort,
+          call_long: spreadConfig.ironCondorCallLong
+        }
+        break
+      case 'butterfly':
+        strikes = {
+          lower_strike: spreadConfig.butterflyLower,
+          body_strike: spreadConfig.butterflyBody,
+          upper_strike: spreadConfig.butterflyUpper
+        }
+        break
+    }
+    
+    return {
+      strategy_type: strategyType,
+      symbol: 'SPY',
+      strikes,
+      expiration,
+      quantity: 10,
+      max_profit: data?.maxProfit || 1000,
+      max_loss: data?.maxLoss || 500,
+      breakeven: data?.breakeven ? [data.breakeven] : data?.upperBreakeven && data?.lowerBreakeven ? [data.lowerBreakeven, data.upperBreakeven] : [0]
+    }
+  }
+  
+  // Handle AI assessment completion
+  const handleAIAssessmentComplete = (strategy: string, assessment: AIAssessment) => {
+    setAiAssessments(prev => ({
+      ...prev,
+      [strategy]: assessment
+    }))
+  }
   const formatCurrency = (value: number): string => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
