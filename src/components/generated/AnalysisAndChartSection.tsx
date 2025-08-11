@@ -181,10 +181,72 @@ const AnalysisAndChartSection: React.FC<AnalysisAndChartSectionProps> = ({
           </div>
           <div>
             <h3 className="font-semibold text-slate-100">Strategy Portfolio</h3>
-            <p className="text-xs text-slate-400">Iron Condor results by timeframe (from API)</p>
+            <p className="text-xs text-slate-400">Analyzed strategies ready for execution</p>
           </div>
         </div>
-        <StrategyDashboard symbol="SPY" />
+        {analysisData ? (
+          <div className="space-y-3">
+            {/* Bull Call Strategy */}
+            <div className="bg-slate-700/30 rounded-lg p-3 hover:bg-slate-700/50 transition-colors">
+              <div className="flex justify-between items-center">
+                <div>
+                  <div className="font-medium text-green-400">Bull Call Spread</div>
+                  <div className="text-xs text-slate-400">
+                    {spreadConfig.bullCallLower}/{spreadConfig.bullCallUpper} • Max P: ${analysisData.bullCall.maxProfit.toFixed(0)}
+                  </div>
+                </div>
+                <button
+                  onClick={() => onLogTrade('Bull Call', analysisData.bullCall.maxProfit)}
+                  className="px-3 py-1 bg-green-500/20 text-green-400 rounded-lg text-xs hover:bg-green-500/30 transition-colors"
+                >
+                  Execute
+                </button>
+              </div>
+            </div>
+            
+            {/* Iron Condor Strategy */}
+            <div className="bg-slate-700/30 rounded-lg p-3 hover:bg-slate-700/50 transition-colors">
+              <div className="flex justify-between items-center">
+                <div>
+                  <div className="font-medium text-purple-400">Iron Condor</div>
+                  <div className="text-xs text-slate-400">
+                    {spreadConfig.ironCondorPutLong}/{spreadConfig.ironCondorPutShort}-{spreadConfig.ironCondorCallShort}/{spreadConfig.ironCondorCallLong} • Max P: ${analysisData.ironCondor.maxProfit.toFixed(0)}
+                  </div>
+                </div>
+                <button
+                  onClick={() => onLogTrade('Iron Condor', analysisData.ironCondor.maxProfit)}
+                  className="px-3 py-1 bg-purple-500/20 text-purple-400 rounded-lg text-xs hover:bg-purple-500/30 transition-colors"
+                >
+                  Execute
+                </button>
+              </div>
+            </div>
+            
+            {/* Butterfly Strategy */}
+            <div className="bg-slate-700/30 rounded-lg p-3 hover:bg-slate-700/50 transition-colors">
+              <div className="flex justify-between items-center">
+                <div>
+                  <div className="font-medium text-yellow-400">Butterfly Spread</div>
+                  <div className="text-xs text-slate-400">
+                    {spreadConfig.butterflyLower}/{spreadConfig.butterflyBody}/{spreadConfig.butterflyUpper} • Max P: ${analysisData.butterfly.maxProfit.toFixed(0)}
+                  </div>
+                </div>
+                <button
+                  onClick={() => onLogTrade('Butterfly', analysisData.butterfly.maxProfit)}
+                  className="px-3 py-1 bg-yellow-500/20 text-yellow-400 rounded-lg text-xs hover:bg-yellow-500/30 transition-colors"
+                >
+                  Execute
+                </button>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div className="flex flex-col items-center justify-center py-8">
+            <TrendingUp className="w-8 h-8 text-slate-500 mb-2" />
+            <p className="text-sm text-slate-400">No strategies analyzed yet</p>
+            <p className="text-xs text-slate-500 mt-1">Click "Analyze Strategies" to populate</p>
+          </div>
+        )}
       </div>
 
       {/* Price Chart */}
