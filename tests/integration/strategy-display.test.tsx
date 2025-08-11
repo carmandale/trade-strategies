@@ -201,7 +201,9 @@ describe('Strategy Display Integration Tests', () => {
 
 			// Click on weekly strategy card (now a button)
 			const weeklyCard = screen.getByTestId('strategy-card-weekly')
-			weeklyCard.click()
+			await act(async () => {
+				weeklyCard.click()
+			})
 
 			await waitFor(() => {
 				// Weekly detailed data should be displayed
@@ -214,7 +216,9 @@ describe('Strategy Display Integration Tests', () => {
 
 			// Click on monthly strategy card
 			const monthlyCard = screen.getByTestId('strategy-card-monthly')
-			monthlyCard.click()
+			await act(async () => {
+				monthlyCard.click()
+			})
 
 			await waitFor(() => {
 				// Monthly API should have been called
