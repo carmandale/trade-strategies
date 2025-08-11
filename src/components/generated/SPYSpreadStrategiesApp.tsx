@@ -192,26 +192,33 @@ const SPYSpreadStrategiesApp: React.FC = () => {
       console.error('Failed to analyze strategies:', error);
       
       // Fallback to mock analysis if API fails
+      const bcFallbackProfit = (spreadConfig.bullCallUpper - spreadConfig.bullCallLower) * 100 * contracts;
+      const bcFallbackLoss = 150 * contracts;
+      const icFallbackProfit = 200 * contracts;
+      const icFallbackLoss = 300 * contracts;
+      const bfFallbackProfit = 350 * contracts;
+      const bfFallbackLoss = 150 * contracts;
+      
       const fallbackAnalysis: AnalysisData = {
         bullCall: {
-          maxProfit: (spreadConfig.bullCallUpper - spreadConfig.bullCallLower) * 100 * contracts,
-          maxLoss: 150 * contracts,
+          maxProfit: bcFallbackProfit,
+          maxLoss: bcFallbackLoss,
           breakeven: spreadConfig.bullCallLower + 1.5,
-          riskReward: 2.33
+          riskReward: bcFallbackProfit / bcFallbackLoss  // Correct: reward/risk ratio
         },
         ironCondor: {
-          maxProfit: 200 * contracts,
-          maxLoss: 300 * contracts,
+          maxProfit: icFallbackProfit,
+          maxLoss: icFallbackLoss,
           upperBreakeven: spreadConfig.ironCondorCallShort + 2,
           lowerBreakeven: spreadConfig.ironCondorPutShort - 2,
-          riskReward: 0.67
+          riskReward: icFallbackProfit / icFallbackLoss  // Correct: reward/risk ratio
         },
         butterfly: {
-          maxProfit: 350 * contracts,
-          maxLoss: 150 * contracts,
+          maxProfit: bfFallbackProfit,
+          maxLoss: bfFallbackLoss,
           breakeven1: spreadConfig.butterflyLower + 1.5,
           breakeven2: spreadConfig.butterflyUpper - 1.5,
-          riskReward: 2.33
+          riskReward: bfFallbackProfit / bfFallbackLoss  // Correct: reward/risk ratio
         }
       };
       setAnalysisData(fallbackAnalysis);
