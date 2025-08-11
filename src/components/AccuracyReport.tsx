@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { CheckCircle, XCircle, AlertCircle, ChevronDown, ChevronUp } from 'lucide-react';
+import { CheckCircle, XCircle, AlertCircle, ChevronDown, ChevronUp, TestTube } from 'lucide-react';
 import { verifier, VerificationResult } from '../utils/accuracyVerification';
+import runEdgeCaseTests from '../utils/edgeCaseTests';
 
 export const AccuracyReport: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -109,17 +110,30 @@ export const AccuracyReport: React.FC = () => {
             )}
           </div>
 
-          {/* Clear Button */}
-          <button
-            onClick={() => {
-              verifier.clear();
-              setResults([]);
-              setSummary({ total: 0, passed: 0, failed: 0, successRate: 0 });
-            }}
-            className="mt-3 w-full bg-slate-700/50 hover:bg-slate-600/50 text-slate-300 text-xs py-1 px-2 rounded transition-all"
-          >
-            Clear Results
-          </button>
+          {/* Action Buttons */}
+          <div className="mt-3 flex gap-2">
+            <button
+              onClick={() => {
+                runEdgeCaseTests();
+                setResults([...verifier.getResults()]);
+                setSummary(verifier.getSummary());
+              }}
+              className="flex-1 bg-blue-700/50 hover:bg-blue-600/50 text-blue-300 text-xs py-1 px-2 rounded transition-all flex items-center justify-center gap-1"
+            >
+              <TestTube className="w-3 h-3" />
+              Run Edge Tests
+            </button>
+            <button
+              onClick={() => {
+                verifier.clear();
+                setResults([]);
+                setSummary({ total: 0, passed: 0, failed: 0, successRate: 0 });
+              }}
+              className="flex-1 bg-slate-700/50 hover:bg-slate-600/50 text-slate-300 text-xs py-1 px-2 rounded transition-all"
+            >
+              Clear Results
+            </button>
+          </div>
         </div>
       )}
     </div>
