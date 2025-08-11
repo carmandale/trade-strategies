@@ -80,7 +80,9 @@ export const StrikeSelector: React.FC<StrikeSelectorProps> = ({
 
 	// Handle input changes
 	const handleInputChange = (field: keyof StrikeConfig, value: number) => {
-		const error = validateStrikes(field, value)
+		// Create new strikes with updated value
+		const newStrikes = { ...localStrikes, [field]: value }
+		const error = validateStrikes(field, value, newStrikes)
 		
 		// Update errors state
 		setErrors(prev => {
