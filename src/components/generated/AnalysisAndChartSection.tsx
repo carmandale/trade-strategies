@@ -19,6 +19,7 @@ interface AnalysisAndChartSectionProps {
   onLogTrade: (strategy: string, pnl: number) => void;
   onDeleteTrade: (tradeId: string) => void;
   isAnalyzing: boolean;
+  currentPrice?: number;
 }
 const AnalysisAndChartSection: React.FC<AnalysisAndChartSectionProps> = ({
   analysisData,
