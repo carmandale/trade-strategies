@@ -43,7 +43,7 @@ class AIAssessmentService:
         # Default settings
         self.default_model = os.getenv('OPENAI_MODEL', 'gpt-5')
         self.default_temperature = float(os.getenv('OPENAI_TEMPERATURE', '0.3'))
-        self.default_max_tokens = int(os.getenv('OPENAI_MAX_TOKENS', '2000'))  # Increased for reasoning
+        self.default_max_tokens = int(os.getenv('OPENAI_MAX_COMPLETION_TOKENS', '2000'))  # Increased for reasoning
         self.default_reasoning_effort = os.getenv('OPENAI_REASONING_EFFORT', 'high')
         self.cache_ttl = int(os.getenv('AI_ASSESSMENT_CACHE_TTL', '300'))  # 5 minutes
         self.timeout = int(os.getenv('AI_ASSESSMENT_TIMEOUT', '30'))  # Increased for reasoning
@@ -97,8 +97,8 @@ class AIAssessmentService:
                             {"role": "system", "content": "You are an expert options trader providing strategy analysis. Always respond with valid JSON."},
                             {"role": "user", "content": prompt}
                         ],
-                        "temperature": self.default_temperature,
-                        "max_tokens": self.default_max_tokens,
+                        
+                        "max_completion_tokens": self.default_max_tokens,
                         "response_format": {"type": "json_object"}
                     }
                     
@@ -116,8 +116,8 @@ class AIAssessmentService:
                                 {"role": "system", "content": "You are an expert options trader providing strategy analysis. Always respond with valid JSON."},
                                 {"role": "user", "content": prompt}
                             ],
-                            "temperature": self.default_temperature,
-                            "max_tokens": self.default_max_tokens
+                            
+                            "max_completion_tokens": self.default_max_tokens
                         }
                         
                         # Add reasoning effort for GPT-5 models

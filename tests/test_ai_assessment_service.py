@@ -120,13 +120,16 @@ class TestAIAssessmentService:
         hash3 = service._calculate_strategy_hash(modified_params)
         assert hash1 != hash3
     
-    @patch('services.ai_assessment_service.OpenAI')
-    def test_assess_strategy_success(self, mock_openai_class, service, strategy_params, market_data, mock_openai_client):
+    
+    def test_assess_strategy_success(self, service, strategy_params, market_data, mock_openai_client):
         """Test successful strategy assessment."""
-        mock_openai_class.return_value = mock_openai_client
+        # Inject mock client directly into service
+        service.client = mock_openai_client
         
-        with patch.object(service, '_get_market_data', return_value=market_data):
-            assessment = service.assess_strategy(strategy_params)
+        # Mock cache to ensure fresh API call
+        with patch.object(service, '_get_cached_assessment', return_value=None):
+            with patch.object(service, '_get_market_data', return_value=market_data):
+                assessment = service.assess_strategy(strategy_params)
         
         assert assessment is not None
         assert assessment["recommendation"] == "GO"
@@ -282,12 +285,12 @@ class TestAIAssessmentService:
             assert log.cost_usd == Decimal("0.025")
             assert log.success is True
     
-    @patch('services.ai_assessment_service.OpenAI')
-    def test_error_handling_api_failure(self, mock_openai_class, service, strategy_params):
+    
+    def test_error_handling_api_failure(self, service, strategy_params):
         """Test handling of API failures."""
         mock_client = Mock()
         mock_client.chat.completions.create.side_effect = Exception("API Error")
-        mock_openai_class.return_value = mock_client
+        service.client = mock_client
         
         assessment = service.assess_strategy(strategy_params)
         
