@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react'
 import { debounce } from 'lodash'
+import * as Slider from '@radix-ui/react-slider'
 import type { StrikeConfig } from '../types/strategy'
 
 interface StrikeSelectorProps {
