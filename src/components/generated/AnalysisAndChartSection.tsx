@@ -92,7 +92,7 @@ const AnalysisAndChartSection: React.FC<AnalysisAndChartSectionProps> = ({
 
       {isAnalyzing ? <div className="space-y-3">
           {[1, 2, 3, 4].map(i => <div key={i} className="h-4 bg-slate-700/50 rounded animate-pulse" />)}
-        </div> : analysisData ? <div className="space-y-4">
+        </div> : analysisData && data ? <div className="space-y-4">
           <div className="grid grid-cols-2 gap-3">
             <div className="bg-slate-700/30 rounded-lg p-3">
               <div className="flex items-center gap-2 mb-1">
