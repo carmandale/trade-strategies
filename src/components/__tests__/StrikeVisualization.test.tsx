@@ -239,8 +239,10 @@ describe('StrikeVisualization', () => {
 		)
 		
 		expect(screen.getByText('Spread Information')).toBeInTheDocument()
-		expect(screen.getByText('Put Spread Width: $100')).toBeInTheDocument() // 4900 - 4800
-		expect(screen.getByText('Call Spread Width: $100')).toBeInTheDocument() // 5200 - 5100
+		expect(screen.getByText('Put Spread Width:')).toBeInTheDocument()
+		expect(screen.getByText('Call Spread Width:')).toBeInTheDocument()
+		// Check for calculated values (4900 - 4800 = 100, 5200 - 5100 = 100)
+		expect(screen.getAllByText('$100')).toHaveLength(2)
 	})
 
 	it('should handle invalid strike configurations gracefully', () => {
