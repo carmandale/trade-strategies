@@ -166,6 +166,26 @@ export const StrategyCard: React.FC<StrategyCardProps> = ({
 				</div>
 			</div>
 
+			{/* AI Assessment Section */}
+			<div className="mt-4 pt-4 border-t border-gray-100 dark:border-gray-700">
+				<div className="flex items-start justify-between gap-4">
+					<AIAssessmentButton 
+						strategy={convertToAIStrategyParams()}
+						onAssessmentComplete={setAiAssessment}
+						size="sm"
+						variant="outline"
+					/>
+					{aiAssessment && (
+						<div className="flex-1 min-w-0">
+							<AIAssessmentResult 
+								assessment={aiAssessment}
+								className="mt-0 p-4"
+							/>
+						</div>
+					)}
+				</div>
+			</div>
+
 			{/* Additional Details (if showDetails is true) */}
 			{showDetails && (
 				<div className="pt-4 border-t border-gray-100 dark:border-gray-700">
