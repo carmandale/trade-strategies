@@ -25,9 +25,17 @@ const StrikePriceConfigSection: React.FC<StrikePriceConfigSectionProps> = ({
   // Calculate time to expiration based on selected date
   // For 0DTE strategies, the expiration is the same as the trading date
   const expirationDate = getExpirationDate('0dte', selectedDate);
-  // Calculate time from now to the selected date (for display purposes)
-  const displayTimeToExpiration = calculateTimeToExpiration(selectedDate || new Date());
-  // For delta calculations, use 0DTE (very small time value)
+  
+  // Calculate actual days between today and selected date for display
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const tradingDate = selectedDate || new Date();
+  const tradingDateNormalized = new Date(tradingDate);
+  tradingDateNormalized.setHours(0, 0, 0, 0);
+  const daysDiff = Math.round((tradingDateNormalized.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+  const displayTimeToExpiration = Math.max(0, daysDiff) / 365.25; // Convert days to years for display
+  
+  // For delta calculations, use 0DTE (very small time value) when trading date is selected
   const timeToExpiration = selectedDate ? 0.001 : displayTimeToExpiration;
   
   // Function to calculate delta for a given strike
