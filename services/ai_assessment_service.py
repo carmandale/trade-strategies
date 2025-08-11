@@ -206,36 +206,98 @@ class AIAssessmentService:
         spy_change = spx_change
         spy_change_percent = spx_change_percent
         
-        prompt = f"""You are a professional options trader providing actionable analysis for a {symbol} options strategy.
+        # Calculate key metrics for analysis
+        strikes = strategy_params.get('strikes', {})
+        strike_list = sorted([float(v) for v in strikes.values()])
+        expiration_date = strategy_params.get('expiration', 'unknown')
+        
+        # Calculate days to expiration and time decay urgency
+        try:
+            from datetime import datetime
+            exp_date = datetime.strptime(expiration_date, '%Y-%m-%d')
+            current_date = datetime.now()
+            days_to_exp = (exp_date - current_date).days
+            time_decay_urgency = "HIGH" if days_to_exp <= 7 else "MODERATE" if days_to_exp <= 30 else "LOW"
+        except:
+            days_to_exp = "unknown"
+            time_decay_urgency = "UNKNOWN"
+            
+        # Calculate strike distances and moneyness
+        strike_analysis = {}
+        for strike_type, strike_price in strikes.items():
+            distance_pct = ((float(strike_price) - spy_price) / spy_price) * 100
+            moneyness = "ITM" if ((strike_type.lower().find('put') >= 0 and float(strike_price) > spy_price) or 
+                                 (strike_type.lower().find('call') >= 0 and float(strike_price) < spy_price)) else "OTM"
+            strike_analysis[strike_type] = {
+                "price": float(strike_price),
+                "distance": f"{distance_pct:+.1f}%",
+                "moneyness": moneyness
+            }
 
-STRATEGY TO ANALYZE:
-- Strategy: {strategy_params.get('strategy_type', 'unknown').replace('_', ' ').title()}
-- Symbol: {symbol}
-- Strikes: {json.dumps(strategy_params.get('strikes', {}))}
-- Expiration: {strategy_params.get('expiration', 'unknown')}
-- Max Profit Potential: ${strategy_params.get('max_profit', 0):,.0f}
-- Max Loss Risk: ${strategy_params.get('max_loss', 0):,.0f}
-- Breakeven Points: {strategy_params.get('breakeven', [])}
+        prompt = f"""You are a veteran options trader and educator providing comprehensive analysis for a {symbol} options strategy. Your goal is to educate while providing actionable insights.
 
-CURRENT {symbol} MARKET CONDITIONS:
-- {symbol} Price: ${spy_price:.2f} ({spy_change:+.2f}, {spy_change_percent:+.2f}% today)
-- VIX (Fear Index): {vix_level:.1f} ({vix_change:+.1f} change)
-- Trading Volume: {volume_vs_avg:.0%} of average
-- Market Sentiment: {json.dumps(market_data.get('technical_indicators', {}))}
+STRATEGY DETAILS:
+- Strategy Type: {strategy_params.get('strategy_type', 'unknown').replace('_', ' ').title()}
+- Underlying: {symbol} (Current: ${spy_price:.2f}, {spy_change:+.2f} / {spy_change_percent:+.2f}% today)
+- Strike Analysis: {json.dumps(strike_analysis)}
+- Expiration: {expiration_date} ({days_to_exp} days remaining)
+- Time Decay Urgency: {time_decay_urgency}
+- Position Size: {strategy_params.get('quantity', 1)} contracts
+- Max Profit: ${strategy_params.get('max_profit', 0):,.0f}
+- Max Loss: ${strategy_params.get('max_loss', 0):,.0f}
+- Risk/Reward Ratio: 1:{(strategy_params.get('max_profit', 1) / strategy_params.get('max_loss', 1)):.2f}
 
-PROVIDE ACTIONABLE TRADING ADVICE:
-Be specific about why this {symbol} options strategy makes sense (or doesn't) right now.
-Consider: current volatility, time decay, directional bias, and market regime.
+CURRENT MARKET ENVIRONMENT:
+- {symbol} Momentum: {spy_change_percent:+.2f}% today, ${spy_change:+.2f} move
+- Volatility Environment: VIX at {vix_level:.1f} ({vix_change:+.1f} change) - {"Low" if vix_level < 15 else "Moderate" if vix_level < 25 else "High"} volatility regime
+- Volume Activity: {volume_vs_avg:.0%} of average daily volume - {"Heavy" if volume_vs_avg > 1.5 else "Above Average" if volume_vs_avg > 1.1 else "Normal" if volume_vs_avg > 0.9 else "Light"} trading
+- Technical Context: {json.dumps(market_data.get('technical_indicators', {}))}
 
-Return JSON with this exact structure:
+PROVIDE EDUCATIONAL & ACTIONABLE ANALYSIS:
+Your response should teach options concepts while being immediately useful. Focus on:
+
+1. STRATEGY MECHANICS: Explain how this specific strategy works and why someone would use it
+2. CURRENT SETUP: Analyze why this setup makes sense (or doesn't) given TODAY's conditions  
+3. GREEKS IMPACT: Discuss how Delta, Gamma, Theta, and Vega affect this position
+4. TIME FACTOR: Address time decay urgency and optimal timing
+5. VOLATILITY ANALYSIS: How current VIX and vol environment affects the strategy
+6. DIRECTIONAL BIAS: What price movement is needed for success
+7. RISK MANAGEMENT: Specific exit strategies and risk mitigation
+8. EDUCATIONAL INSIGHTS: Key learning points for options traders
+
+Return comprehensive JSON analysis:
 {{
   "recommendation": "GO/CAUTION/NO-GO",
-  "confidence": 75,
+  "confidence": 85,
   "reasoning": {{
-    "supporting_factors": ["Specific reason why this strategy works now", "Another concrete advantage"],
-    "risk_factors": ["Specific risk for this setup", "Another potential downside"]
+    "supporting_factors": [
+      "Specific technical reason with price levels and percentages",
+      "Volatility environment advantage with VIX analysis", 
+      "Time decay scenario with days to expiration context",
+      "Market momentum factor with directional bias support"
+    ],
+    "risk_factors": [
+      "Specific risk with quantified impact (e.g., 'If {symbol} drops below $X')",
+      "Time decay risk with timeline (e.g., 'Theta burn of $X per day')",
+      "Volatility risk scenario with VIX threshold",
+      "Liquidity or execution risk with specific concerns"
+    ]
   }},
-  "market_regime": "One sentence describing why current {symbol} conditions favor or oppose this strategy"
+  "market_regime": "Educational explanation: Current {symbol} conditions show [specific technical pattern] with VIX at {vix_level:.1f} indicating [vol regime], creating [favorable/unfavorable] environment for this strategy because [specific reason related to Greeks and strategy mechanics]",
+  "strategy_education": {{
+    "how_it_works": "Clear explanation of strategy mechanics and profit/loss dynamics",
+    "why_use_now": "Specific reasons this strategy fits current market conditions",
+    "greeks_impact": "How Delta, Theta, Vega affect this position with current market data",
+    "success_criteria": "Specific price targets and timeframe for profitable outcome",
+    "failure_scenarios": "Specific conditions that would cause losses with price levels",
+    "key_learning": "Main options trading concept this strategy demonstrates"
+  }},
+  "exit_strategy": {{
+    "profit_target": "Specific profit level to close (e.g., 50% max profit)",
+    "stop_loss": "Specific loss level to exit (e.g., 200% of premium paid)",
+    "time_exit": "Timeline considerations (e.g., close 7 days before expiration)",
+    "adjustment_opportunities": "How to modify position if market moves against you"
+  }}
 }}"""
         
         return prompt
