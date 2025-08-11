@@ -272,10 +272,11 @@ describe('StrikeVisualization', () => {
 			/>
 		)
 		
-		expect(screen.getByText('Put Long: $4,800 (96%)')).toBeInTheDocument()
-		expect(screen.getByText('Put Short: $4,900 (98%)')).toBeInTheDocument()
-		expect(screen.getByText('Call Short: $5,100 (102%)')).toBeInTheDocument()
-		expect(screen.getByText('Call Long: $5,200 (104%)')).toBeInTheDocument()
+		// Check for percentage values - they are in the same span as price
+		expect(screen.getByText('$4,800 (96%)')).toBeInTheDocument()
+		expect(screen.getByText('$4,900 (98%)')).toBeInTheDocument()
+		expect(screen.getByText('$5,100 (102%)')).toBeInTheDocument()
+		expect(screen.getByText('$5,200 (104%)')).toBeInTheDocument()
 	})
 
 	it('should handle zero prices gracefully', () => {
