@@ -163,6 +163,19 @@ const SPYSpreadStrategiesApp: React.FC = () => {
     
     fetchChartData();
   }, [spyPrice, selectedDate]);
+  
+  // Auto re-analyze when strikes change (if analysis data exists)
+  useEffect(() => {
+    if (analysisData) {
+      // Debounce the re-analysis to avoid too many API calls
+      const timeoutId = setTimeout(() => {
+        handleAnalyzeStrategies();
+      }, 500);
+      
+      return () => clearTimeout(timeoutId);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [spreadConfig]);
   const handleAnalyzeStrategies = async () => {
     setIsAnalyzing(true);
     
