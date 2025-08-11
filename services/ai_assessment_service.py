@@ -189,6 +189,17 @@ class AIAssessmentService:
     
     def _build_prompt(self, strategy_params: Dict[str, Any], market_data: Dict[str, Any]) -> str:
         """Build structured prompt for OpenAI."""
+        # Convert Decimal values to float for formatting
+        def to_float(val):
+            return float(val) if isinstance(val, Decimal) else val
+        
+        spx_price = to_float(market_data.get('spx_price', 0))
+        spx_change = to_float(market_data.get('spx_change', 0))
+        spx_change_percent = to_float(market_data.get('spx_change_percent', 0))
+        vix_level = to_float(market_data.get('vix_level', 0))
+        vix_change = to_float(market_data.get('vix_change', 0))
+        volume_vs_avg = to_float(market_data.get('volume_vs_avg', 1))
+        
         prompt = f"""You are an expert options trader analyzing a specific strategy for today's market.
 
 STRATEGY DETAILS:
