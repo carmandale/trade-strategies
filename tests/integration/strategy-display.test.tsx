@@ -277,7 +277,9 @@ describe('Strategy Display Integration Tests', () => {
 
 			// Click retry button
 			const retryButton = screen.getByRole('button', { name: /Retry/i })
-			retryButton.click()
+			await act(async () => {
+				retryButton.click()
+			})
 
 			// Should show loading state again
 			expect(screen.getByText(/Loading strategies/i)).toBeInTheDocument()
