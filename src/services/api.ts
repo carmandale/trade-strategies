@@ -243,22 +243,22 @@ export class ApiService {
         bullCall: {
           maxProfit: bcFallbackProfit,
           maxLoss: bcFallbackLoss,
-          breakeven: spreadConfig.bullCallLower + 1.5,
-          riskReward: bcFallbackProfit / bcFallbackLoss  // Correct: reward/risk ratio
+          breakeven: spreadConfig.bullCallLower + bcNetDebit,
+          riskReward: bcFallbackProfit / bcFallbackLoss
         },
         ironCondor: {
           maxProfit: icFallbackProfit,
           maxLoss: icFallbackLoss,
-          upperBreakeven: spreadConfig.ironCondorCallShort + 2,
-          lowerBreakeven: spreadConfig.ironCondorPutShort - 2,
-          riskReward: icFallbackProfit / icFallbackLoss  // Correct: reward/risk ratio
+          upperBreakeven: spreadConfig.ironCondorCallShort + icNetCredit,
+          lowerBreakeven: spreadConfig.ironCondorPutShort - icNetCredit,
+          riskReward: icFallbackProfit / icFallbackLoss
         },
         butterfly: {
           maxProfit: bfFallbackProfit,
           maxLoss: bfFallbackLoss,
-          breakeven1: spreadConfig.butterflyLower + 1.5,
-          breakeven2: spreadConfig.butterflyUpper - 1.5,
-          riskReward: bfFallbackProfit / bfFallbackLoss  // Correct: reward/risk ratio
+          breakeven1: spreadConfig.butterflyLower + bfNetDebit,
+          breakeven2: spreadConfig.butterflyUpper - bfNetDebit,
+          riskReward: bfFallbackProfit / bfFallbackLoss
         }
       };
     }
