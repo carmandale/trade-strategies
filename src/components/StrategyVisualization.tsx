@@ -7,7 +7,7 @@ import { PerformanceMetrics } from './PerformanceMetrics'
 
 export type StrategyVisualizationData = {
   equityData: Array<{ date: string; cumulativePL: number; dailyPL: number }>
-  histogramData: Array<{ range: string; count: number; midpoint?: number }>
+  histogramData: Array<{ range: string; count: number; midpoint: number }>
   performanceData: {
     totalPL: number
     winRate: number
