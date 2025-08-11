@@ -11,6 +11,25 @@ export const StrategyCard: React.FC<StrategyCardProps> = ({
 	showDetails = false 
 }) => {
 	const { performance } = strategy
+	const [aiAssessment, setAiAssessment] = useState<AIAssessment | null>(null)
+	
+	// Convert strategy data to AI service format
+	const convertToAIStrategyParams = (): StrategyParams => {
+		// Extract strikes from parameters - this is a simplified conversion
+		// In a real implementation, this would need to be more robust
+		const strikes = strategy.parameters.strikes || {}
+		
+		return {
+			strategy_type: strategy.strategy_type,
+			symbol: strategy.symbol,
+			strikes: strikes,
+			expiration: strategy.parameters.expiration || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // Default to 30 days
+			quantity: strategy.parameters.quantity || 1,
+			max_profit: performance.total_pnl > 0 ? performance.total_pnl : undefined,
+			max_loss: performance.total_pnl < 0 ? Math.abs(performance.total_pnl) : undefined,
+			breakeven: strategy.parameters.breakeven_points
+		}
+	}
 	
 	// Format currency values
 	const formatCurrency = (value: number): string => {
