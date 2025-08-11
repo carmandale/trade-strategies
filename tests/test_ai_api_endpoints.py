@@ -173,6 +173,7 @@ class TestAIAssessmentEndpoints:
                 "cached": True,
                 "expires_at": "2025-08-11T10:35:00Z"
             }
+            mock_snapshot.is_expired.return_value = False  # Not expired
             
             with patch('api.routes.ai_assessment.SessionLocal') as mock_session:
                 mock_db = Mock()
