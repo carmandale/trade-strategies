@@ -157,7 +157,9 @@ describe('StrikeSelector Component', () => {
 		vi.useRealTimers()
 	})
 
-	it('handles slider movements correctly', () => {
+	it('handles slider movements correctly', async () => {
+		const user = userEvent.setup()
+		
 		render(
 			<StrikeSelector
 				strikes={defaultStrikes}
@@ -166,13 +168,19 @@ describe('StrikeSelector Component', () => {
 			/>
 		)
 
-		const putShortSlider = screen.getByTestId('put-short-slider')
+		const putShortSlider = screen.getByRole('slider', { name: /Put Short Strike/i })
 		
-		// Simulate slider change
-		fireEvent.change(putShortSlider, { target: { value: '95' } })
+		// Simulate slider interaction by focusing and using arrow keys
+		await user.click(putShortSlider)
+		
+		// Use arrow keys to decrease value (from 97.5 to 95)
+		// Each arrow key press typically changes by step (0.5), so we need 5 presses
+		for (let i = 0; i < 5; i++) {
+			await user.keyboard('[ArrowDown]')
+		}
 
 		// Check that the input reflects the change
-		expect(screen.getByLabelText(/Put Short Strike/i)).toHaveValue(95)
+		expect(screen.getByRole('spinbutton', { name: /Put Short Strike/i })).toHaveValue(95)
 		
 		// Check price updates (500 * 0.95 = 475)
 		expect(screen.getByTestId('put-short-price')).toHaveTextContent('$475')
