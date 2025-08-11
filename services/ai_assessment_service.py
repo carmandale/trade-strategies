@@ -109,16 +109,22 @@ class AIAssessmentService:
                     response = self.client.chat.completions.create(**api_params)
                 except Exception as format_error:
                     if "response_format" in str(format_error):
-                        # Retry without response_format parameter
-                        response = self.client.chat.completions.create(
-                            model=self.default_model,
-                            messages=[
+                        # Retry without response_format parameter but keep reasoning
+                        fallback_params = {
+                            "model": self.default_model,
+                            "messages": [
                                 {"role": "system", "content": "You are an expert options trader providing strategy analysis. Always respond with valid JSON."},
                                 {"role": "user", "content": prompt}
                             ],
-                            temperature=self.default_temperature,
-                            max_tokens=self.default_max_tokens
-                        )
+                            "temperature": self.default_temperature,
+                            "max_tokens": self.default_max_tokens
+                        }
+                        
+                        # Add reasoning effort for GPT-5 models
+                        if self.default_model.startswith('gpt-5'):
+                            fallback_params["reasoning_effort"] = self.default_reasoning_effort
+                        
+                        response = self.client.chat.completions.create(**fallback_params)
                     else:
                         raise format_error
                 
