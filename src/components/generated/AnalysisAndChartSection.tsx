@@ -3,7 +3,6 @@ import { motion } from 'framer-motion';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts';
 import { TrendingUp, Target, Zap, BookOpen, Trash2, Plus, DollarSign, Percent, BarChart3 } from 'lucide-react';
 import { AnalysisData, SpreadConfig, Trade } from './SPYSpreadStrategiesApp';
-import { StrategyDashboard } from '../StrategyDashboard';
 interface AnalysisAndChartSectionProps {
   analysisData: AnalysisData | null;
   chartData: {
