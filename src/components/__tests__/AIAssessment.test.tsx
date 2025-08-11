@@ -210,13 +210,13 @@ describe('AIAssessmentResult', () => {
   it('renders CAUTION recommendation with appropriate styling', () => {
     const cautionAssessment = {
       ...mockAssessment,
-      recommendation: 'CAUTION',
+      recommendation: 'CAUTION' as const,
       confidence: 65
     }
     
     render(<AIAssessmentResult assessment={cautionAssessment} />)
     
-    const badge = screen.getByText('CAUTION')
+    const badge = screen.getByText(/⚠ CAUTION/)
     expect(badge).toBeInTheDocument()
     expect(badge).toHaveClass('bg-yellow-100', 'text-yellow-800')
   })
@@ -224,13 +224,13 @@ describe('AIAssessmentResult', () => {
   it('renders NO-GO recommendation with appropriate styling', () => {
     const noGoAssessment = {
       ...mockAssessment,
-      recommendation: 'NO-GO',
+      recommendation: 'NO-GO' as const,
       confidence: 45
     }
     
     render(<AIAssessmentResult assessment={noGoAssessment} />)
     
-    const badge = screen.getByText('NO-GO')
+    const badge = screen.getByText(/✗ NO-GO/)
     expect(badge).toBeInTheDocument()
     expect(badge).toHaveClass('bg-red-100', 'text-red-800')
   })
@@ -299,7 +299,7 @@ describe('AI Assessment Integration', () => {
     fireEvent.click(button)
     
     await waitFor(() => {
-      expect(screen.getByText('GO')).toBeInTheDocument()
+      expect(screen.getByText(/✓ GO/)).toBeInTheDocument()
       expect(screen.getByText('78% confident')).toBeInTheDocument()
     })
   })
