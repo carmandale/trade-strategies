@@ -48,7 +48,7 @@ const AnalysisAndChartSection: React.FC<AnalysisAndChartSectionProps> = ({
   const StrategyCard: React.FC<{
     title: string;
     icon: React.ReactNode;
-    data: {
+    data?: {
       maxProfit: number;
       maxLoss: number;
       breakeven?: number;
