@@ -140,12 +140,16 @@ describe('StrikeVisualization', () => {
 			/>
 		)
 		
-		// Check strike level display
+		// Check strike level display - text is split across elements
 		expect(screen.getByText('Strike Levels')).toBeInTheDocument()
-		expect(screen.getByText('Put Long: $4,800')).toBeInTheDocument()
-		expect(screen.getByText('Put Short: $4,900')).toBeInTheDocument()
-		expect(screen.getByText('Call Short: $5,100')).toBeInTheDocument()
-		expect(screen.getByText('Call Long: $5,200')).toBeInTheDocument()
+		expect(screen.getByText('Put Long:')).toBeInTheDocument()
+		expect(screen.getByText('$4,800')).toBeInTheDocument()
+		expect(screen.getByText('Put Short:')).toBeInTheDocument()
+		expect(screen.getByText('$4,900')).toBeInTheDocument()
+		expect(screen.getByText('Call Short:')).toBeInTheDocument()
+		expect(screen.getByText('$5,100')).toBeInTheDocument()
+		expect(screen.getByText('Call Long:')).toBeInTheDocument()
+		expect(screen.getByText('$5,200')).toBeInTheDocument()
 	})
 
 	it('should update when strikes change', () => {
