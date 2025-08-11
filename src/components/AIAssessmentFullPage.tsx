@@ -678,6 +678,169 @@ export const AIAssessmentFullPage: React.FC<AIAssessmentFullPageProps> = ({
                 </div>
               </motion.div>
             )}
+
+            {activeTab === 'prediction' && (
+              <motion.div 
+                className="space-y-6"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3 }}
+              >
+                {/* AI Price Prediction */}
+                <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700/50 rounded-2xl p-6">
+                  <div className="flex items-center gap-3 mb-6">
+                    <TrendingUp className="w-5 h-5 text-cyan-400" />
+                    <h2 className="text-xl font-semibold text-slate-100">AI Price Prediction</h2>
+                    <div className={`px-3 py-1 rounded-lg text-sm font-medium ${getRecommendationColor(assessment.recommendation)}`}>
+                      {assessment.recommendation} - {assessment.confidence}% Confidence
+                    </div>
+                  </div>
+                  
+                  {/* Prediction Chart */}
+                  <div className="h-96 mb-6">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <AreaChart data={predictionData}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
+                        <XAxis dataKey="time" stroke="#64748b" fontSize={12} />
+                        <YAxis stroke="#64748b" fontSize={12} domain={['dataMin - 2', 'dataMax + 2']} />
+                        <Tooltip 
+                          contentStyle={{
+                            backgroundColor: '#1e293b',
+                            border: '1px solid #475569',
+                            borderRadius: '8px',
+                            color: '#f1f5f9'
+                          }}
+                          formatter={(value: number, name: string) => [
+                            `$${value.toFixed(2)}`, 
+                            name === 'predicted_price' ? 'Predicted Price' : 'Actual Price'
+                          ]}
+                        />
+                        <defs>
+                          <linearGradient id="predictionGradient" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor="#06d6a0" stopOpacity={0.3}/>
+                            <stop offset="95%" stopColor="#06d6a0" stopOpacity={0.1}/>
+                          </linearGradient>
+                        </defs>
+                        <Area 
+                          type="monotone" 
+                          dataKey="predicted_price" 
+                          stroke="#06d6a0" 
+                          fill="url(#predictionGradient)"
+                          strokeWidth={3}
+                          name="predicted_price"
+                        />
+                        <ReferenceLine y={currentPrice} stroke="#f59e0b" strokeDasharray="5 5" 
+                          label={{ value: `Current: $${currentPrice.toFixed(2)}`, position: 'topRight' }} />
+                      </AreaChart>
+                    </ResponsiveContainer>
+                  </div>
+
+                  {/* Prediction Summary */}
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="bg-slate-700/30 rounded-lg p-4">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Target className="w-4 h-4 text-green-400" />
+                        <span className="text-sm font-medium text-slate-300">Price Target</span>
+                      </div>
+                      <div className="text-xl font-bold text-green-400">
+                        ${(predictionData[predictionData.length - 1]?.predicted_price || currentPrice).toFixed(2)}
+                      </div>
+                      <div className="text-xs text-slate-400">
+                        {((predictionData[predictionData.length - 1]?.predicted_price - currentPrice) / currentPrice * 100 || 0).toFixed(1)}% change
+                      </div>
+                    </div>
+
+                    <div className="bg-slate-700/30 rounded-lg p-4">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Activity className="w-4 h-4 text-blue-400" />
+                        <span className="text-sm font-medium text-slate-300">Prediction Confidence</span>
+                      </div>
+                      <div className="text-xl font-bold text-blue-400">
+                        {assessment.confidence}%
+                      </div>
+                      <div className="text-xs text-slate-400">
+                        Initial confidence level
+                      </div>
+                    </div>
+
+                    <div className="bg-slate-700/30 rounded-lg p-4">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Clock className="w-4 h-4 text-purple-400" />
+                        <span className="text-sm font-medium text-slate-300">Time Horizon</span>
+                      </div>
+                      <div className="text-xl font-bold text-purple-400">
+                        0DTE
+                      </div>
+                      <div className="text-xs text-slate-400">
+                        Same day expiration
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Prediction Rationale */}
+                <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700/50 rounded-2xl p-6">
+                  <div className="flex items-center gap-3 mb-6">
+                    <Brain className="w-5 h-5 text-emerald-400" />
+                    <h2 className="text-xl font-semibold text-slate-100">Prediction Rationale</h2>
+                  </div>
+                  
+                  <div className="space-y-4">
+                    <div className="bg-slate-700/30 rounded-lg p-4">
+                      <h3 className="text-lg font-medium text-slate-100 mb-2">Why This Direction?</h3>
+                      <p className="text-sm text-slate-300 leading-relaxed">
+                        Based on the <strong>{assessment.recommendation}</strong> recommendation and {assessment.confidence}% confidence, 
+                        the AI predicts {strategy.symbol} will move in a direction that{' '}
+                        {assessment.recommendation === 'GO' ? 'favors' : assessment.recommendation === 'CAUTION' ? 'neutrally affects' : 'opposes'}{' '}
+                        this {strategy.strategy_type.replace('_', ' ')} strategy. The prediction incorporates current market sentiment, 
+                        volatility environment, and technical indicators.
+                      </p>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="bg-slate-700/30 rounded-lg p-4">
+                        <h4 className="text-sm font-medium text-green-400 mb-2">Supporting Factors</h4>
+                        <ul className="space-y-1">
+                          {assessment.reasoning.supporting_factors.slice(0, 2).map((factor, index) => (
+                            <li key={index} className="text-xs text-slate-300 flex items-start gap-2">
+                              <Zap className="w-3 h-3 mt-0.5 text-green-400 flex-shrink-0" />
+                              {factor}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+
+                      <div className="bg-slate-700/30 rounded-lg p-4">
+                        <h4 className="text-sm font-medium text-red-400 mb-2">Risk Factors</h4>
+                        <ul className="space-y-1">
+                          {assessment.reasoning.risk_factors.slice(0, 2).map((risk, index) => (
+                            <li key={index} className="text-xs text-slate-300 flex items-start gap-2">
+                              <AlertTriangle className="w-3 h-3 mt-0.5 text-red-400 flex-shrink-0" />
+                              {risk}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    </div>
+
+                    {/* Prediction Tracking Note */}
+                    <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-4">
+                      <div className="flex items-start gap-3">
+                        <BookOpen className="w-5 h-5 text-blue-400 flex-shrink-0 mt-0.5" />
+                        <div>
+                          <h4 className="text-sm font-medium text-blue-300 mb-1">Prediction Tracking</h4>
+                          <p className="text-xs text-slate-300 leading-relaxed">
+                            This prediction will be automatically tracked throughout the trading day. 
+                            Actual price movements will be compared against the prediction to measure AI accuracy. 
+                            Historical prediction performance helps improve future assessments and builds confidence in AI recommendations.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            )}
           </div>
         </div>
       </div>
