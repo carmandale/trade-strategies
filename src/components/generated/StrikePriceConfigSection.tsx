@@ -49,13 +49,26 @@ const StrikePriceConfigSection: React.FC<StrikePriceConfigSectionProps> = ({
     console.log('Calculated put strike:', putStrike);
     console.log('Calculated call strike:', callStrike);
     
-    // Update Iron Condor strikes based on delta
+    // Calculate ATM strike
+    const atmStrike = Math.round(currentPrice / 5) * 5;
+    
+    // Update all strategy strikes based on delta
     setSpreadConfig({
       ...spreadConfig,
+      // Bull Call: Use the call strikes
+      bullCallLower: atmStrike, // Long ATM call
+      bullCallUpper: callStrike, // Short OTM call
+      
+      // Iron Condor: Use both put and call strikes
       ironCondorPutShort: putStrike,
       ironCondorPutLong: putStrike - 10,
       ironCondorCallShort: callStrike,
-      ironCondorCallLong: callStrike + 10
+      ironCondorCallLong: callStrike + 10,
+      
+      // Butterfly: Center at ATM with wings based on delta
+      butterflyLower: putStrike,
+      butterflyBody: atmStrike,
+      butterflyUpper: callStrike
     });
   };
   const validateBullCall = (): {
