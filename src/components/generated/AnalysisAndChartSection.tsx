@@ -74,7 +74,7 @@ const AnalysisAndChartSection: React.FC<AnalysisAndChartSectionProps> = ({
       symbol: 'SPY',
       strikes,
       expiration,
-      quantity: 10,
+      quantity: contracts,
       max_profit: data?.maxProfit || 1000,
       max_loss: data?.maxLoss || 500,
       breakeven: data?.breakeven ? [data.breakeven] : data?.upperBreakeven && data?.lowerBreakeven ? [data.lowerBreakeven, data.upperBreakeven] : [0]
