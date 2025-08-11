@@ -152,6 +152,8 @@ const StrikePriceConfigSection: React.FC<StrikePriceConfigSectionProps> = ({
         <div className="mt-3 text-xs text-slate-500">
           Current SPY: <span className="text-blue-400 font-medium">${currentPrice.toFixed(2)}</span>
           <span className="ml-4 text-slate-600">•</span>
+          <span className="ml-2">Trading Date: <span className="text-amber-400 font-medium">{selectedDate?.toLocaleDateString() || 'Today'}</span></span>
+          <span className="ml-4 text-slate-600">•</span>
           <span className="ml-2">Time to Exp: <span className="text-green-400 font-medium">{Math.max(0, Math.round(displayTimeToExpiration * 365))} days</span></span>
         </div>
       </div>
