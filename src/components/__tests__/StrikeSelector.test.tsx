@@ -251,10 +251,10 @@ describe('StrikeSelector Component', () => {
 		)
 
 		// Inputs should be disabled during loading
-		expect(screen.getByLabelText(/Put Short Strike/i)).toBeDisabled()
-		expect(screen.getByLabelText(/Put Long Strike/i)).toBeDisabled()
-		expect(screen.getByLabelText(/Call Short Strike/i)).toBeDisabled()
-		expect(screen.getByLabelText(/Call Long Strike/i)).toBeDisabled()
+		expect(screen.getByRole('spinbutton', { name: /Put Short Strike/i })).toBeDisabled()
+		expect(screen.getByRole('spinbutton', { name: /Put Long Strike/i })).toBeDisabled()
+		expect(screen.getByRole('spinbutton', { name: /Call Short Strike/i })).toBeDisabled()
+		expect(screen.getByRole('spinbutton', { name: /Call Long Strike/i })).toBeDisabled()
 		
 		// Loading indicator should be visible
 		expect(screen.getByText(/Calculating.../i)).toBeInTheDocument()
