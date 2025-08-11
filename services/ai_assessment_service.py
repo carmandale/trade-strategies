@@ -272,17 +272,24 @@ CURRENT MARKET ENVIRONMENT:
 - Volume Activity: {volume_vs_avg:.0%} of average daily volume - {"Heavy" if volume_vs_avg > 1.5 else "Above Average" if volume_vs_avg > 1.1 else "Normal" if volume_vs_avg > 0.9 else "Light"} trading
 - Technical Context: {json.dumps(market_data.get('technical_indicators', {}))}
 
-PROVIDE EDUCATIONAL & ACTIONABLE ANALYSIS:
-Your response should teach options concepts while being immediately useful. Focus on:
+DEEP REASONING ANALYSIS REQUIRED:
+Use your advanced reasoning to provide comprehensive analysis. Think through each aspect systematically:
 
-1. STRATEGY MECHANICS: Explain how this specific strategy works and why someone would use it
-2. CURRENT SETUP: Analyze why this setup makes sense (or doesn't) given TODAY's conditions  
-3. GREEKS IMPACT: Discuss how Delta, Gamma, Theta, and Vega affect this position
-4. TIME FACTOR: Address time decay urgency and optimal timing
-5. VOLATILITY ANALYSIS: How current VIX and vol environment affects the strategy
-6. DIRECTIONAL BIAS: What price movement is needed for success
-7. RISK MANAGEMENT: Specific exit strategies and risk mitigation
-8. EDUCATIONAL INSIGHTS: Key learning points for options traders
+1. STRATEGY MECHANICS REASONING: Analyze the mathematical structure of this strategy. Consider profit zones, loss zones, and break-even points. Reason through why this strategy exists and when traders typically deploy it.
+
+2. CURRENT MARKET CONDITIONS ASSESSMENT: Evaluate TODAY's specific conditions step-by-step. Consider SPY's recent momentum, implied volatility levels, and how these factors interact with the strategy's success probability.
+
+3. GREEKS IMPACT ANALYSIS: Reason through how each Greek (Delta, Gamma, Theta, Vega) will affect this position over time. Consider how Greeks change as price moves and time passes. Calculate the net Greek exposure.
+
+4. TIME DECAY REASONING: With {days_to_exp} days to expiration and {time_decay_urgency} time decay urgency, reason through the time decay trajectory. Consider optimal timing for entry and exit.
+
+5. VOLATILITY ENVIRONMENT EVALUATION: Analyze VIX at {vix_level:.1f} and its implications. Consider implied vs realized volatility and how vol changes would impact the strategy.
+
+6. PROBABILITY ASSESSMENT: Using your reasoning, estimate the probability of success for this specific setup given current conditions. Consider price distribution, time remaining, and volatility.
+
+7. RISK MANAGEMENT FRAMEWORK: Develop a comprehensive risk management approach. Consider position sizing, stop-losses, profit targets, and adjustment techniques.
+
+8. COMPARATIVE ANALYSIS: Compare this strategy to alternatives given current conditions. What other strategies might be better or worse right now?
 
 Return comprehensive JSON analysis:
 {{
