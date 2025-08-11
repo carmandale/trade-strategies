@@ -86,16 +86,33 @@ class AIAssessmentService:
             # Get AI assessment
             start_time = time.time()
             try:
-                response = self.client.chat.completions.create(
-                    model=self.default_model,
-                    messages=[
-                        {"role": "system", "content": "You are an expert options trader providing strategy analysis."},
-                        {"role": "user", "content": prompt}
-                    ],
-                    temperature=self.default_temperature,
-                    max_tokens=self.default_max_tokens,
-                    response_format={"type": "json_object"}
-                )
+                # Note: response_format might not be supported on all models
+                # Try with response_format first, fall back if not supported
+                try:
+                    response = self.client.chat.completions.create(
+                        model=self.default_model,
+                        messages=[
+                            {"role": "system", "content": "You are an expert options trader providing strategy analysis. Always respond with valid JSON."},
+                            {"role": "user", "content": prompt}
+                        ],
+                        temperature=self.default_temperature,
+                        max_tokens=self.default_max_tokens,
+                        response_format={"type": "json_object"}
+                    )
+                except Exception as format_error:
+                    if "response_format" in str(format_error):
+                        # Retry without response_format parameter
+                        response = self.client.chat.completions.create(
+                            model=self.default_model,
+                            messages=[
+                                {"role": "system", "content": "You are an expert options trader providing strategy analysis. Always respond with valid JSON."},
+                                {"role": "user", "content": prompt}
+                            ],
+                            temperature=self.default_temperature,
+                            max_tokens=self.default_max_tokens
+                        )
+                    else:
+                        raise format_error
                 
                 processing_time_ms = int((time.time() - start_time) * 1000)
                 
