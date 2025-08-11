@@ -7,6 +7,7 @@ interface StrikePriceConfigSectionProps {
   spreadConfig: SpreadConfig;
   setSpreadConfig: (config: SpreadConfig) => void;
   currentPrice: number;
+  selectedDate?: Date;
 }
 const StrikePriceConfigSection: React.FC<StrikePriceConfigSectionProps> = ({
   spreadConfig,
