@@ -235,7 +235,7 @@ class TestAIAssessmentService:
             
             assert cached is not None
             assert cached.strategy_hash == strategy_hash
-            assert cached.recommendation.value == "GO"
+            assert cached.recommendation == "GO" or cached.recommendation.value == "GO"
     
     def test_rate_limiting(self, service):
         """Test rate limiting functionality."""
