@@ -15,4 +15,5 @@ export default defineConfig({
     port: 3000,
   },
   envPrefix: 'VITE_',
+  base: process.env.NODE_ENV === 'production' ? '/trade-strategies/' : '/',
 });
