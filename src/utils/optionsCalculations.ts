@@ -46,11 +46,11 @@ export function calculateDelta(
   }
 }
 
-// Calculate time to expiration in years from current date to expiration date
-export function calculateTimeToExpiration(expirationDate: Date): number {
-  const now = new Date();
+// Calculate time to expiration in years from trading date to expiration date
+export function calculateTimeToExpiration(expirationDate: Date, tradingDate?: Date): number {
+  const referenceDate = tradingDate || new Date();
   const msPerYear = 365.25 * 24 * 60 * 60 * 1000;
-  const timeMs = expirationDate.getTime() - now.getTime();
+  const timeMs = expirationDate.getTime() - referenceDate.getTime();
   return Math.max(0, timeMs / msPerYear);
 }
 
