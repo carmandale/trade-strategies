@@ -27,7 +27,7 @@ interface ProfitLossChartProps {
 }
 
 const formatCurrency = (value: number): string => {
-	const sign = value >= 0 ? '+' : ''
+	const sign = value >= 0 ? '+' : '-'
 	return `${sign}$${Math.abs(value).toLocaleString('en-US', {
 		minimumFractionDigits: 0,
 		maximumFractionDigits: 0
