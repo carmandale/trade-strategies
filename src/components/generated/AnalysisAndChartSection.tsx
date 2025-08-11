@@ -20,6 +20,7 @@ interface AnalysisAndChartSectionProps {
   onDeleteTrade: (tradeId: string) => void;
   isAnalyzing: boolean;
   currentPrice?: number;
+  contracts?: number;
 }
 const AnalysisAndChartSection: React.FC<AnalysisAndChartSectionProps> = ({
   analysisData,
