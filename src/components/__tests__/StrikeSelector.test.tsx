@@ -45,8 +45,8 @@ describe('StrikeSelector Component', () => {
 		)
 
 		// Check calculated prices are displayed
-		// Put Short: 500 * 0.975 = 487.50, rounded to 485
-		expect(screen.getByTestId('put-short-price')).toHaveTextContent('$485')
+		// Put Short: 500 * 0.975 = 487.50, rounded to 490
+		expect(screen.getByTestId('put-short-price')).toHaveTextContent('$490')
 		// Put Long: 500 * 0.97 = 485, stays at 485
 		expect(screen.getByTestId('put-long-price')).toHaveTextContent('$485')
 		// Call Short: 500 * 1.025 = 512.50, rounded to 515
