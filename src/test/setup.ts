@@ -39,3 +39,16 @@ class ResizeObserverMock {
 if (typeof globalThis.ResizeObserver === 'undefined') {
   ;(globalThis as any).ResizeObserver = ResizeObserverMock
 }
+
+// Polyfill for pointer capture methods needed by Radix UI
+if (typeof Element !== 'undefined' && !Element.prototype.hasPointerCapture) {
+  Element.prototype.hasPointerCapture = function () {
+    return false
+  }
+  Element.prototype.setPointerCapture = function () {
+    // no-op
+  }
+  Element.prototype.releasePointerCapture = function () {
+    // no-op
+  }
+}
