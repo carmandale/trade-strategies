@@ -250,7 +250,7 @@ describe('ProfitLossChart', () => {
 		)
 		
 		// Initial current price reference line
-		expect(screen.getByTestId('reference-line-Current Price')).toHaveAttribute('data-y', '5000')
+		expect(screen.getByTestId('reference-line-Current Price')).toHaveAttribute('data-x', '5000')
 		
 		// Update current price
 		rerender(
@@ -261,6 +261,6 @@ describe('ProfitLossChart', () => {
 		)
 		
 		// Should update reference line
-		expect(screen.getByTestId('reference-line-Current Price')).toHaveAttribute('data-y', '5100')
+		expect(screen.getByTestId('reference-line-Current Price')).toHaveAttribute('data-x', '5100')
 	})
 })
