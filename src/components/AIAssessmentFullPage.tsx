@@ -179,7 +179,8 @@ export const AIAssessmentFullPage: React.FC<AIAssessmentFullPageProps> = ({
                 { id: 'overview', label: 'Overview', icon: Eye },
                 { id: 'technical', label: 'Technical Analysis', icon: BarChart3 },
                 { id: 'greeks', label: 'Greeks & Risk', icon: Shield },
-                { id: 'scenarios', label: 'Scenarios', icon: Target }
+                { id: 'scenarios', label: 'Scenarios', icon: Target },
+                { id: 'prediction', label: 'AI Prediction', icon: TrendingUp }
               ].map((tab) => {
                 const Icon = tab.icon
                 return (
