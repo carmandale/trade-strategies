@@ -112,10 +112,15 @@ export function findStrikeForDelta(
 
 // Get expiration date for different timeframes
 export function getExpirationDate(timeframe: 'daily' | 'weekly' | 'monthly' | '0dte', selectedDate?: Date): Date {
-  const now = new Date();
+  const now = selectedDate || new Date();
   const expiration = new Date(now);
   
   switch (timeframe) {
+    case '0dte':
+      // Same day expiration (0DTE) - use the selected trading date
+      expiration.setTime(now.getTime());
+      break;
+      
     case 'daily':
       // Next trading day (or same day if before 4pm ET)
       if (now.getHours() >= 16) {
