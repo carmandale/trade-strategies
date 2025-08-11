@@ -218,6 +218,29 @@ const AnalysisAndChartSection: React.FC<AnalysisAndChartSectionProps> = ({
           <BarChart3 className="w-8 h-8 mx-auto mb-2 opacity-50" />
           <p className="text-sm">Run analysis to see results</p>
         </div>}
+        
+        {/* AI Assessment Section */}
+        {analysisData && data && (
+          <div className="mt-6 pt-4 border-t border-slate-700/30">
+            <div className="flex items-start gap-4">
+              <AIAssessmentButton 
+                strategy={convertToAIStrategyParams(strategy.toLowerCase().replace(' ', '_'), data)}
+                onAssessmentComplete={(assessment) => handleAIAssessmentComplete(strategy, assessment)}
+                size="sm"
+                variant="outline"
+                className="bg-slate-700/30 border-slate-600 text-slate-300 hover:bg-slate-600/30"
+              />
+              {aiAssessments[strategy] && (
+                <div className="flex-1">
+                  <AIAssessmentResult 
+                    assessment={aiAssessments[strategy]}
+                    className="bg-slate-800/30 border-slate-700/50"
+                  />
+                </div>
+              )}
+            </div>
+          </div>
+        )}
     </motion.div>;
   return <div className="space-y-6">
       {/* Strategy Analysis Cards */}
