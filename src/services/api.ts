@@ -222,19 +222,22 @@ export class ApiService {
       // Return fallback data if API fails
       // Fallback calculations using same formulas
       const bullCallSpreadWidth = spreadConfig.bullCallUpper - spreadConfig.bullCallLower;
-      const bcFallbackProfit = (bullCallSpreadWidth - 1.5) * 100 * contracts;
-      const bcFallbackLoss = 1.5 * 100 * contracts;
+      const bcNetDebit = bullCallSpreadWidth * 0.35;
+      const bcFallbackProfit = (bullCallSpreadWidth - bcNetDebit) * 100 * contracts;
+      const bcFallbackLoss = bcNetDebit * 100 * contracts;
       
       const icSpreadWidth = Math.min(
         spreadConfig.ironCondorPutShort - spreadConfig.ironCondorPutLong,
         spreadConfig.ironCondorCallLong - spreadConfig.ironCondorCallShort
       );
-      const icFallbackProfit = 2.0 * 100 * contracts;
-      const icFallbackLoss = (icSpreadWidth - 2.0) * 100 * contracts;
+      const icNetCredit = icSpreadWidth * 0.25;
+      const icFallbackProfit = icNetCredit * 100 * contracts;
+      const icFallbackLoss = (icSpreadWidth - icNetCredit) * 100 * contracts;
       
       const bfSpreadWidth = (spreadConfig.butterflyBody - spreadConfig.butterflyLower);
-      const bfFallbackProfit = (bfSpreadWidth - 1.5) * 100 * contracts;
-      const bfFallbackLoss = 1.5 * 100 * contracts;
+      const bfNetDebit = bfSpreadWidth * 0.20;
+      const bfFallbackProfit = (bfSpreadWidth - bfNetDebit) * 100 * contracts;
+      const bfFallbackLoss = bfNetDebit * 100 * contracts;
       
       return {
         bullCall: {
