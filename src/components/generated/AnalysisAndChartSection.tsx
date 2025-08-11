@@ -506,6 +506,20 @@ const AnalysisAndChartSection: React.FC<AnalysisAndChartSectionProps> = ({
               </motion.div>)}
         </div>
       </motion.div>
+      
+      {/* Full-Page AI Assessment Modal */}
+      {showFullAssessment && aiAssessments[showFullAssessment] && (
+        <AIAssessmentFullPage
+          assessment={aiAssessments[showFullAssessment]}
+          strategy={convertToAIStrategyParams(showFullAssessment.toLowerCase().replace(' ', '_'), 
+            showFullAssessment === 'Bull Call' ? analysisData?.bullCall :
+            showFullAssessment === 'Iron Condor' ? analysisData?.ironCondor :
+            analysisData?.butterfly
+          )}
+          currentPrice={currentPrice}
+          onClose={() => setShowFullAssessment(null)}
+        />
+      )}
     </div>;
 };
 export default AnalysisAndChartSection;
