@@ -171,13 +171,24 @@ export class ApiService {
       const icData = await icResponse.json();
       const bcData = await bcResponse.json();
 
-      // Transform FastAPI response to frontend format
-      const bcMaxProfit = Math.abs(bcData.avg_pnl_per_trade) * contracts;
-      const bcMaxLoss = Math.abs(bcData.avg_pnl_per_trade) * contracts * 0.3;
-      const icMaxProfit = Math.abs(icData.avg_pnl_per_trade) * contracts;
-      const icMaxLoss = Math.abs(icData.avg_pnl_per_trade) * contracts * 0.5;
-      const bfMaxProfit = 350 * contracts;
-      const bfMaxLoss = 150 * contracts;
+      // Calculate proper options max profit/loss based on spread widths
+      // Bull Call: Max profit = (Upper Strike - Lower Strike - Net Debit) × 100 × contracts
+      const bullCallSpreadWidth = spreadConfig.bullCallUpper - spreadConfig.bullCallLower;
+      const bcMaxProfit = (bullCallSpreadWidth - 1.5) * 100 * contracts; // Assuming $1.50 net debit
+      const bcMaxLoss = 1.5 * 100 * contracts; // Max loss is the net debit paid
+      
+      // Iron Condor: Max profit = Net Credit × 100 × contracts
+      const icMaxProfit = 2.0 * 100 * contracts; // Assuming $2.00 net credit
+      const icSpreadWidth = Math.min(
+        spreadConfig.ironCondorPutShort - spreadConfig.ironCondorPutLong,
+        spreadConfig.ironCondorCallLong - spreadConfig.ironCondorCallShort
+      );
+      const icMaxLoss = (icSpreadWidth - 2.0) * 100 * contracts; // Max loss = spread width - credit
+      
+      // Butterfly: Max profit at body strike
+      const bfSpreadWidth = (spreadConfig.butterflyBody - spreadConfig.butterflyLower);
+      const bfMaxProfit = (bfSpreadWidth - 1.5) * 100 * contracts; // Assuming $1.50 net debit
+      const bfMaxLoss = 1.5 * 100 * contracts; // Max loss is net debit
       
       return {
         bullCall: {
