@@ -493,7 +493,7 @@ Return comprehensive JSON analysis:
                 temperature=Decimal('0.30'),
                 max_tokens=800,
                 cache_ttl=300,
-                reasoning_effort='medium',  # Use lowercase for enum
+                reasoning_effort='high',  # Use high reasoning for better analysis
                 auto_assess=False
             )
             db.add(settings)
