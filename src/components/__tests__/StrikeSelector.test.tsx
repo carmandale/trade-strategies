@@ -137,8 +137,8 @@ describe('StrikeSelector Component', () => {
 
 		const putShortInput = screen.getByLabelText(/Put Short Strike/i)
 		
-		// Simulate input change directly
-		fireEvent.change(putShortInput, { target: { value: '96.5' } })
+		// Simulate input change directly (use valid value that doesn't violate ordering)
+		fireEvent.change(putShortInput, { target: { value: '98' } })
 
 		// Callback should not be called immediately
 		expect(mockOnStrikesChange).not.toHaveBeenCalled()
@@ -148,7 +148,7 @@ describe('StrikeSelector Component', () => {
 
 		// Now callback should be called with new values
 		expect(mockOnStrikesChange).toHaveBeenCalledWith({
-			put_short_pct: 96.5,
+			put_short_pct: 98,
 			put_long_pct: 97.0,
 			call_short_pct: 102.5,
 			call_long_pct: 103.0
