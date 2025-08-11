@@ -135,6 +135,7 @@ async def get_market_data(use_cache: bool = Query(True, description="Use cached 
             
             if snapshot:
                 data = snapshot.to_dict()
+                # Set cached flag based on whether we're using cache and snapshot is not expired
                 data["cached"] = use_cache and not snapshot.is_expired()
                 return MarketDataResponse(**data)
             else:
