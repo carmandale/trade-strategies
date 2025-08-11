@@ -204,7 +204,7 @@ class AIAssessmentService:
 
 STRATEGY DETAILS:
 - Type: {strategy_params.get('strategy_type', 'unknown')}
-- Symbol: {strategy_params.get('symbol', 'SPX')}
+- Symbol: {strategy_params.get('symbol', 'SPY')}
 - Strikes: {json.dumps(strategy_params.get('strikes', {}))}
 - Expiration: {strategy_params.get('expiration', 'unknown')}
 - Quantity: {strategy_params.get('quantity', 1)}
