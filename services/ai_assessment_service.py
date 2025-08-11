@@ -217,10 +217,12 @@ class AIAssessmentService:
             exp_date = datetime.strptime(expiration_date, '%Y-%m-%d')
             current_date = datetime.now()
             days_to_exp = (exp_date - current_date).days
-            time_decay_urgency = "HIGH" if days_to_exp <= 7 else "MODERATE" if days_to_exp <= 30 else "LOW"
+            # For 0DTE strategies, ensure we show 0 days correctly
+            days_to_exp = max(0, days_to_exp)  # Don't show negative days
+            time_decay_urgency = "EXTREME" if days_to_exp == 0 else "HIGH" if days_to_exp <= 7 else "MODERATE" if days_to_exp <= 30 else "LOW"
         except:
-            days_to_exp = "unknown"
-            time_decay_urgency = "UNKNOWN"
+            days_to_exp = 0  # Default to 0DTE
+            time_decay_urgency = "EXTREME"
             
         # Calculate strike distances and moneyness
         strike_analysis = {}
