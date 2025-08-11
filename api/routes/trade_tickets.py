@@ -72,7 +72,7 @@ def _fetch_underlying_price(symbol: str) -> Optional[float]:
 async def create_options_multileg_ticket(req: TicketRequest):
     try:
         symbol = req.symbol.upper()
-        now_iso = datetime.utcnow().isoformat()
+        now_iso = datetime.now(timezone.utc).isoformat()
         price = _fetch_underlying_price(symbol)
 
         # Fidelity-oriented row mapping per leg
