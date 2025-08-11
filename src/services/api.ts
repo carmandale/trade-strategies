@@ -172,23 +172,28 @@ export class ApiService {
       const bcData = await bcResponse.json();
 
       // Calculate proper options max profit/loss based on spread widths
-      // Bull Call: Max profit = (Upper Strike - Lower Strike - Net Debit) × 100 × contracts
-      const bullCallSpreadWidth = spreadConfig.bullCallUpper - spreadConfig.bullCallLower;
-      const bcMaxProfit = (bullCallSpreadWidth - 1.5) * 100 * contracts; // Assuming $1.50 net debit
-      const bcMaxLoss = 1.5 * 100 * contracts; // Max loss is the net debit paid
+      // Using more realistic premium estimates based on typical market conditions
       
-      // Iron Condor: Max profit = Net Credit × 100 × contracts
-      const icMaxProfit = 2.0 * 100 * contracts; // Assuming $2.00 net credit
+      // Bull Call: Net debit typically 20-40% of spread width for ATM/slightly OTM
+      const bullCallSpreadWidth = spreadConfig.bullCallUpper - spreadConfig.bullCallLower;
+      const bcNetDebit = bullCallSpreadWidth * 0.35; // 35% of spread width as debit
+      const bcMaxProfit = (bullCallSpreadWidth - bcNetDebit) * 100 * contracts;
+      const bcMaxLoss = bcNetDebit * 100 * contracts;
+      
+      // Iron Condor: Net credit typically 20-30% of spread width for 16-delta
       const icSpreadWidth = Math.min(
         spreadConfig.ironCondorPutShort - spreadConfig.ironCondorPutLong,
         spreadConfig.ironCondorCallLong - spreadConfig.ironCondorCallShort
       );
-      const icMaxLoss = (icSpreadWidth - 2.0) * 100 * contracts; // Max loss = spread width - credit
+      const icNetCredit = icSpreadWidth * 0.25; // 25% of spread width as credit
+      const icMaxProfit = icNetCredit * 100 * contracts;
+      const icMaxLoss = (icSpreadWidth - icNetCredit) * 100 * contracts;
       
-      // Butterfly: Max profit at body strike
+      // Butterfly: Net debit typically 15-25% of max profit potential
       const bfSpreadWidth = (spreadConfig.butterflyBody - spreadConfig.butterflyLower);
-      const bfMaxProfit = (bfSpreadWidth - 1.5) * 100 * contracts; // Assuming $1.50 net debit
-      const bfMaxLoss = 1.5 * 100 * contracts; // Max loss is net debit
+      const bfNetDebit = bfSpreadWidth * 0.20; // 20% of spread width as debit
+      const bfMaxProfit = (bfSpreadWidth - bfNetDebit) * 100 * contracts;
+      const bfMaxLoss = bfNetDebit * 100 * contracts;
       
       return {
         bullCall: {
