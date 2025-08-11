@@ -22,11 +22,13 @@ const StrikePriceConfigSection: React.FC<StrikePriceConfigSectionProps> = ({
     });
   };
 
-  // Calculate time to expiration for 0DTE (same-day expiration)
-  // For 0DTE strategies, use same-day expiration with selected date
+  // Calculate time to expiration based on selected date
+  // For 0DTE strategies, the expiration is the same as the trading date
   const expirationDate = getExpirationDate('0dte', selectedDate);
-  const rawTimeToExpiration = calculateTimeToExpiration(expirationDate, selectedDate);
-  const timeToExpiration = Math.max(rawTimeToExpiration, 0.001); // Very small value for 0DTE
+  // Calculate time from now to the selected date (for display purposes)
+  const displayTimeToExpiration = calculateTimeToExpiration(selectedDate || new Date());
+  // For delta calculations, use 0DTE (very small time value)
+  const timeToExpiration = selectedDate ? 0.001 : displayTimeToExpiration;
   
   // Function to calculate delta for a given strike
   const calculateStrikeDelta = (strike: number, isCall: boolean): number => {
