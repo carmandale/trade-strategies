@@ -199,22 +199,22 @@ export class ApiService {
         bullCall: {
           maxProfit: bcMaxProfit,
           maxLoss: bcMaxLoss,
-          breakeven: spreadConfig.bullCallLower + 1.5,
-          riskReward: bcMaxProfit / bcMaxLoss  // Correct: reward/risk ratio
+          breakeven: spreadConfig.bullCallLower + bcNetDebit, // Lower strike + net debit
+          riskReward: bcMaxProfit / bcMaxLoss
         },
         ironCondor: {
           maxProfit: icMaxProfit,
           maxLoss: icMaxLoss,
-          upperBreakeven: spreadConfig.ironCondorCallShort + 2,
-          lowerBreakeven: spreadConfig.ironCondorPutShort - 2,
-          riskReward: icMaxProfit / icMaxLoss  // Correct: reward/risk ratio
+          upperBreakeven: spreadConfig.ironCondorCallShort + icNetCredit,
+          lowerBreakeven: spreadConfig.ironCondorPutShort - icNetCredit,
+          riskReward: icMaxProfit / icMaxLoss
         },
         butterfly: {
           maxProfit: bfMaxProfit,
           maxLoss: bfMaxLoss,
-          breakeven1: spreadConfig.butterflyLower + 1.5,
-          breakeven2: spreadConfig.butterflyUpper - 1.5,
-          riskReward: bfMaxProfit / bfMaxLoss  // Correct: reward/risk ratio
+          breakeven1: spreadConfig.butterflyLower + bfNetDebit,
+          breakeven2: spreadConfig.butterflyUpper - bfNetDebit,
+          riskReward: bfMaxProfit / bfMaxLoss
         }
       };
     } catch (error) {
