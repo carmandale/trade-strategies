@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
 from typing import List, Optional, Literal
-from datetime import date, datetime
+from datetime import date, datetime, timezone
 from decimal import Decimal
 import yfinance as yf
 
