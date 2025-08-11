@@ -189,10 +189,12 @@ class TestMarketDataCollector:
     @pytest.mark.integration
     def test_get_cached_snapshot(self, collector):
         """Test retrieving cached market snapshot."""
+        import uuid
         with SessionLocal() as db:
-            # Create a snapshot
+            # Create a snapshot with unique ID to avoid conflicts
+            unique_id = f"market_test_{uuid.uuid4().hex[:8]}"
             snapshot = MarketDataSnapshot(
-                snapshot_id=f"market_{datetime.now(timezone.utc).strftime('%Y-%m-%d_%H:%M:%S')}",
+                snapshot_id=unique_id,
                 spx_price=Decimal('5635.50'),
                 spx_change=Decimal('17.25'),
                 spx_change_percent=Decimal('0.31'),
