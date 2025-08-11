@@ -79,7 +79,7 @@ async def assess_strategy(request: StrategyAssessmentRequest):
         service = AIAssessmentService()
         
         # Convert request to dict for service
-        strategy_params = request.dict()
+        strategy_params = request.model_dump()
         
         # Get assessment
         result = service.assess_strategy(strategy_params)
