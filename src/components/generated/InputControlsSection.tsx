@@ -92,7 +92,7 @@ const InputControlsSection: React.FC<InputControlsSectionProps> = ({
         <input type="number" min="1" max="100" value={contracts} onChange={handleContractsChange} className="w-full bg-slate-700/50 border border-slate-600/50 rounded-xl px-4 py-3 text-slate-100 focus:outline-none focus:ring-2 focus:ring-green-500/50 focus:border-green-500/50 transition-all duration-200" placeholder="Enter number of contracts" />
         
         <div className="mt-2 text-xs text-slate-500">
-          Total notional: ${(contracts * 100 * currentPrice).toLocaleString()}
+          Total notional: ${Math.round(contracts * 100 * currentPrice).toLocaleString()}
         </div>
       </motion.div>
 
