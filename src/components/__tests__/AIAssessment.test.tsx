@@ -12,6 +12,12 @@ import { AIAssessmentService } from '../../services/aiAssessmentService'
 vi.mock('../../services/aiAssessmentService', () => ({
   AIAssessmentService: {
     assessStrategy: vi.fn(),
+    isServiceHealthy: vi.fn(),
+    formatAssessment: vi.fn(() => ({
+      badgeColor: 'bg-green-100 text-green-800 border-green-200',
+      confidenceColor: 'text-green-600',
+      icon: '✓'
+    }))
   }
 }))
 
