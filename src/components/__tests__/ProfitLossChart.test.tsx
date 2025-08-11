@@ -113,8 +113,7 @@ describe('ProfitLossChart', () => {
 		// Lower breakeven: 4950 - 25 = 4925
 		// Upper breakeven: 5050 + 25 = 5075
 		expect(screen.getByText(/Breakevens:/)).toBeInTheDocument()
-		expect(screen.getByText('$4,925')).toBeInTheDocument()
-		expect(screen.getByText('$5,075')).toBeInTheDocument()
+		expect(screen.getByText('$4,925 / $5,075')).toBeInTheDocument()
 	})
 
 	it('should render chart components with correct data', () => {
