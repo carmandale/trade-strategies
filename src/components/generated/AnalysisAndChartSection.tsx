@@ -37,11 +37,9 @@ const AnalysisAndChartSection: React.FC<AnalysisAndChartSectionProps> = ({
   
   // Convert strategy data to AI service format
   const convertToAIStrategyParams = (strategyType: string, data: any): StrategyParams => {
-    // Use the actual analysis date and time to expiration from the interface
-    const analysisDate = new Date('2025-08-11') // Use the actual analysis date shown
-    const daysToExpiration = 7.0 // Use the actual time to exp shown
-    const expirationDate = new Date(analysisDate.getTime() + (daysToExpiration * 24 * 60 * 60 * 1000))
-    const expiration = expirationDate.toISOString().split('T')[0]
+    // For 0DTE (same day expiration) strategies, use today's date
+    const today = new Date()
+    const expiration = today.toISOString().split('T')[0] // Same day expiration (0DTE)
     
     let strikes: Record<string, number> = {}
     
