@@ -24,7 +24,8 @@ const InputControlsSection: React.FC<InputControlsSectionProps> = ({
   exitTime,
   setExitTime,
   onAnalyze,
-  isAnalyzing
+  isAnalyzing,
+  currentPrice
 }) => {
   const formatDateForInput = (date: Date): string => {
     return date.toISOString().split('T')[0];
