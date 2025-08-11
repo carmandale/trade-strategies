@@ -41,6 +41,8 @@ describe('AIAssessmentButton', () => {
 
   beforeEach(() => {
     vi.clearAllMocks()
+    // Default mock implementation - service is healthy
+    ;(AIAssessmentService.isServiceHealthy as Mock).mockResolvedValue(true)
   })
 
   it('renders AI assessment button', () => {
