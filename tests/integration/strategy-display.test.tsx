@@ -136,7 +136,7 @@ describe('Strategy Display Integration Tests', () => {
 
 			// Check performance metrics are displayed - updated to match actual UI calculations
 			expect(screen.getByText(/71\.7%/)).toBeInTheDocument() // Average win rate in strategy portfolio summary
-			expect(screen.getByText(/\$10,500/)).toBeInTheDocument() // Total P/L across all strategies
+			expect(screen.getByLabelText('Total PnL Value')).toHaveTextContent('+$10,500.00') // Total P/L in summary
 			expect(screen.getByText(/72%/)).toBeInTheDocument() // Daily strategy card win rate
 		})
 
