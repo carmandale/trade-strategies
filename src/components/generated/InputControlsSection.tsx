@@ -12,6 +12,7 @@ interface InputControlsSectionProps {
   setExitTime: (time: string) => void;
   onAnalyze: () => void;
   isAnalyzing: boolean;
+  currentPrice: number;
 }
 const InputControlsSection: React.FC<InputControlsSectionProps> = ({
   selectedDate,
