@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Target, TrendingUp, Zap, AlertTriangle, Activity } from 'lucide-react';
 import { SpreadConfig } from './SPYSpreadStrategiesApp';
 import { calculateDelta, calculateTimeToExpiration, getExpirationDate, findStrikeForDelta, DELTA_STRATEGIES } from '../../utils/optionsCalculations';
+import { verifier, Calculations } from '../../utils/accuracyVerification';
 interface StrikePriceConfigSectionProps {
   spreadConfig: SpreadConfig;
   setSpreadConfig: (config: SpreadConfig) => void;
@@ -149,6 +150,37 @@ const StrikePriceConfigSection: React.FC<StrikePriceConfigSectionProps> = ({
     const percentage = distance / currentPrice * 100;
     return `${distance > 0 ? '+' : ''}${distance.toFixed(2)} (${percentage.toFixed(1)}%)`;
   };
+
+  // Verify calculations in development mode
+  useEffect(() => {
+    if (process.env.NODE_ENV === 'development') {
+      // Verify days to expiration
+      const expectedDays = Calculations.daysToExpiration(selectedDate || new Date());
+      const actualDays = Math.max(0, Math.round(displayTimeToExpiration * 365.25));
+      verifier.verify('Days to Expiration', actualDays, expectedDays);
+
+      // Verify spread calculations
+      const bullCallWidth = Calculations.spreadWidth(spreadConfig.bullCallUpper, spreadConfig.bullCallLower);
+      verifier.verify('Bull Call Spread Width', 
+        spreadConfig.bullCallUpper - spreadConfig.bullCallLower, 
+        bullCallWidth);
+
+      const ironCondorZoneWidth = Calculations.spreadWidth(
+        spreadConfig.ironCondorCallShort, 
+        spreadConfig.ironCondorPutShort
+      );
+      verifier.verify('Iron Condor Zone Width', 
+        spreadConfig.ironCondorCallShort - spreadConfig.ironCondorPutShort,
+        ironCondorZoneWidth);
+
+      // Verify strike distance for a sample strike
+      if (spreadConfig.bullCallLower) {
+        const expected = Calculations.strikeDistance(spreadConfig.bullCallLower, currentPrice);
+        const actual = getDistanceFromCurrent(spreadConfig.bullCallLower);
+        verifier.verify('Strike Distance Format', actual, expected.formatted);
+      }
+    }
+  }, [spreadConfig, currentPrice, selectedDate, displayTimeToExpiration]);
   const bullCallValidation = validateBullCall();
   const ironCondorValidation = validateIronCondor();
   const butterflyValidation = validateButterfly();
