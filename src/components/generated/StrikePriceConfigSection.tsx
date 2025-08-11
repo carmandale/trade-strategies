@@ -7,11 +7,13 @@ interface StrikePriceConfigSectionProps {
   spreadConfig: SpreadConfig;
   setSpreadConfig: (config: SpreadConfig) => void;
   currentPrice: number;
+  selectedDate?: Date;
 }
 const StrikePriceConfigSection: React.FC<StrikePriceConfigSectionProps> = ({
   spreadConfig,
   setSpreadConfig,
-  currentPrice
+  currentPrice,
+  selectedDate
 }) => {
   const updateSpreadConfig = (field: keyof SpreadConfig, value: number) => {
     setSpreadConfig({
@@ -20,8 +22,13 @@ const StrikePriceConfigSection: React.FC<StrikePriceConfigSectionProps> = ({
     });
   };
 
-  // Calculate time to expiration (assuming weekly options for now)
-  const timeToExpiration = calculateTimeToExpiration(getExpirationDate('weekly'));
+  // Calculate time to expiration based on selected date
+  // For 0DTE strategies, the expiration is the same as the trading date
+  const expirationDate = getExpirationDate('0dte', selectedDate);
+  // Calculate time from now to the selected date (for display purposes)
+  const displayTimeToExpiration = calculateTimeToExpiration(selectedDate || new Date());
+  // For delta calculations, use 0DTE (very small time value)
+  const timeToExpiration = selectedDate ? 0.001 : displayTimeToExpiration;
   
   // Function to calculate delta for a given strike
   const calculateStrikeDelta = (strike: number, isCall: boolean): number => {
@@ -37,16 +44,36 @@ const StrikePriceConfigSection: React.FC<StrikePriceConfigSectionProps> = ({
   const applyDeltaStrategy = (strategy: typeof DELTA_STRATEGIES[0]) => {
     if (!strategy.putDelta || !strategy.callDelta) return;
     
+    console.log('Applying delta strategy:', strategy.name);
+    console.log('Current price:', currentPrice);
+    console.log('Time to expiration:', timeToExpiration);
+    
     const putStrike = findStrikeForDelta(currentPrice, strategy.putDelta, timeToExpiration, 0.05, 0.20, false);
     const callStrike = findStrikeForDelta(currentPrice, strategy.callDelta, timeToExpiration, 0.05, 0.20, true);
     
-    // Update Iron Condor strikes based on delta
+    console.log('Calculated put strike:', putStrike);
+    console.log('Calculated call strike:', callStrike);
+    
+    // Calculate ATM strike
+    const atmStrike = Math.round(currentPrice / 5) * 5;
+    
+    // Update all strategy strikes based on delta
     setSpreadConfig({
       ...spreadConfig,
+      // Bull Call: Use the call strikes
+      bullCallLower: atmStrike, // Long ATM call
+      bullCallUpper: callStrike, // Short OTM call
+      
+      // Iron Condor: Use both put and call strikes
       ironCondorPutShort: putStrike,
       ironCondorPutLong: putStrike - 10,
       ironCondorCallShort: callStrike,
-      ironCondorCallLong: callStrike + 10
+      ironCondorCallLong: callStrike + 10,
+      
+      // Butterfly: Center at ATM with wings based on delta
+      butterflyLower: putStrike,
+      butterflyBody: atmStrike,
+      butterflyUpper: callStrike
     });
   };
   const validateBullCall = (): {
@@ -125,7 +152,9 @@ const StrikePriceConfigSection: React.FC<StrikePriceConfigSectionProps> = ({
         <div className="mt-3 text-xs text-slate-500">
           Current SPY: <span className="text-blue-400 font-medium">${currentPrice.toFixed(2)}</span>
           <span className="ml-4 text-slate-600">•</span>
-          <span className="ml-2">Time to Exp: <span className="text-green-400 font-medium">{(timeToExpiration * 365).toFixed(1)} days</span></span>
+          <span className="ml-2">Trading Date: <span className="text-amber-400 font-medium">{selectedDate ? `${String(selectedDate.getMonth() + 1).padStart(2, '0')}/${String(selectedDate.getDate()).padStart(2, '0')}/${selectedDate.getFullYear()}` : 'Today'}</span></span>
+          <span className="ml-4 text-slate-600">•</span>
+          <span className="ml-2">Time to Exp: <span className="text-green-400 font-medium">{Math.max(0, Math.round(displayTimeToExpiration * 365))} days</span></span>
         </div>
       </div>
 

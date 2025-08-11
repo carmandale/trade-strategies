@@ -1,9 +1,12 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts';
 import { TrendingUp, Target, Zap, BookOpen, Trash2, Plus, DollarSign, Percent, BarChart3 } from 'lucide-react';
 import { AnalysisData, SpreadConfig, Trade } from './SPYSpreadStrategiesApp';
-import { StrategyDashboard } from '../StrategyDashboard';
+import { AIAssessmentButton } from '../AIAssessmentButton';
+import { AIAssessmentResult } from '../AIAssessmentResult';
+import { AIAssessmentFullPage } from '../AIAssessmentFullPage';
+import { AIAssessment, StrategyParams } from '../../services/aiAssessmentService';
 interface AnalysisAndChartSectionProps {
   analysisData: AnalysisData | null;
   chartData: {
@@ -16,6 +19,9 @@ interface AnalysisAndChartSectionProps {
   onLogTrade: (strategy: string, pnl: number) => void;
   onDeleteTrade: (tradeId: string) => void;
   isAnalyzing: boolean;
+  currentPrice?: number;
+  contracts?: number;
+  selectedDate?: Date;
 }
 const AnalysisAndChartSection: React.FC<AnalysisAndChartSectionProps> = ({
   analysisData,
@@ -24,8 +30,66 @@ const AnalysisAndChartSection: React.FC<AnalysisAndChartSectionProps> = ({
   trades,
   onLogTrade,
   onDeleteTrade,
-  isAnalyzing
+  isAnalyzing,
+  currentPrice = 425.50,
+  contracts = 1,
+  selectedDate
 }) => {
+  // AI Assessment state
+  const [aiAssessments, setAiAssessments] = useState<Record<string, AIAssessment>>({})
+  const [showFullAssessment, setShowFullAssessment] = useState<string | null>(null)
+  
+  // Convert strategy data to AI service format
+  const convertToAIStrategyParams = (strategyType: string, data: any): StrategyParams => {
+    // For 0DTE (same day expiration) strategies, use the selected trading date
+    const tradingDate = selectedDate || new Date()
+    const expiration = tradingDate.toISOString().split('T')[0] // Same day expiration (0DTE)
+    
+    let strikes: Record<string, number> = {}
+    
+    switch (strategyType) {
+      case 'bull_call':
+        strikes = {
+          long_strike: spreadConfig.bullCallLower,
+          short_strike: spreadConfig.bullCallUpper
+        }
+        break
+      case 'iron_condor':
+        strikes = {
+          put_long: spreadConfig.ironCondorPutLong,
+          put_short: spreadConfig.ironCondorPutShort,
+          call_short: spreadConfig.ironCondorCallShort,
+          call_long: spreadConfig.ironCondorCallLong
+        }
+        break
+      case 'butterfly':
+        strikes = {
+          lower_strike: spreadConfig.butterflyLower,
+          body_strike: spreadConfig.butterflyBody,
+          upper_strike: spreadConfig.butterflyUpper
+        }
+        break
+    }
+    
+    return {
+      strategy_type: strategyType,
+      symbol: 'SPY',
+      strikes,
+      expiration,
+      quantity: contracts,
+      max_profit: data?.maxProfit || 1000,
+      max_loss: data?.maxLoss || 500,
+      breakeven: data?.breakeven ? [data.breakeven] : data?.upperBreakeven && data?.lowerBreakeven ? [data.lowerBreakeven, data.upperBreakeven] : [0]
+    }
+  }
+  
+  // Handle AI assessment completion
+  const handleAIAssessmentComplete = (strategy: string, assessment: AIAssessment) => {
+    setAiAssessments(prev => ({
+      ...prev,
+      [strategy]: assessment
+    }))
+  }
   const formatCurrency = (value: number): string => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
@@ -164,6 +228,60 @@ const AnalysisAndChartSection: React.FC<AnalysisAndChartSectionProps> = ({
           <BarChart3 className="w-8 h-8 mx-auto mb-2 opacity-50" />
           <p className="text-sm">Run analysis to see results</p>
         </div>}
+        
+        {/* AI Assessment Section */}
+        {analysisData && data && (
+          <div className="mt-4 pt-3 border-t border-slate-700/30">
+            <div className="space-y-3">
+              {aiAssessments[strategy] ? (
+                // Show comprehensive analysis button with preview
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className={`inline-flex items-center px-2 py-1 rounded text-xs font-medium ${
+                        aiAssessments[strategy].recommendation === 'GO' ? 'bg-green-500/20 text-green-300' :
+                        aiAssessments[strategy].recommendation === 'CAUTION' ? 'bg-yellow-500/20 text-yellow-300' :
+                        'bg-red-500/20 text-red-300'
+                      }`}>
+                        {aiAssessments[strategy].recommendation}
+                      </span>
+                      <span className="text-slate-400 text-xs">{aiAssessments[strategy].confidence}% confident</span>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => setShowFullAssessment(strategy)}
+                    className="w-full bg-gradient-to-r from-blue-500/10 to-purple-500/10 border border-blue-500/30 rounded-lg p-3 text-left hover:from-blue-500/20 hover:to-purple-500/20 transition-all duration-200 group"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <div className="text-blue-300 text-sm font-medium mb-1">View Comprehensive Analysis</div>
+                        <div className="text-slate-400 text-xs line-clamp-2 leading-tight">
+                          Detailed charts, Greeks, scenarios, and educational insights
+                        </div>
+                      </div>
+                      <div className="text-blue-400 group-hover:translate-x-1 transition-transform">
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                        </svg>
+                      </div>
+                    </div>
+                  </button>
+                </div>
+              ) : (
+                // Show initial assessment button
+                <div className="flex justify-center">
+                  <AIAssessmentButton 
+                    strategy={convertToAIStrategyParams(strategy.toLowerCase().replace(' ', '_'), data)}
+                    onAssessmentComplete={(assessment) => handleAIAssessmentComplete(strategy, assessment)}
+                    size="sm"
+                    variant="outline"
+                    className="bg-slate-700/20 border-slate-600/50 text-slate-300 hover:bg-slate-600/30 text-xs px-3 py-1.5"
+                  />
+                </div>
+              )}
+            </div>
+          </div>
+        )}
     </motion.div>;
   return <div className="space-y-6">
       {/* Strategy Analysis Cards */}
@@ -181,10 +299,72 @@ const AnalysisAndChartSection: React.FC<AnalysisAndChartSectionProps> = ({
           </div>
           <div>
             <h3 className="font-semibold text-slate-100">Strategy Portfolio</h3>
-            <p className="text-xs text-slate-400">Iron Condor results by timeframe (from API)</p>
+            <p className="text-xs text-slate-400">Analyzed strategies ready for execution</p>
           </div>
         </div>
-        <StrategyDashboard symbol="SPY" />
+        {analysisData ? (
+          <div className="space-y-3">
+            {/* Bull Call Strategy */}
+            <div className="bg-slate-700/30 rounded-lg p-3 hover:bg-slate-700/50 transition-colors">
+              <div className="flex justify-between items-center">
+                <div>
+                  <div className="font-medium text-green-400">Bull Call Spread</div>
+                  <div className="text-xs text-slate-400">
+                    {spreadConfig.bullCallLower}/{spreadConfig.bullCallUpper} • Max P: ${analysisData.bullCall.maxProfit.toFixed(0)}
+                  </div>
+                </div>
+                <button
+                  onClick={() => onLogTrade('Bull Call', analysisData.bullCall.maxProfit)}
+                  className="px-3 py-1 bg-green-500/20 text-green-400 rounded-lg text-xs hover:bg-green-500/30 transition-colors"
+                >
+                  Execute
+                </button>
+              </div>
+            </div>
+            
+            {/* Iron Condor Strategy */}
+            <div className="bg-slate-700/30 rounded-lg p-3 hover:bg-slate-700/50 transition-colors">
+              <div className="flex justify-between items-center">
+                <div>
+                  <div className="font-medium text-purple-400">Iron Condor</div>
+                  <div className="text-xs text-slate-400">
+                    {spreadConfig.ironCondorPutLong}/{spreadConfig.ironCondorPutShort}-{spreadConfig.ironCondorCallShort}/{spreadConfig.ironCondorCallLong} • Max P: ${analysisData.ironCondor.maxProfit.toFixed(0)}
+                  </div>
+                </div>
+                <button
+                  onClick={() => onLogTrade('Iron Condor', analysisData.ironCondor.maxProfit)}
+                  className="px-3 py-1 bg-purple-500/20 text-purple-400 rounded-lg text-xs hover:bg-purple-500/30 transition-colors"
+                >
+                  Execute
+                </button>
+              </div>
+            </div>
+            
+            {/* Butterfly Strategy */}
+            <div className="bg-slate-700/30 rounded-lg p-3 hover:bg-slate-700/50 transition-colors">
+              <div className="flex justify-between items-center">
+                <div>
+                  <div className="font-medium text-yellow-400">Butterfly Spread</div>
+                  <div className="text-xs text-slate-400">
+                    {spreadConfig.butterflyLower}/{spreadConfig.butterflyBody}/{spreadConfig.butterflyUpper} • Max P: ${analysisData.butterfly.maxProfit.toFixed(0)}
+                  </div>
+                </div>
+                <button
+                  onClick={() => onLogTrade('Butterfly', analysisData.butterfly.maxProfit)}
+                  className="px-3 py-1 bg-yellow-500/20 text-yellow-400 rounded-lg text-xs hover:bg-yellow-500/30 transition-colors"
+                >
+                  Execute
+                </button>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div className="flex flex-col items-center justify-center py-8">
+            <TrendingUp className="w-8 h-8 text-slate-500 mb-2" />
+            <p className="text-sm text-slate-400">No strategies analyzed yet</p>
+            <p className="text-xs text-slate-500 mt-1">Click "Analyze Strategies" to populate</p>
+          </div>
+        )}
       </div>
 
       {/* Price Chart */}
@@ -328,6 +508,20 @@ const AnalysisAndChartSection: React.FC<AnalysisAndChartSectionProps> = ({
               </motion.div>)}
         </div>
       </motion.div>
+      
+      {/* Full-Page AI Assessment Modal */}
+      {showFullAssessment && aiAssessments[showFullAssessment] && (
+        <AIAssessmentFullPage
+          assessment={aiAssessments[showFullAssessment]}
+          strategy={convertToAIStrategyParams(showFullAssessment.toLowerCase().replace(' ', '_'), 
+            showFullAssessment === 'Bull Call' ? analysisData?.bullCall :
+            showFullAssessment === 'Iron Condor' ? analysisData?.ironCondor :
+            analysisData?.butterfly
+          )}
+          currentPrice={currentPrice}
+          onClose={() => setShowFullAssessment(null)}
+        />
+      )}
     </div>;
 };
 export default AnalysisAndChartSection;

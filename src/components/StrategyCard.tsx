@@ -1,6 +1,9 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { StrategyCardProps } from '../types/strategy'
 import { TrendingUp, TrendingDown, Activity, Target, Calendar, DollarSign } from 'lucide-react'
+import { AIAssessmentButton } from './AIAssessmentButton'
+import { AIAssessmentResult } from './AIAssessmentResult'
+import { AIAssessment, StrategyParams } from '../services/aiAssessmentService'
 
 export const StrategyCard: React.FC<StrategyCardProps> = ({ 
 	strategy, 
@@ -8,6 +11,59 @@ export const StrategyCard: React.FC<StrategyCardProps> = ({
 	showDetails = false 
 }) => {
 	const { performance } = strategy
+	const [aiAssessment, setAiAssessment] = useState<AIAssessment | null>(null)
+	
+	// Convert strategy data to AI service format
+	const convertToAIStrategyParams = (): StrategyParams => {
+		// Generate realistic strike prices based on strategy type and timeframe
+		const generateStrikes = () => {
+			if (strategy.strategy_type === 'iron_condor') {
+				// Generate Iron Condor strikes based on timeframe
+				const strikeSpacing = strategy.timeframe === 'daily' ? 25 : strategy.timeframe === 'weekly' ? 50 : 75
+				return {
+					put_long: 5500 - strikeSpacing,
+					put_short: 5500,
+					call_short: 5600,
+					call_long: 5600 + strikeSpacing
+				}
+			} else {
+				// Bull Call spread
+				return {
+					long_strike: 5550,
+					short_strike: 5600
+				}
+			}
+		}
+
+		// Generate expiration date based on timeframe
+		const getExpiration = () => {
+			const now = new Date()
+			switch (strategy.timeframe) {
+				case 'daily':
+					return now.toISOString().split('T')[0] // Today
+				case 'weekly':
+					const nextFriday = new Date(now)
+					nextFriday.setDate(now.getDate() + (5 - now.getDay() + 7) % 7)
+					return nextFriday.toISOString().split('T')[0]
+				case 'monthly':
+					const nextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 15)
+					return nextMonth.toISOString().split('T')[0]
+				default:
+					return new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
+			}
+		}
+		
+		return {
+			strategy_type: strategy.strategy_type,
+			symbol: strategy.symbol,
+			strikes: generateStrikes(),
+			expiration: getExpiration(),
+			quantity: 10, // Standard contract quantity
+			max_profit: performance.total_pnl > 0 ? performance.total_pnl : 2000,
+			max_loss: performance.total_pnl < 0 ? Math.abs(performance.total_pnl) : 8000,
+			breakeven: strategy.strategy_type === 'iron_condor' ? [5520, 5580] : [5570]
+		}
+	}
 	
 	// Format currency values
 	const formatCurrency = (value: number): string => {
@@ -141,6 +197,26 @@ export const StrategyCard: React.FC<StrategyCardProps> = ({
 					<div className="text-lg font-bold text-gray-900 dark:text-white">
 						{performance.total_trades}
 					</div>
+				</div>
+			</div>
+
+			{/* AI Assessment Section */}
+			<div className="mt-4 pt-4 border-t border-gray-100 dark:border-gray-700">
+				<div className="flex items-start justify-between gap-4">
+					<AIAssessmentButton 
+						strategy={convertToAIStrategyParams()}
+						onAssessmentComplete={setAiAssessment}
+						size="sm"
+						variant="outline"
+					/>
+					{aiAssessment && (
+						<div className="flex-1 min-w-0">
+							<AIAssessmentResult 
+								assessment={aiAssessment}
+								className="mt-0 p-4"
+							/>
+						</div>
+					)}
 				</div>
 			</div>
 

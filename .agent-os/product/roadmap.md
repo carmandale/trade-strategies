@@ -71,6 +71,7 @@ The following features have been implemented:
 
 ### Must-Have Features
 
+- [ ] **Interactive Brokers Integration** - Real-time options pricing and Greeks from IB API `XL` (Issue #12)
 - [ ] Interactive Strike Selection - Visual controls for adjusting put/call strike percentages `L`
 - [ ] Real-Time Backtesting - Instant results when parameters change `L`
 - [ ] Strategy Parameter UI - Intuitive controls for credit, timeframe, and position sizing `M`

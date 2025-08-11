@@ -12,6 +12,7 @@ interface InputControlsSectionProps {
   setExitTime: (time: string) => void;
   onAnalyze: () => void;
   isAnalyzing: boolean;
+  currentPrice: number;
 }
 const InputControlsSection: React.FC<InputControlsSectionProps> = ({
   selectedDate,
@@ -23,13 +24,20 @@ const InputControlsSection: React.FC<InputControlsSectionProps> = ({
   exitTime,
   setExitTime,
   onAnalyze,
-  isAnalyzing
+  isAnalyzing,
+  currentPrice
 }) => {
   const formatDateForInput = (date: Date): string => {
-    return date.toISOString().split('T')[0];
+    // Format date as YYYY-MM-DD in local timezone to avoid day shift
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
   };
   const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newDate = new Date(e.target.value);
+    // Parse the date string and create a date in local timezone
+    const [year, month, day] = e.target.value.split('-').map(Number);
+    const newDate = new Date(year, month - 1, day);
     setSelectedDate(newDate);
   };
   const handleContractsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -84,7 +92,7 @@ const InputControlsSection: React.FC<InputControlsSectionProps> = ({
         <input type="number" min="1" max="100" value={contracts} onChange={handleContractsChange} className="w-full bg-slate-700/50 border border-slate-600/50 rounded-xl px-4 py-3 text-slate-100 focus:outline-none focus:ring-2 focus:ring-green-500/50 focus:border-green-500/50 transition-all duration-200" placeholder="Enter number of contracts" />
         
         <div className="mt-2 text-xs text-slate-500">
-          Total notional: ${(contracts * 42550).toLocaleString()}
+          Total notional: ${(contracts * 100 * currentPrice).toLocaleString()}
         </div>
       </motion.div>
 

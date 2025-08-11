@@ -42,9 +42,11 @@ app.include_router(backtests.router)
 from api.routes import iron_condor
 from api.routes import market_data
 from api.routes import trade_tickets
+from api.routes import ai_assessment
 app.include_router(iron_condor.router)
 app.include_router(market_data.router)
 app.include_router(trade_tickets.router)
+app.include_router(ai_assessment.router)
 
 # Set up comprehensive error handling
 setup_exception_handlers(app)

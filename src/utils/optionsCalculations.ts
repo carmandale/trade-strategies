@@ -46,11 +46,11 @@ export function calculateDelta(
   }
 }
 
-// Calculate time to expiration in years from current date to expiration date
-export function calculateTimeToExpiration(expirationDate: Date): number {
-  const now = new Date();
+// Calculate time to expiration in years from trading date to expiration date
+export function calculateTimeToExpiration(expirationDate: Date, tradingDate?: Date): number {
+  const referenceDate = tradingDate || new Date();
   const msPerYear = 365.25 * 24 * 60 * 60 * 1000;
-  const timeMs = expirationDate.getTime() - now.getTime();
+  const timeMs = expirationDate.getTime() - referenceDate.getTime();
   return Math.max(0, timeMs / msPerYear);
 }
 
@@ -63,9 +63,24 @@ export function findStrikeForDelta(
   volatility: number = 0.20,
   isCall: boolean = true
 ): number {
+  // For very short expiration or when delta calculation isn't meaningful,
+  // use a simplified percentage-based approach
+  if (timeToExpiration < 0.02) { // Less than ~7 days
+    // Simplified approach based on target delta
+    if (isCall) {
+      // 16-delta = ~2% OTM, 25-delta = ~1.5% OTM, 35-delta = ~1% OTM, 50-delta = ATM
+      const percentageOTM = (1 - targetDelta) * 0.03;
+      return Math.round((spotPrice * (1 + percentageOTM)) / 5) * 5;
+    } else {
+      // Put strikes below current price (targetDelta is negative)
+      const percentageOTM = Math.abs(targetDelta) * 0.03;
+      return Math.round((spotPrice * (1 - percentageOTM)) / 5) * 5;
+    }
+  }
+  
   // Use binary search to find strike that produces target delta
-  let lowStrike = spotPrice * 0.5;
-  let highStrike = spotPrice * 1.5;
+  let lowStrike = spotPrice * 0.8;
+  let highStrike = spotPrice * 1.2;
   
   for (let i = 0; i < 50; i++) { // 50 iterations should give us good precision
     const midStrike = (lowStrike + highStrike) / 2;
@@ -96,11 +111,16 @@ export function findStrikeForDelta(
 }
 
 // Get expiration date for different timeframes
-export function getExpirationDate(timeframe: 'daily' | 'weekly' | 'monthly'): Date {
-  const now = new Date();
+export function getExpirationDate(timeframe: 'daily' | 'weekly' | 'monthly' | '0dte', selectedDate?: Date): Date {
+  const now = selectedDate || new Date();
   const expiration = new Date(now);
   
   switch (timeframe) {
+    case '0dte':
+      // Same day expiration (0DTE) - use the selected trading date
+      expiration.setTime(now.getTime());
+      break;
+      
     case 'daily':
       // Next trading day (or same day if before 4pm ET)
       if (now.getHours() >= 16) {
@@ -138,8 +158,10 @@ export function getExpirationDate(timeframe: 'daily' | 'weekly' | 'monthly'): Da
 // Helper function to get third Friday of a month
 function getThirdFriday(year: number, month: number): Date {
   const firstDay = new Date(year, month, 1);
-  const firstFriday = new Date(year, month, 1 + (5 - firstDay.getDay() + 7) % 7);
-  return new Date(year, month, firstDay.getDate() + 14);
+  const firstDayOfWeek = firstDay.getDay();
+  const firstFriday = new Date(year, month, 1 + (5 - firstDayOfWeek + 7) % 7);
+  // Third Friday is 14 days after the first Friday
+  return new Date(year, month, firstFriday.getDate() + 14);
 }
 
 // Calculate implied volatility (simplified estimate)

@@ -163,6 +163,19 @@ const SPYSpreadStrategiesApp: React.FC = () => {
     
     fetchChartData();
   }, [spyPrice, selectedDate]);
+  
+  // Auto re-analyze when strikes or contracts change (if analysis data exists)
+  useEffect(() => {
+    if (analysisData) {
+      // Debounce the re-analysis to avoid too many API calls
+      const timeoutId = setTimeout(() => {
+        handleAnalyzeStrategies();
+      }, 500);
+      
+      return () => clearTimeout(timeoutId);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [spreadConfig, contracts, selectedDate]);
   const handleAnalyzeStrategies = async () => {
     setIsAnalyzing(true);
     
@@ -191,27 +204,45 @@ const SPYSpreadStrategiesApp: React.FC = () => {
     } catch (error) {
       console.error('Failed to analyze strategies:', error);
       
-      // Fallback to mock analysis if API fails
+      // Fallback to mock analysis if API fails - use proper options calculations
+      const bullCallSpreadWidth = spreadConfig.bullCallUpper - spreadConfig.bullCallLower;
+      const bcNetDebit = bullCallSpreadWidth * 0.35; // 35% of spread width
+      const bcFallbackProfit = (bullCallSpreadWidth - bcNetDebit) * 100 * contracts;
+      const bcFallbackLoss = bcNetDebit * 100 * contracts;
+      
+      const icSpreadWidth = Math.min(
+        spreadConfig.ironCondorPutShort - spreadConfig.ironCondorPutLong,
+        spreadConfig.ironCondorCallLong - spreadConfig.ironCondorCallShort
+      );
+      const icNetCredit = icSpreadWidth * 0.25; // 25% of spread width
+      const icFallbackProfit = icNetCredit * 100 * contracts;
+      const icFallbackLoss = (icSpreadWidth - icNetCredit) * 100 * contracts;
+      
+      const bfSpreadWidth = (spreadConfig.butterflyBody - spreadConfig.butterflyLower);
+      const bfNetDebit = bfSpreadWidth * 0.20; // 20% of spread width
+      const bfFallbackProfit = (bfSpreadWidth - bfNetDebit) * 100 * contracts;
+      const bfFallbackLoss = bfNetDebit * 100 * contracts;
+      
       const fallbackAnalysis: AnalysisData = {
         bullCall: {
-          maxProfit: (spreadConfig.bullCallUpper - spreadConfig.bullCallLower) * 100 * contracts,
-          maxLoss: 150 * contracts,
-          breakeven: spreadConfig.bullCallLower + 1.5,
-          riskReward: 2.33
+          maxProfit: bcFallbackProfit,
+          maxLoss: bcFallbackLoss,
+          breakeven: spreadConfig.bullCallLower + bcNetDebit,
+          riskReward: bcFallbackProfit / bcFallbackLoss
         },
         ironCondor: {
-          maxProfit: 200 * contracts,
-          maxLoss: 300 * contracts,
-          upperBreakeven: spreadConfig.ironCondorCallShort + 2,
-          lowerBreakeven: spreadConfig.ironCondorPutShort - 2,
-          riskReward: 0.67
+          maxProfit: icFallbackProfit,
+          maxLoss: icFallbackLoss,
+          upperBreakeven: spreadConfig.ironCondorCallShort + icNetCredit,
+          lowerBreakeven: spreadConfig.ironCondorPutShort - icNetCredit,
+          riskReward: icFallbackProfit / icFallbackLoss
         },
         butterfly: {
-          maxProfit: 350 * contracts,
-          maxLoss: 150 * contracts,
-          breakeven1: spreadConfig.butterflyLower + 1.5,
-          breakeven2: spreadConfig.butterflyUpper - 1.5,
-          riskReward: 2.33
+          maxProfit: bfFallbackProfit,
+          maxLoss: bfFallbackLoss,
+          breakeven1: spreadConfig.butterflyLower + bfNetDebit,
+          breakeven2: spreadConfig.butterflyUpper - bfNetDebit,
+          riskReward: bfFallbackProfit / bfFallbackLoss
         }
       };
       setAnalysisData(fallbackAnalysis);
@@ -272,7 +303,7 @@ const SPYSpreadStrategiesApp: React.FC = () => {
           duration: 0.6,
           delay: 0.1
         }}>
-            <InputControlsSection selectedDate={selectedDate} setSelectedDate={setSelectedDate} contracts={contracts} setContracts={setContracts} entryTime={entryTime} setEntryTime={setEntryTime} exitTime={exitTime} setExitTime={setExitTime} onAnalyze={handleAnalyzeStrategies} isAnalyzing={isAnalyzing} />
+            <InputControlsSection selectedDate={selectedDate} setSelectedDate={setSelectedDate} contracts={contracts} setContracts={setContracts} entryTime={entryTime} setEntryTime={setEntryTime} exitTime={exitTime} setExitTime={setExitTime} onAnalyze={handleAnalyzeStrategies} isAnalyzing={isAnalyzing} currentPrice={spyPrice} />
           </motion.div>
 
           <motion.div className="lg:col-span-3" initial={{
@@ -285,7 +316,7 @@ const SPYSpreadStrategiesApp: React.FC = () => {
           duration: 0.6,
           delay: 0.2
         }}>
-            <StrikePriceConfigSection spreadConfig={spreadConfig} setSpreadConfig={setSpreadConfig} currentPrice={spyPrice} />
+            <StrikePriceConfigSection spreadConfig={spreadConfig} setSpreadConfig={setSpreadConfig} currentPrice={spyPrice} selectedDate={selectedDate} />
           </motion.div>
 
           <motion.div className="lg:col-span-6" initial={{
@@ -298,7 +329,7 @@ const SPYSpreadStrategiesApp: React.FC = () => {
           duration: 0.6,
           delay: 0.3
         }}>
-            <AnalysisAndChartSection analysisData={analysisData} chartData={chartData} spreadConfig={spreadConfig} trades={trades} onLogTrade={handleLogTrade} onDeleteTrade={handleDeleteTrade} isAnalyzing={isAnalyzing} />
+            <AnalysisAndChartSection analysisData={analysisData} chartData={chartData} spreadConfig={spreadConfig} trades={trades} onLogTrade={handleLogTrade} onDeleteTrade={handleDeleteTrade} isAnalyzing={isAnalyzing} currentPrice={spyPrice} contracts={contracts} selectedDate={selectedDate} />
           </motion.div>
         </div>
       </div>

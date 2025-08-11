@@ -171,52 +171,94 @@ export class ApiService {
       const icData = await icResponse.json();
       const bcData = await bcResponse.json();
 
-      // Transform FastAPI response to frontend format
+      // Calculate proper options max profit/loss based on spread widths
+      // Using more realistic premium estimates based on typical market conditions
+      
+      // Bull Call: Net debit typically 20-40% of spread width for ATM/slightly OTM
+      const bullCallSpreadWidth = spreadConfig.bullCallUpper - spreadConfig.bullCallLower;
+      const bcNetDebit = bullCallSpreadWidth * 0.35; // 35% of spread width as debit
+      const bcMaxProfit = (bullCallSpreadWidth - bcNetDebit) * 100 * contracts;
+      const bcMaxLoss = bcNetDebit * 100 * contracts;
+      
+      // Iron Condor: Net credit typically 20-30% of spread width for 16-delta
+      const icSpreadWidth = Math.min(
+        spreadConfig.ironCondorPutShort - spreadConfig.ironCondorPutLong,
+        spreadConfig.ironCondorCallLong - spreadConfig.ironCondorCallShort
+      );
+      const icNetCredit = icSpreadWidth * 0.25; // 25% of spread width as credit
+      const icMaxProfit = icNetCredit * 100 * contracts;
+      const icMaxLoss = (icSpreadWidth - icNetCredit) * 100 * contracts;
+      
+      // Butterfly: Net debit typically 15-25% of max profit potential
+      const bfSpreadWidth = (spreadConfig.butterflyBody - spreadConfig.butterflyLower);
+      const bfNetDebit = bfSpreadWidth * 0.20; // 20% of spread width as debit
+      const bfMaxProfit = (bfSpreadWidth - bfNetDebit) * 100 * contracts;
+      const bfMaxLoss = bfNetDebit * 100 * contracts;
+      
       return {
         bullCall: {
-          maxProfit: Math.abs(bcData.avg_pnl_per_trade) * contracts,
-          maxLoss: Math.abs(bcData.avg_pnl_per_trade) * contracts * 0.3,
-          breakeven: spreadConfig.bullCallLower + 1.5,
-          riskReward: bcData.win_rate / 100 * 2
+          maxProfit: bcMaxProfit,
+          maxLoss: bcMaxLoss,
+          breakeven: spreadConfig.bullCallLower + bcNetDebit, // Lower strike + net debit
+          riskReward: bcMaxProfit / bcMaxLoss
         },
         ironCondor: {
-          maxProfit: Math.abs(icData.avg_pnl_per_trade) * contracts,
-          maxLoss: Math.abs(icData.avg_pnl_per_trade) * contracts * 0.5,
-          upperBreakeven: spreadConfig.ironCondorCallShort + 2,
-          lowerBreakeven: spreadConfig.ironCondorPutShort - 2,
-          riskReward: icData.win_rate / 100
+          maxProfit: icMaxProfit,
+          maxLoss: icMaxLoss,
+          upperBreakeven: spreadConfig.ironCondorCallShort + icNetCredit,
+          lowerBreakeven: spreadConfig.ironCondorPutShort - icNetCredit,
+          riskReward: icMaxProfit / icMaxLoss
         },
         butterfly: {
-          maxProfit: 350 * contracts,
-          maxLoss: 150 * contracts,
-          breakeven1: spreadConfig.butterflyLower + 1.5,
-          breakeven2: spreadConfig.butterflyUpper - 1.5,
-          riskReward: 2.33
+          maxProfit: bfMaxProfit,
+          maxLoss: bfMaxLoss,
+          breakeven1: spreadConfig.butterflyLower + bfNetDebit,
+          breakeven2: spreadConfig.butterflyUpper - bfNetDebit,
+          riskReward: bfMaxProfit / bfMaxLoss
         }
       };
     } catch (error) {
       console.error('Error analyzing strategies:', error);
       // Return fallback data if API fails
+      // Fallback calculations using same formulas
+      const bullCallSpreadWidth = spreadConfig.bullCallUpper - spreadConfig.bullCallLower;
+      const bcNetDebit = bullCallSpreadWidth * 0.35;
+      const bcFallbackProfit = (bullCallSpreadWidth - bcNetDebit) * 100 * contracts;
+      const bcFallbackLoss = bcNetDebit * 100 * contracts;
+      
+      const icSpreadWidth = Math.min(
+        spreadConfig.ironCondorPutShort - spreadConfig.ironCondorPutLong,
+        spreadConfig.ironCondorCallLong - spreadConfig.ironCondorCallShort
+      );
+      const icNetCredit = icSpreadWidth * 0.25;
+      const icFallbackProfit = icNetCredit * 100 * contracts;
+      const icFallbackLoss = (icSpreadWidth - icNetCredit) * 100 * contracts;
+      
+      const bfSpreadWidth = (spreadConfig.butterflyBody - spreadConfig.butterflyLower);
+      const bfNetDebit = bfSpreadWidth * 0.20;
+      const bfFallbackProfit = (bfSpreadWidth - bfNetDebit) * 100 * contracts;
+      const bfFallbackLoss = bfNetDebit * 100 * contracts;
+      
       return {
         bullCall: {
-          maxProfit: (spreadConfig.bullCallUpper - spreadConfig.bullCallLower) * 100 * contracts,
-          maxLoss: 150 * contracts,
-          breakeven: spreadConfig.bullCallLower + 1.5,
-          riskReward: 2.33
+          maxProfit: bcFallbackProfit,
+          maxLoss: bcFallbackLoss,
+          breakeven: spreadConfig.bullCallLower + bcNetDebit,
+          riskReward: bcFallbackProfit / bcFallbackLoss
         },
         ironCondor: {
-          maxProfit: 200 * contracts,
-          maxLoss: 300 * contracts,
-          upperBreakeven: spreadConfig.ironCondorCallShort + 2,
-          lowerBreakeven: spreadConfig.ironCondorPutShort - 2,
-          riskReward: 0.67
+          maxProfit: icFallbackProfit,
+          maxLoss: icFallbackLoss,
+          upperBreakeven: spreadConfig.ironCondorCallShort + icNetCredit,
+          lowerBreakeven: spreadConfig.ironCondorPutShort - icNetCredit,
+          riskReward: icFallbackProfit / icFallbackLoss
         },
         butterfly: {
-          maxProfit: 350 * contracts,
-          maxLoss: 150 * contracts,
-          breakeven1: spreadConfig.butterflyLower + 1.5,
-          breakeven2: spreadConfig.butterflyUpper - 1.5,
-          riskReward: 2.33
+          maxProfit: bfFallbackProfit,
+          maxLoss: bfFallbackLoss,
+          breakeven1: spreadConfig.butterflyLower + bfNetDebit,
+          breakeven2: spreadConfig.butterflyUpper - bfNetDebit,
+          riskReward: bfFallbackProfit / bfFallbackLoss
         }
       };
     }
