@@ -317,6 +317,11 @@ class TestAIAssessmentEndpoints:
             mock_service.assess_strategy.return_value = {
                 "recommendation": "GO",
                 "confidence": 78,
+                "reasoning": {
+                    "supporting_factors": ["Low VIX"],
+                    "risk_factors": ["Fed meeting"]
+                },
+                "market_regime": "Stable",
                 "cached": True
             }
             
