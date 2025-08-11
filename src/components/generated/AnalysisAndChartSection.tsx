@@ -41,9 +41,9 @@ const AnalysisAndChartSection: React.FC<AnalysisAndChartSectionProps> = ({
   
   // Convert strategy data to AI service format
   const convertToAIStrategyParams = (strategyType: string, data: any): StrategyParams => {
-    // For 0DTE (same day expiration) strategies, use today's date
-    const today = new Date()
-    const expiration = today.toISOString().split('T')[0] // Same day expiration (0DTE)
+    // For 0DTE (same day expiration) strategies, use the selected trading date
+    const tradingDate = selectedDate || new Date()
+    const expiration = tradingDate.toISOString().split('T')[0] // Same day expiration (0DTE)
     
     let strikes: Record<string, number> = {}
     
