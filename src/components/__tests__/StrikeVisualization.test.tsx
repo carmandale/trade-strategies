@@ -303,10 +303,9 @@ describe('StrikeVisualization', () => {
 			/>
 		)
 		
-		// Profit zone should be between breakeven points
-		// Lower breakeven: 4900 - 25 = 4875
-		// Upper breakeven: 5100 + 25 = 5125
+		// Check breakeven range calculation
 		expect(screen.getByText(/Breakeven Range:/)).toBeInTheDocument()
+		// Lower breakeven: 4900 - 25 = 4875, Upper breakeven: 5100 + 25 = 5125
 		expect(screen.getByText('$4,875 - $5,125')).toBeInTheDocument()
 	})
 })
