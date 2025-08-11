@@ -221,21 +221,34 @@ const AnalysisAndChartSection: React.FC<AnalysisAndChartSectionProps> = ({
         
         {/* AI Assessment Section */}
         {analysisData && data && (
-          <div className="mt-6 pt-4 border-t border-slate-700/30">
-            <div className="flex items-start gap-4">
-              <AIAssessmentButton 
-                strategy={convertToAIStrategyParams(strategy.toLowerCase().replace(' ', '_'), data)}
-                onAssessmentComplete={(assessment) => handleAIAssessmentComplete(strategy, assessment)}
-                size="sm"
-                variant="outline"
-                className="bg-slate-700/30 border-slate-600 text-slate-300 hover:bg-slate-600/30"
-              />
+          <div className="mt-4 pt-3 border-t border-slate-700/30">
+            <div className="space-y-3">
+              <div className="flex justify-center">
+                <AIAssessmentButton 
+                  strategy={convertToAIStrategyParams(strategy.toLowerCase().replace(' ', '_'), data)}
+                  onAssessmentComplete={(assessment) => handleAIAssessmentComplete(strategy, assessment)}
+                  size="sm"
+                  variant="outline"
+                  className="bg-slate-700/20 border-slate-600/50 text-slate-300 hover:bg-slate-600/30 text-xs px-3 py-1.5"
+                />
+              </div>
               {aiAssessments[strategy] && (
-                <div className="flex-1">
-                  <AIAssessmentResult 
-                    assessment={aiAssessments[strategy]}
-                    className="bg-slate-800/30 border-slate-700/50"
-                  />
+                <div className="w-full">
+                  <div className="bg-slate-900/40 border border-slate-700/30 rounded-lg p-3 text-xs">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
+                        aiAssessments[strategy].recommendation === 'GO' ? 'bg-green-500/20 text-green-300' :
+                        aiAssessments[strategy].recommendation === 'CAUTION' ? 'bg-yellow-500/20 text-yellow-300' :
+                        'bg-red-500/20 text-red-300'
+                      }`}>
+                        {aiAssessments[strategy].recommendation}
+                      </span>
+                      <span className="text-slate-400">{aiAssessments[strategy].confidence}%</span>
+                    </div>
+                    <div className="text-slate-300 text-xs leading-tight">
+                      {aiAssessments[strategy].market_regime}
+                    </div>
+                  </div>
                 </div>
               )}
             </div>
