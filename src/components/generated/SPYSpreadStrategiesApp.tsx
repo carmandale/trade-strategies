@@ -164,7 +164,7 @@ const SPYSpreadStrategiesApp: React.FC = () => {
     fetchChartData();
   }, [spyPrice, selectedDate]);
   
-  // Auto re-analyze when strikes change (if analysis data exists)
+  // Auto re-analyze when strikes or contracts change (if analysis data exists)
   useEffect(() => {
     if (analysisData) {
       // Debounce the re-analysis to avoid too many API calls
@@ -175,7 +175,7 @@ const SPYSpreadStrategiesApp: React.FC = () => {
       return () => clearTimeout(timeoutId);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [spreadConfig]);
+  }, [spreadConfig, contracts]);
   const handleAnalyzeStrategies = async () => {
     setIsAnalyzing(true);
     
