@@ -200,41 +200,42 @@ class AIAssessmentService:
         vix_change = to_float(market_data.get('vix_change', 0))
         volume_vs_avg = to_float(market_data.get('volume_vs_avg', 1))
         
-        prompt = f"""You are an expert options trader analyzing a specific strategy for today's market.
+        # Use SPY data consistently
+        symbol = strategy_params.get('symbol', 'SPY')
+        spy_price = spx_price  # Market data service provides SPY price as 'spx_price'
+        spy_change = spx_change
+        spy_change_percent = spx_change_percent
+        
+        prompt = f"""You are a professional options trader providing actionable analysis for a {symbol} options strategy.
 
-STRATEGY DETAILS:
-- Type: {strategy_params.get('strategy_type', 'unknown')}
-- Symbol: {strategy_params.get('symbol', 'SPY')}
+STRATEGY TO ANALYZE:
+- Strategy: {strategy_params.get('strategy_type', 'unknown').replace('_', ' ').title()}
+- Symbol: {symbol}
 - Strikes: {json.dumps(strategy_params.get('strikes', {}))}
 - Expiration: {strategy_params.get('expiration', 'unknown')}
-- Quantity: {strategy_params.get('quantity', 1)}
-- Max Profit: ${strategy_params.get('max_profit', 0):,.2f}
-- Max Loss: ${strategy_params.get('max_loss', 0):,.2f}
-- Breakeven: {strategy_params.get('breakeven', [])}
+- Max Profit Potential: ${strategy_params.get('max_profit', 0):,.0f}
+- Max Loss Risk: ${strategy_params.get('max_loss', 0):,.0f}
+- Breakeven Points: {strategy_params.get('breakeven', [])}
 
-CURRENT MARKET CONDITIONS:
-- SPX: {spx_price} ({spx_change:+.2f}, {spx_change_percent:+.2f}%)
-- VIX: {vix_level} ({vix_change:+.2f})
-- Volume: {volume_vs_avg:.1%} of average
-- Technical Indicators: {json.dumps(market_data.get('technical_indicators', {}))}
+CURRENT {symbol} MARKET CONDITIONS:
+- {symbol} Price: ${spy_price:.2f} ({spy_change:+.2f}, {spy_change_percent:+.2f}% today)
+- VIX (Fear Index): {vix_level:.1f} ({vix_change:+.1f} change)
+- Trading Volume: {volume_vs_avg:.0%} of average
+- Market Sentiment: {json.dumps(market_data.get('technical_indicators', {{}}))}
 
-ASSESSMENT REQUEST:
-Provide a structured analysis with:
-1. Overall Recommendation: GO/CAUTION/NO-GO
-2. Confidence Score: 0-100
-3. Key Supporting Factors: 2-3 bullet points
-4. Primary Risks: 2-3 bullet points
-5. Market Regime: Current conditions summary
+PROVIDE ACTIONABLE TRADING ADVICE:
+Be specific about why this {symbol} options strategy makes sense (or doesn't) right now.
+Consider: current volatility, time decay, directional bias, and market regime.
 
-Format your response as JSON with this structure:
+Return JSON with this exact structure:
 {{
   "recommendation": "GO/CAUTION/NO-GO",
-  "confidence": 0-100,
+  "confidence": 75,
   "reasoning": {{
-    "supporting_factors": ["factor1", "factor2"],
-    "risk_factors": ["risk1", "risk2"]
+    "supporting_factors": ["Specific reason why this strategy works now", "Another concrete advantage"],
+    "risk_factors": ["Specific risk for this setup", "Another potential downside"]
   }},
-  "market_regime": "description of current market conditions"
+  "market_regime": "One sentence describing why current {symbol} conditions favor or oppose this strategy"
 }}"""
         
         return prompt
