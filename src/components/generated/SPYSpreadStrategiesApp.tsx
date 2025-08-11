@@ -316,7 +316,7 @@ const SPYSpreadStrategiesApp: React.FC = () => {
           duration: 0.6,
           delay: 0.2
         }}>
-            <StrikePriceConfigSection spreadConfig={spreadConfig} setSpreadConfig={setSpreadConfig} currentPrice={spyPrice} />
+            <StrikePriceConfigSection spreadConfig={spreadConfig} setSpreadConfig={setSpreadConfig} currentPrice={spyPrice} selectedDate={selectedDate} />
           </motion.div>
 
           <motion.div className="lg:col-span-6" initial={{
