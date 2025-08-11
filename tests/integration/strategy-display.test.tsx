@@ -280,8 +280,8 @@ describe('Strategy Display Integration Tests', () => {
 
 			// Should eventually show data
 			await waitFor(() => {
-				expect(screen.getByText(/Daily/i)).toBeInTheDocument()
-				expect(screen.getByText(/72%/)).toBeInTheDocument()
+				expect(screen.getByTestId('strategy-card-daily')).toBeInTheDocument()
+				expect(screen.getByText(/71\.7%/)).toBeInTheDocument() // Average win rate in portfolio summary
 			})
 		})
 	})
