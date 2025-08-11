@@ -20,10 +20,10 @@ const StrikePriceConfigSection: React.FC<StrikePriceConfigSectionProps> = ({
     });
   };
 
-  // Calculate time to expiration (assuming weekly options for now)
-  // For better delta calculations, use a minimum of 7 days
-  const rawTimeToExpiration = calculateTimeToExpiration(getExpirationDate('weekly'));
-  const timeToExpiration = Math.max(rawTimeToExpiration, 7/365); // Minimum 7 days
+  // Calculate time to expiration for 0DTE (same-day expiration)
+  // For 0DTE strategies, use same-day expiration
+  const rawTimeToExpiration = calculateTimeToExpiration(getExpirationDate('0dte'));
+  const timeToExpiration = Math.max(rawTimeToExpiration, 0.001); // Very small value for 0DTE
   
   // Function to calculate delta for a given strike
   const calculateStrikeDelta = (strike: number, isCall: boolean): number => {
