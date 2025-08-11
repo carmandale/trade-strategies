@@ -292,6 +292,18 @@ Format your response as JSON with this structure:
                         strategy_params: Dict[str, Any], market_conditions: Dict[str, Any],
                         token_usage: int, processing_time_ms: int) -> AIAssessment:
         """Save assessment to database."""
+        # Convert any Decimal values to float for JSON serialization
+        def convert_decimals(obj):
+            if isinstance(obj, Decimal):
+                return float(obj)
+            elif isinstance(obj, dict):
+                return {k: convert_decimals(v) for k, v in obj.items()}
+            elif isinstance(obj, list):
+                return [convert_decimals(item) for item in obj]
+            return obj
+        
+        market_conditions_clean = convert_decimals(market_conditions)
+        
         assessment = AIAssessment(
             assessment_id=f"assess_{datetime.now().strftime('%Y%m%d%H%M%S')}_{strategy_params.get('symbol', 'SPX')}",
             strategy_hash=self._calculate_strategy_hash(strategy_params),
@@ -301,7 +313,7 @@ Format your response as JSON with this structure:
             recommendation=assessment_data['recommendation'],
             confidence=assessment_data['confidence'],
             reasoning=assessment_data['reasoning'],
-            market_conditions=market_conditions,
+            market_conditions=market_conditions_clean,
             model_used=self.default_model,
             token_usage=token_usage,
             cost_usd=self._calculate_cost(self.default_model, token_usage, 0),
