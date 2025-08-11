@@ -1,6 +1,9 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { StrategyCardProps } from '../types/strategy'
 import { TrendingUp, TrendingDown, Activity, Target, Calendar, DollarSign } from 'lucide-react'
+import { AIAssessmentButton } from './AIAssessmentButton'
+import { AIAssessmentResult } from './AIAssessmentResult'
+import { AIAssessment, StrategyParams } from '../services/aiAssessmentService'
 
 export const StrategyCard: React.FC<StrategyCardProps> = ({ 
 	strategy, 
