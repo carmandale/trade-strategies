@@ -172,26 +172,33 @@ export class ApiService {
       const bcData = await bcResponse.json();
 
       // Transform FastAPI response to frontend format
+      const bcMaxProfit = Math.abs(bcData.avg_pnl_per_trade) * contracts;
+      const bcMaxLoss = Math.abs(bcData.avg_pnl_per_trade) * contracts * 0.3;
+      const icMaxProfit = Math.abs(icData.avg_pnl_per_trade) * contracts;
+      const icMaxLoss = Math.abs(icData.avg_pnl_per_trade) * contracts * 0.5;
+      const bfMaxProfit = 350 * contracts;
+      const bfMaxLoss = 150 * contracts;
+      
       return {
         bullCall: {
-          maxProfit: Math.abs(bcData.avg_pnl_per_trade) * contracts,
-          maxLoss: Math.abs(bcData.avg_pnl_per_trade) * contracts * 0.3,
+          maxProfit: bcMaxProfit,
+          maxLoss: bcMaxLoss,
           breakeven: spreadConfig.bullCallLower + 1.5,
-          riskReward: bcData.win_rate / 100 * 2
+          riskReward: bcMaxProfit / bcMaxLoss  // Correct: reward/risk ratio
         },
         ironCondor: {
-          maxProfit: Math.abs(icData.avg_pnl_per_trade) * contracts,
-          maxLoss: Math.abs(icData.avg_pnl_per_trade) * contracts * 0.5,
+          maxProfit: icMaxProfit,
+          maxLoss: icMaxLoss,
           upperBreakeven: spreadConfig.ironCondorCallShort + 2,
           lowerBreakeven: spreadConfig.ironCondorPutShort - 2,
-          riskReward: icData.win_rate / 100
+          riskReward: icMaxProfit / icMaxLoss  // Correct: reward/risk ratio
         },
         butterfly: {
-          maxProfit: 350 * contracts,
-          maxLoss: 150 * contracts,
+          maxProfit: bfMaxProfit,
+          maxLoss: bfMaxLoss,
           breakeven1: spreadConfig.butterflyLower + 1.5,
           breakeven2: spreadConfig.butterflyUpper - 1.5,
-          riskReward: 2.33
+          riskReward: bfMaxProfit / bfMaxLoss  // Correct: reward/risk ratio
         }
       };
     } catch (error) {
