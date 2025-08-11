@@ -183,7 +183,8 @@ describe('ProfitLossChart', () => {
 			/>
 		)
 		
-		const chartContainer = screen.getByTestId('responsive-container').parentElement
+		// The className is applied to the outermost div
+		const chartContainer = screen.getByTestId('responsive-container').parentElement?.parentElement
 		expect(chartContainer).toHaveClass('custom-chart-class')
 	})
 
