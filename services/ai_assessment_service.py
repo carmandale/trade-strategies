@@ -250,7 +250,10 @@ class AIAssessmentService:
                 "moneyness": moneyness
             }
 
-        prompt = f"""You are a veteran options trader and educator providing comprehensive analysis for a {symbol} options strategy. Your goal is to educate while providing actionable insights.
+        prompt = f"""You are a veteran options trader and educator providing comprehensive analysis for a {symbol} options strategy. Use your reasoning capabilities to provide deep, thoughtful analysis that demonstrates your analytical process.
+
+REASONING APPROACH:
+Think step-by-step through this strategy analysis. Consider multiple perspectives, weigh conflicting factors, and show your analytical reasoning process. Your response should demonstrate sophisticated understanding of options mechanics, market dynamics, and risk management.
 
 STRATEGY DETAILS:
 - Strategy Type: {strategy_params.get('strategy_type', 'unknown').replace('_', ' ').title()}
