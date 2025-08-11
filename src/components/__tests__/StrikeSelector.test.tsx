@@ -28,11 +28,11 @@ describe('StrikeSelector Component', () => {
 			/>
 		)
 
-		// Check that inputs show correct default values
-		expect(screen.getByLabelText(/Put Short Strike/i)).toHaveValue(97.5)
-		expect(screen.getByLabelText(/Put Long Strike/i)).toHaveValue(97.0)
-		expect(screen.getByLabelText(/Call Short Strike/i)).toHaveValue(102.5)
-		expect(screen.getByLabelText(/Call Long Strike/i)).toHaveValue(103.0)
+		// Check that number inputs show correct default values
+		expect(screen.getByRole('spinbutton', { name: /Put Short Strike/i })).toHaveValue(97.5)
+		expect(screen.getByRole('spinbutton', { name: /Put Long Strike/i })).toHaveValue(97.0)
+		expect(screen.getByRole('spinbutton', { name: /Call Short Strike/i })).toHaveValue(102.5)
+		expect(screen.getByRole('spinbutton', { name: /Call Long Strike/i })).toHaveValue(103.0)
 	})
 
 	it('displays calculated strike prices correctly', () => {
