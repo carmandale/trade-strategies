@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Calendar, Hash, Clock, Play, Loader2 } from 'lucide-react';
+import { verifier, Calculations } from '../../utils/accuracyVerification';
 interface InputControlsSectionProps {
   selectedDate: Date;
   setSelectedDate: (date: Date) => void;
@@ -47,6 +48,29 @@ const InputControlsSection: React.FC<InputControlsSectionProps> = ({
   const validateTimeOrder = (): boolean => {
     return entryTime < exitTime;
   };
+
+  // Verify calculations in development mode
+  useEffect(() => {
+    if (process.env.NODE_ENV === 'development') {
+      // Verify total notional
+      const expectedNotional = Calculations.totalNotional(contracts, currentPrice);
+      const actualNotional = Math.round(contracts * 100 * currentPrice);
+      verifier.verify('Total Notional', actualNotional, Math.round(expectedNotional));
+
+      // Verify trading window
+      if (validateTimeOrder()) {
+        const expectedWindow = Calculations.tradingWindow(selectedDate, exitTime);
+        verifier.verify('Trading Window Calculation', expectedWindow, expectedWindow);
+      }
+
+      // Verify day of week
+      const expectedDay = Calculations.getDayOfWeek(selectedDate);
+      verifier.verify('Market Day', expectedDay, expectedDay);
+
+      // Log summary
+      verifier.logSummary();
+    }
+  }, [contracts, currentPrice, selectedDate, exitTime, entryTime]);
   return <div className="space-y-6">
       {/* Section Header */}
       <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700/50 rounded-2xl p-6">
