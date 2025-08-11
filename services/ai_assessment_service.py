@@ -90,16 +90,23 @@ class AIAssessmentService:
                 # Note: response_format might not be supported on all models
                 # Try with response_format first, fall back if not supported
                 try:
-                    response = self.client.chat.completions.create(
-                        model=self.default_model,
-                        messages=[
+                    # Prepare API parameters
+                    api_params = {
+                        "model": self.default_model,
+                        "messages": [
                             {"role": "system", "content": "You are an expert options trader providing strategy analysis. Always respond with valid JSON."},
                             {"role": "user", "content": prompt}
                         ],
-                        temperature=self.default_temperature,
-                        max_tokens=self.default_max_tokens,
-                        response_format={"type": "json_object"}
-                    )
+                        "temperature": self.default_temperature,
+                        "max_tokens": self.default_max_tokens,
+                        "response_format": {"type": "json_object"}
+                    }
+                    
+                    # Add reasoning effort for GPT-5 models
+                    if self.default_model.startswith('gpt-5'):
+                        api_params["reasoning_effort"] = self.default_reasoning_effort
+                    
+                    response = self.client.chat.completions.create(**api_params)
                 except Exception as format_error:
                     if "response_format" in str(format_error):
                         # Retry without response_format parameter
