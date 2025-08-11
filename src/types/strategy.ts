@@ -1,5 +1,12 @@
 // Strategy data types for the display components
 
+export interface StrikeConfig {
+	put_short_pct: number
+	put_long_pct: number
+	call_short_pct: number
+	call_long_pct: number
+}
+
 export interface StrategyPerformance {
 	total_pnl: number
 	win_rate: number
