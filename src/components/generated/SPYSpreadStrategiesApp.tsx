@@ -175,7 +175,7 @@ const SPYSpreadStrategiesApp: React.FC = () => {
       return () => clearTimeout(timeoutId);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [spreadConfig, contracts]);
+  }, [spreadConfig, contracts, selectedDate]);
   const handleAnalyzeStrategies = async () => {
     setIsAnalyzing(true);
     
