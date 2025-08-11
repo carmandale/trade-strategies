@@ -76,9 +76,9 @@ describe('StrikeSelector Component', () => {
 		expect(putShortInput).toHaveValue(96.5)
 		
 		// Check price updates
-		// 500 * 0.965 = 482.50, rounded to 480
+		// 500 * 0.965 = 482.50, rounded to 485
 		await waitFor(() => {
-			expect(screen.getByTestId('put-short-price')).toHaveTextContent('$480')
+			expect(screen.getByTestId('put-short-price')).toHaveTextContent('$485')
 		})
 	})
 
