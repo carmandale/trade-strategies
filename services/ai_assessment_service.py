@@ -352,6 +352,15 @@ Return comprehensive JSON analysis:
             logger.error("Missing reasoning factors")
             return False
         
+        # Optional enhanced fields (don't fail validation if missing)
+        if 'strategy_education' in data:
+            if not isinstance(data['strategy_education'], dict):
+                logger.warning("Invalid strategy_education structure - ignoring")
+                
+        if 'exit_strategy' in data:
+            if not isinstance(data['exit_strategy'], dict):
+                logger.warning("Invalid exit_strategy structure - ignoring")
+        
         return True
     
     def _get_cached_assessment(self, db: Session, strategy_hash: str) -> Optional[AIAssessment]:
