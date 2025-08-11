@@ -23,6 +23,7 @@ from .config import Base
 import enum
 from sqlalchemy.dialects.postgresql import UUID as PG_UUID, JSONB as PG_JSONB
 from sqlalchemy import text as sa_text
+from sqlalchemy import CheckConstraint
 
 # PostgreSQL-native types (project standard)
 UUIDType = PG_UUID(as_uuid=True)
@@ -39,6 +40,18 @@ class TradeStatus(str, enum.Enum):
     """Enum for trade status."""
     OPEN = "open"
     CLOSED = "closed"
+
+class AIRecommendation(str, enum.Enum):
+    """Enum for AI assessment recommendations."""
+    GO = "GO"
+    CAUTION = "CAUTION"
+    NO_GO = "NO-GO"
+
+class ReasoningEffort(str, enum.Enum):
+    """Enum for AI reasoning effort levels."""
+    LOW = "low"
+    MEDIUM = "medium"
+    HIGH = "high"
 
 # User model removed for Phase 1 - single user application
 # Will be added in Phase 2 for multi-user support
