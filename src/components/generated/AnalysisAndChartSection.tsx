@@ -81,7 +81,7 @@ const AnalysisAndChartSection: React.FC<AnalysisAndChartSectionProps> = ({
             <p className="text-xs text-slate-400">Risk/Reward Analysis</p>
           </div>
         </div>
-        {analysisData && <motion.button onClick={() => onLogTrade(strategy, data.maxProfit * 0.6)} className="p-2 bg-blue-500/20 hover:bg-blue-500/30 rounded-lg transition-colors duration-200" whileHover={{
+        {analysisData && data && <motion.button onClick={() => onLogTrade(strategy, data.maxProfit * 0.6)} className="p-2 bg-blue-500/20 hover:bg-blue-500/30 rounded-lg transition-colors duration-200" whileHover={{
         scale: 1.1
       }} whileTap={{
         scale: 0.9
