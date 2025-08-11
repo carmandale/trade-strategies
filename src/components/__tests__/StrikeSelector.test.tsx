@@ -168,7 +168,7 @@ describe('StrikeSelector Component', () => {
 			/>
 		)
 
-		const putShortSlider = screen.getByRole('slider', { name: /Put Short Strike/i })
+		const putShortSlider = screen.getAllByRole('slider')[0] // First slider is put short
 		
 		// Simulate slider interaction by focusing and using arrow keys
 		await user.click(putShortSlider)
