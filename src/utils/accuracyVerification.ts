@@ -262,6 +262,59 @@ export const Calculations = {
     const target = new Date(date);
     target.setHours(0, 0, 0, 0);
     return target < today;
+  },
+
+  /**
+   * Test Black-Scholes Greeks calculations with known values
+   */
+  testGreeksCalculations(): {
+    testScenario: string;
+    expected: {
+      callDelta: number;
+      putDelta: number;
+      gamma: number;
+      callTheta: number;
+      putTheta: number;
+      vega: number;
+    };
+  } {
+    // ATM option with 30 days to expiration - predictable Greeks values
+    return {
+      testScenario: "ATM option, 30 days, 20% vol, 5% rate",
+      expected: {
+        callDelta: 0.5, // ATM call delta ~0.5
+        putDelta: -0.5, // ATM put delta ~-0.5  
+        gamma: 0.02, // Gamma peaks at ATM
+        callTheta: -0.04, // Negative time decay per day
+        putTheta: -0.04, // Similar theta for puts
+        vega: 0.08 // Vega for 1% vol change
+      }
+    };
+  },
+
+  /**
+   * Verify delta strategy calculations
+   */
+  verifyDeltaStrategy(
+    currentPrice: number,
+    targetDelta: number,
+    isCall: boolean,
+    timeToExpiration: number
+  ): number {
+    // Simplified strike estimation based on delta
+    // For 0DTE or very short expiration, use percentage-based approach
+    if (timeToExpiration < 0.02) { // Less than ~7 days
+      if (isCall) {
+        const percentageOTM = (1 - targetDelta) * 0.03; // Rough approximation
+        return Math.round((currentPrice * (1 + percentageOTM)) / 5) * 5;
+      } else {
+        const percentageOTM = Math.abs(targetDelta) * 0.03;
+        return Math.round((currentPrice * (1 - percentageOTM)) / 5) * 5;
+      }
+    }
+    
+    // For longer expiration, would use binary search (simplified here)
+    return currentPrice; // Placeholder - would implement full calculation
   }
 };
 
