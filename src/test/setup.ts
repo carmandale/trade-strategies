@@ -32,8 +32,6 @@ class ResizeObserverMock {
   disconnect() {}
 }
 
-// @ts-expect-error jsdom global
 if (typeof globalThis.ResizeObserver === 'undefined') {
-  // @ts-expect-error jsdom global
-  globalThis.ResizeObserver = ResizeObserverMock
+  ;(globalThis as any).ResizeObserver = ResizeObserverMock
 }
