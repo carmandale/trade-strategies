@@ -424,27 +424,34 @@ export class ApiService {
       console.error(`Error fetching ${strategy} strategy data:`, error);
       // Return fallback strategy data based on strategy type
       if (strategy === 'iron_condor') {
+        const contracts = Number(params.contracts) || 1;
+        const putShort = Number(params.put_short) || 415;
+        const callShort = Number(params.call_short) || 435;
         return {
-          max_profit: 200 * (params.contracts || 1),
-          max_loss: -300 * (params.contracts || 1),
+          max_profit: 200 * contracts,
+          max_loss: -300 * contracts,
           breakeven_points: [
-            (params.put_short || 415) - 2,
-            (params.call_short || 435) + 2
+            putShort - 2,
+            callShort + 2
           ],
           risk_reward_ratio: 0.67
         };
       } else if (strategy === 'bull_call') {
-        const spread = (params.upper_strike || 425) - (params.lower_strike || 420);
+        const contracts = Number(params.contracts) || 1;
+        const upperStrike = Number(params.upper_strike) || 425;
+        const lowerStrike = Number(params.lower_strike) || 420;
+        const spread = upperStrike - lowerStrike;
         return {
-          max_profit: spread * 100 * (params.contracts || 1),
-          max_loss: -150 * (params.contracts || 1),
-          breakeven_points: [(params.lower_strike || 420) + 1.5],
+          max_profit: spread * 100 * contracts,
+          max_loss: -150 * contracts,
+          breakeven_points: [lowerStrike + 1.5],
           risk_reward_ratio: 2.33
         };
       } else {
+        const contracts = Number(params.contracts) || 1;
         return {
-          max_profit: 350 * (params.contracts || 1),
-          max_loss: -150 * (params.contracts || 1),
+          max_profit: 350 * contracts,
+          max_loss: -150 * contracts,
           breakeven_points: [420, 430],
           risk_reward_ratio: 2.33
         };
