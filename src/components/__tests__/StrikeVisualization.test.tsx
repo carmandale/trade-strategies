@@ -291,7 +291,8 @@ describe('StrikeVisualization', () => {
 		
 		// Should handle edge case without crashing
 		expect(screen.getByTestId('profit-loss-chart')).toBeInTheDocument()
-		expect(screen.getByText('$0')).toBeInTheDocument()
+		// Zero price should appear in the current price display
+		expect(screen.getAllByText('$0')).toHaveLength(8) // Multiple $0 values in various fields
 	})
 
 	it('should calculate profit zone correctly based on breakevens', () => {
