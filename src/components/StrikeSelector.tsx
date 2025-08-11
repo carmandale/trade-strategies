@@ -96,7 +96,6 @@ export const StrikeSelector: React.FC<StrikeSelectorProps> = ({
 		})
 
 		// Update local state immediately for responsiveness
-		const newStrikes = { ...localStrikes, [field]: value }
 		setLocalStrikes(newStrikes)
 
 		// Only call parent if valid
