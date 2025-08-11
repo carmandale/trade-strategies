@@ -92,7 +92,7 @@ const InputControlsSection: React.FC<InputControlsSectionProps> = ({
         <input type="number" min="1" max="100" value={contracts} onChange={handleContractsChange} className="w-full bg-slate-700/50 border border-slate-600/50 rounded-xl px-4 py-3 text-slate-100 focus:outline-none focus:ring-2 focus:ring-green-500/50 focus:border-green-500/50 transition-all duration-200" placeholder="Enter number of contracts" />
         
         <div className="mt-2 text-xs text-slate-500">
-          Total notional: ${(contracts * 100 * currentPrice).toLocaleString()}
+          Total notional: ${Math.round(contracts * 100 * currentPrice).toLocaleString()}
         </div>
       </motion.div>
 
@@ -157,7 +157,37 @@ const InputControlsSection: React.FC<InputControlsSectionProps> = ({
           <div className="bg-slate-700/30 rounded-lg p-2">
             <div className="text-slate-400">Trading Window</div>
             <div className="text-slate-100 font-medium">
-              {validateTimeOrder() ? `${((new Date(`2000-01-01T${exitTime}`).getTime() - new Date(`2000-01-01T${entryTime}`).getTime()) / (1000 * 60 * 60)).toFixed(1)}h` : 'Invalid'}
+              {validateTimeOrder() ? (() => {
+                // Calculate time from now until trade exit on selected date
+                const now = new Date();
+                const tradeExitDate = new Date(selectedDate);
+                // Set the exit time on the selected date
+                const [exitHour, exitMinute] = exitTime.split(':').map(Number);
+                tradeExitDate.setHours(exitHour, exitMinute, 0, 0);
+                
+                // Calculate difference in milliseconds
+                const diffMs = tradeExitDate.getTime() - now.getTime();
+                
+                // If trade is in the past or very soon (less than 1 hour)
+                if (diffMs < 0) {
+                  return 'Past';
+                }
+                
+                // Convert to hours and days
+                const totalHours = diffMs / (1000 * 60 * 60);
+                const days = Math.floor(totalHours / 24);
+                const hours = Math.floor(totalHours % 24);
+                const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+                
+                // Format the display
+                if (days > 0) {
+                  return `${days}d ${hours}h`;
+                } else if (hours > 0) {
+                  return `${hours}h ${minutes}m`;
+                } else {
+                  return `${minutes}m`;
+                }
+              })() : 'Invalid'}
             </div>
           </div>
           <div className="bg-slate-700/30 rounded-lg p-2">
