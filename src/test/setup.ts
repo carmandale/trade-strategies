@@ -18,13 +18,17 @@ class ResizeObserverMock {
     this.callback = callback
   }
   observe(target?: Element) {
-    // Immediately invoke to simulate first measurement with a fake contentRect
+    // Immediately invoke to simulate first measurement with complete entry for Radix UI
+    const sizeEntry = {
+      inlineSize: 800,
+      blockSize: 600
+    }
     const entry = {
       target: target ?? ({} as Element),
       contentRect: { width: 800, height: 600, x: 0, y: 0, top: 0, left: 0, bottom: 600, right: 800 },
-      borderBoxSize: [],
-      contentBoxSize: [],
-      devicePixelContentBoxSize: [],
+      borderBoxSize: [sizeEntry],
+      contentBoxSize: [sizeEntry],
+      devicePixelContentBoxSize: [sizeEntry],
     } as unknown as ResizeObserverEntry
     this.callback([entry], this as unknown as ResizeObserver)
   }
