@@ -316,7 +316,7 @@ Format your response as JSON with this structure:
         market_conditions_clean = convert_decimals(market_conditions)
         
         assessment = AIAssessment(
-            assessment_id=f"assess_{datetime.now().strftime('%Y%m%d%H%M%S')}_{strategy_params.get('symbol', 'SPX')}",
+            assessment_id=f"assess_{datetime.now().strftime('%Y%m%d%H%M%S')}_{strategy_params.get('symbol', 'SPY')}",
             strategy_hash=self._calculate_strategy_hash(strategy_params),
             strategy_type=strategy_params.get('strategy_type', 'unknown'),
             symbol=strategy_params.get('symbol', 'SPX'),
