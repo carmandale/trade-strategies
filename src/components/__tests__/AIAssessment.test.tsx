@@ -13,11 +13,27 @@ vi.mock('../../services/aiAssessmentService', () => ({
   AIAssessmentService: {
     assessStrategy: vi.fn(),
     isServiceHealthy: vi.fn(),
-    formatAssessment: vi.fn(() => ({
-      badgeColor: 'bg-green-100 text-green-800 border-green-200',
-      confidenceColor: 'text-green-600',
-      icon: '✓'
-    }))
+    formatAssessment: vi.fn((assessment) => {
+      const { recommendation, confidence } = assessment
+      const badgeColors = {
+        'GO': 'bg-green-100 text-green-800 border-green-200',
+        'CAUTION': 'bg-yellow-100 text-yellow-800 border-yellow-200',
+        'NO-GO': 'bg-red-100 text-red-800 border-red-200'
+      }
+      
+      let confidenceColor = 'text-gray-600'
+      if (confidence >= 75) confidenceColor = 'text-green-600'
+      else if (confidence >= 50) confidenceColor = 'text-yellow-600'
+      else confidenceColor = 'text-red-600'
+      
+      const icons = { 'GO': '✓', 'CAUTION': '⚠', 'NO-GO': '✗' }
+      
+      return {
+        badgeColor: badgeColors[recommendation] || badgeColors['GO'],
+        confidenceColor,
+        icon: icons[recommendation] || '✓'
+      }
+    })
   }
 }))
 
