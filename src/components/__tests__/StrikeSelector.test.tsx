@@ -114,7 +114,7 @@ describe('StrikeSelector Component', () => {
 			/>
 		)
 
-		const callShortInput = screen.getByLabelText(/Call Short Strike/i)
+		const callShortInput = screen.getByRole('spinbutton', { name: /Call Short Strike/i })
 		
 		// Try to enter invalid value < 100
 		await user.clear(callShortInput)
