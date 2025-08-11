@@ -37,8 +37,15 @@ const StrikePriceConfigSection: React.FC<StrikePriceConfigSectionProps> = ({
   const applyDeltaStrategy = (strategy: typeof DELTA_STRATEGIES[0]) => {
     if (!strategy.putDelta || !strategy.callDelta) return;
     
+    console.log('Applying delta strategy:', strategy.name);
+    console.log('Current price:', currentPrice);
+    console.log('Time to expiration:', timeToExpiration);
+    
     const putStrike = findStrikeForDelta(currentPrice, strategy.putDelta, timeToExpiration, 0.05, 0.20, false);
     const callStrike = findStrikeForDelta(currentPrice, strategy.callDelta, timeToExpiration, 0.05, 0.20, true);
+    
+    console.log('Calculated put strike:', putStrike);
+    console.log('Calculated call strike:', callStrike);
     
     // Update Iron Condor strikes based on delta
     setSpreadConfig({
