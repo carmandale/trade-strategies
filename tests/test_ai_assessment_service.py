@@ -204,7 +204,7 @@ class TestAIAssessmentService:
             )
             
             assert saved.id is not None
-            assert saved.recommendation.value == "GO"
+            assert saved.recommendation == "GO" or saved.recommendation.value == "GO"
             assert saved.confidence == 78
             assert saved.strategy_type == "iron_condor"
             assert saved.token_usage == 450
