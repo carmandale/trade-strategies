@@ -122,6 +122,8 @@ const SPYSpreadStrategiesApp: React.FC = () => {
 
   // Update strikes when SPY price changes significantly (>$5 move to new strike level)
   useEffect(() => {
+    if (!spyPrice || !spreadConfig) return;
+    
     const currentRounded = roundToNearestFive(spyPrice);
     const configRounded = roundToNearestFive(spreadConfig.butterflyBody); // Use butterfly body as ATM reference
     
@@ -130,7 +132,7 @@ const SPYSpreadStrategiesApp: React.FC = () => {
       console.log(`SPY moved to new strike level: ${configRounded} → ${currentRounded}, updating strikes`);
       setSpreadConfig(calculateStrikes(spyPrice));
     }
-  }, [spyPrice, spreadConfig.butterflyBody]);
+  }, [spyPrice, spreadConfig?.butterflyBody]);
 
   // Fetch real historical chart data
   useEffect(() => {
@@ -181,6 +183,11 @@ const SPYSpreadStrategiesApp: React.FC = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [spreadConfig, contracts, selectedDate]);
   const handleAnalyzeStrategies = async () => {
+    if (!spreadConfig) {
+      console.warn('Cannot analyze strategies: spreadConfig is null');
+      return;
+    }
+    
     setIsAnalyzing(true);
     
     try {
@@ -209,6 +216,12 @@ const SPYSpreadStrategiesApp: React.FC = () => {
       console.error('Failed to analyze strategies:', error);
       
       // Fallback to mock analysis if API fails - use proper options calculations
+      if (!spreadConfig) {
+        console.error('Cannot create fallback analysis: spreadConfig is null');
+        setIsAnalyzing(false);
+        return;
+      }
+      
       const bullCallSpreadWidth = spreadConfig.bullCallUpper - spreadConfig.bullCallLower;
       const bcNetDebit = bullCallSpreadWidth * 0.35; // 35% of spread width
       const bcFallbackProfit = (bullCallSpreadWidth - bcNetDebit) * 100 * contracts;
@@ -268,6 +281,8 @@ const SPYSpreadStrategiesApp: React.FC = () => {
     setTrades(prev => [newTrade, ...prev]);
   };
   const getStrikesString = (strategy: string): string => {
+    if (!spreadConfig) return '';
+    
     switch (strategy) {
       case 'Bull Call':
         return `${spreadConfig.bullCallLower}/${spreadConfig.bullCallUpper}`;
