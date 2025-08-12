@@ -76,13 +76,14 @@ const calculateStrikes = (currentPrice: number): SpreadConfig => {
 };
 
 const SPYSpreadStrategiesApp: React.FC = () => {
-  const [spyPrice, setSpyPrice] = useState<number>(425.50);
-  const [lastUpdate, setLastUpdate] = useState<Date>(new Date());
+  const [spyPrice, setSpyPrice] = useState<number | null>(null);
+  const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
+  const [connectionError, setConnectionError] = useState<string | null>(null);
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [contracts, setContracts] = useState<number>(1);
   const [entryTime, setEntryTime] = useState<string>('09:30');
   const [exitTime, setExitTime] = useState<string>('16:00');
-  const [spreadConfig, setSpreadConfig] = useState<SpreadConfig>(() => calculateStrikes(425.50));
+  const [spreadConfig, setSpreadConfig] = useState<SpreadConfig | null>(null);
   const [analysisData, setAnalysisData] = useState<AnalysisData | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState<boolean>(false);
   const [trades, setTrades] = useState<Trade[]>([]);
@@ -99,12 +100,15 @@ const SPYSpreadStrategiesApp: React.FC = () => {
         const marketData = await apiService.getMarketData('SPY');
         setSpyPrice(marketData.current_price);
         setLastUpdate(new Date());
+        setConnectionError(null);
+        // Calculate strikes if not already set
+        if (!spreadConfig && marketData.current_price) {
+          setSpreadConfig(calculateStrikes(marketData.current_price));
+        }
       } catch (error) {
         console.error('Failed to fetch SPY price:', error);
-        // Fallback to current price with small variation
-        const variation = (Math.random() - 0.5) * 2;
-        setSpyPrice(prev => Math.max(400, Math.min(500, prev + variation)));
-        setLastUpdate(new Date());
+        setConnectionError('Unable to connect to market data. Please check API connection.');
+        // Don't set fake prices - leave as null
       }
     };
 
