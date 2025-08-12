@@ -530,9 +530,9 @@ export const ConsolidatedStrategyCard: React.FC<ConsolidatedStrategyCardProps> =
                           type="linear"
                           dataKey="pnl"
                           stroke="#60a5fa"
-                          strokeWidth={1}
-                          dot={false}
-                          activeDot={{ r: 3 }}
+                          strokeWidth={2}
+                          dot={{ fill: '#60a5fa', strokeWidth: 0, r: 4 }}
+                          activeDot={{ r: 5 }}
                         />
                       </LineChart>
                     </ResponsiveContainer>
