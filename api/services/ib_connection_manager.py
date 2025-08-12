@@ -37,6 +37,9 @@ class IBConnectionManager:
 		self._connection_settings = None
 		self.reconnect_attempts = 0
 		self.max_reconnect_attempts = 3
+		self._health_monitor_thread = None
+		self._health_monitor_stop = threading.Event()
+		self._encryption_key = self._get_or_create_encryption_key()
 		logger.info("IBConnectionManager initialized")
 	
 	@contextmanager
@@ -292,16 +295,39 @@ class IBConnectionManager:
 			}
 		
 		try:
-			# TODO: Implement actual account info retrieval
-			return {
-				"success": True,
-				"message": "Account info retrieved",
-				"data": {
+			if self.ib_client and IB is not None:
+				# Get real account info from IB
+				account_summary = self.ib_client.accountSummary()
+				account_values = self.ib_client.accountValues()
+				
+				data = {
 					"account": self.account,
 					"connected": self.is_connected,
-					"timestamp": datetime.utcnow().isoformat()
+					"timestamp": datetime.utcnow().isoformat(),
+					"summary": {}
 				}
-			}
+				
+				# Process account summary
+				for item in account_summary:
+					if item.tag in ['NetLiquidation', 'TotalCashValue', 'BuyingPower']:
+						data["summary"][item.tag] = float(item.value)
+				
+				return {
+					"success": True,
+					"message": "Account info retrieved",
+					"data": data
+				}
+			else:
+				# Simulation mode
+				return {
+					"success": True,
+					"message": "Account info retrieved (simulation)",
+					"data": {
+						"account": self.account,
+						"connected": self.is_connected,
+						"timestamp": datetime.utcnow().isoformat()
+					}
+				}
 		except Exception as e:
 			logger.error(f"Error getting account info: {e}")
 			return {
@@ -309,6 +335,78 @@ class IBConnectionManager:
 				"message": f"Error: {str(e)}",
 				"data": None
 			}
+
+	def _get_or_create_encryption_key(self) -> bytes:
+		"""Get or create encryption key for credentials."""
+		key_file = ".ib_encryption_key"
+		if os.path.exists(key_file):
+			with open(key_file, "rb") as f:
+				return f.read()
+		else:
+			key = Fernet.generate_key()
+			with open(key_file, "wb") as f:
+				f.write(key)
+			# Set file permissions to be readable only by owner
+			os.chmod(key_file, 0o600)
+			return key
+	
+	def encrypt_credentials(self, password: str) -> str:
+		"""Encrypt password for storage."""
+		try:
+			f = Fernet(self._encryption_key)
+			encrypted = f.encrypt(password.encode())
+			return base64.b64encode(encrypted).decode()
+		except Exception as e:
+			logger.error(f"Error encrypting credentials: {e}")
+			raise
+	
+	def decrypt_credentials(self, encrypted: str) -> str:
+		"""Decrypt stored password."""
+		try:
+			f = Fernet(self._encryption_key)
+			decrypted = f.decrypt(base64.b64decode(encrypted.encode()))
+			return decrypted.decode()
+		except Exception as e:
+			logger.error(f"Error decrypting credentials: {e}")
+			raise
+	
+	def start_health_monitor(self, interval: int = 60):
+		"""Start health monitoring thread."""
+		if self._health_monitor_thread and self._health_monitor_thread.is_alive():
+			logger.warning("Health monitor already running")
+			return
+		
+		self._health_monitor_stop.clear()
+		self._health_monitor_thread = threading.Thread(
+			target=self._health_monitor_loop,
+			args=(interval,),
+			daemon=True
+		)
+		self._health_monitor_thread.start()
+		logger.info(f"Health monitor started with {interval}s interval")
+	
+	def stop_health_monitor(self):
+		"""Stop health monitoring thread."""
+		if self._health_monitor_thread:
+			self._health_monitor_stop.set()
+			self._health_monitor_thread.join(timeout=5)
+			self._health_monitor_thread = None
+			logger.info("Health monitor stopped")
+	
+	def _health_monitor_loop(self, interval: int):
+		"""Health monitoring loop."""
+		while not self._health_monitor_stop.is_set():
+			try:
+				if self.is_connected:
+					# Check connection health
+					if not self.check_connection():
+						logger.warning("Connection lost, attempting reconnect")
+						self.reconnect()
+			except Exception as e:
+				logger.error(f"Health monitor error: {e}")
+			
+			# Wait for interval or stop signal
+			self._health_monitor_stop.wait(interval)
 
 
 # Global instance
