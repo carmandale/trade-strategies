@@ -93,11 +93,11 @@ const HeaderSection: React.FC<HeaderSectionProps> = ({
               {formatTime(lastUpdate)}
             </div>
             <div className="text-xs text-slate-500">
-              {lastUpdate.toLocaleDateString('en-US', {
+              {lastUpdate ? lastUpdate.toLocaleDateString('en-US', {
               month: 'short',
               day: 'numeric',
               year: 'numeric'
-            })}
+            }) : '---'}
             </div>
           </motion.div>
 
