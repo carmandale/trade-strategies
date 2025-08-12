@@ -322,7 +322,7 @@ const SPYSpreadStrategiesApp: React.FC = () => {
           duration: 0.6,
           delay: 0.1
         }}>
-            <InputControlsSection selectedDate={selectedDate} setSelectedDate={setSelectedDate} contracts={contracts} setContracts={setContracts} entryTime={entryTime} setEntryTime={setEntryTime} exitTime={exitTime} setExitTime={setExitTime} onAnalyze={handleAnalyzeStrategies} isAnalyzing={isAnalyzing} currentPrice={spyPrice} />
+            <InputControlsSection selectedDate={selectedDate} setSelectedDate={setSelectedDate} contracts={contracts} setContracts={setContracts} entryTime={entryTime} setEntryTime={setEntryTime} exitTime={exitTime} setExitTime={setExitTime} onAnalyze={handleAnalyzeStrategies} isAnalyzing={isAnalyzing || !spreadConfig} currentPrice={spyPrice} />
           </motion.div>
 
           <motion.div className="lg:col-span-3" initial={{
@@ -335,7 +335,17 @@ const SPYSpreadStrategiesApp: React.FC = () => {
           duration: 0.6,
           delay: 0.2
         }}>
-            <StrikePriceConfigSection spreadConfig={spreadConfig} setSpreadConfig={setSpreadConfig} currentPrice={spyPrice} selectedDate={selectedDate} />
+            {spreadConfig ? (
+              <StrikePriceConfigSection spreadConfig={spreadConfig} setSpreadConfig={setSpreadConfig} currentPrice={spyPrice || 0} selectedDate={selectedDate} />
+            ) : (
+              <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700/50 rounded-2xl p-6">
+                <div className="text-center text-slate-400">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-400 mx-auto mb-4"></div>
+                  <p>Loading market data...</p>
+                  <p className="text-xs mt-2">Strike prices will be calculated once SPY price is available</p>
+                </div>
+              </div>
+            )}
           </motion.div>
 
           <motion.div className="lg:col-span-6" initial={{
@@ -348,7 +358,7 @@ const SPYSpreadStrategiesApp: React.FC = () => {
           duration: 0.6,
           delay: 0.3
         }}>
-            <AnalysisAndChartSection analysisData={analysisData} chartData={chartData} spreadConfig={spreadConfig} trades={trades} onLogTrade={handleLogTrade} onDeleteTrade={handleDeleteTrade} isAnalyzing={isAnalyzing} currentPrice={spyPrice} contracts={contracts} selectedDate={selectedDate} />
+            <AnalysisAndChartSection analysisData={analysisData} chartData={chartData} spreadConfig={spreadConfig} trades={trades} onLogTrade={handleLogTrade} onDeleteTrade={handleDeleteTrade} isAnalyzing={isAnalyzing || !spreadConfig} currentPrice={spyPrice} contracts={contracts} selectedDate={selectedDate} />
           </motion.div>
         </div>
       </div>
