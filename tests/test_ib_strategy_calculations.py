@@ -340,7 +340,12 @@ class TestIBStrategyCalculator:
 		mock_context_manager = MagicMock()
 		mock_context_manager.__enter__.return_value = mock_db
 		mock_context_manager.__exit__.return_value = None
-		mock_get_db.return_value = mock_context_manager
+		
+		# Mock the generator pattern used by get_db_session
+		def mock_generator():
+			yield mock_context_manager
+		
+		mock_get_db.return_value = mock_generator()
 		
 		calculator.market_data_service.fetch_options_chain.return_value = sample_ib_options_data
 		
