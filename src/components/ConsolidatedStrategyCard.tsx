@@ -80,14 +80,14 @@ const formatPrice = (value: number): string => {
   return `$${value.toFixed(0)}`;
 };
 
-// Helper to interpolate between two points
-const interpolatePoints = (x1: number, y1: number, x2: number, y2: number, steps: number = 20) => {
+// Helper to interpolate between two points for smooth lines
+const interpolatePoints = (x1: number, y1: number, x2: number, y2: number, steps: number = 100) => {
   const points = [];
   for (let i = 0; i <= steps; i++) {
     const t = i / steps;
     points.push({
-      price: Math.round(x1 + (x2 - x1) * t),
-      pnl: Math.round(y1 + (y2 - y1) * t)
+      price: x1 + (x2 - x1) * t,  // Don't round - keep smooth
+      pnl: y1 + (y2 - y1) * t      // Don't round - keep smooth
     });
   }
   return points;
