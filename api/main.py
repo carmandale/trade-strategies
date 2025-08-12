@@ -52,6 +52,10 @@ app.include_router(ai_assessment.router)
 from api.routers import ib_connection
 app.include_router(ib_connection.router)
 
+# Import and include WebSocket router for real-time updates
+from api.routes import websocket_strategies
+app.include_router(websocket_strategies.router)
+
 # Set up comprehensive error handling
 setup_exception_handlers(app)
 
