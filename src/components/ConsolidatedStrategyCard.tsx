@@ -508,7 +508,7 @@ export const ConsolidatedStrategyCard: React.FC<ConsolidatedStrategyCardProps> =
                           strokeWidth={3}
                           strokeDasharray="5 2"
                           label={{ 
-                            value: `Today ~$${currentPrice.toFixed(0)}`, 
+                            value: `Today $${Math.round(currentPrice)}`, 
                             position: "topRight",
                             offset: 10,
                             fill: "#60a5fa",
@@ -522,13 +522,13 @@ export const ConsolidatedStrategyCard: React.FC<ConsolidatedStrategyCardProps> =
                         {getStrikeLines(strategy, spreadConfig).map((strike, index) => (
                           <ReferenceLine
                             key={`strike-${index}`}
-                            x={strike.value}
+                            x={Math.round(strike.value / 5) * 5} // Round to nearest $5 to match data
                             stroke={strike.color}
                             strokeDasharray="4 4"
                             strokeWidth={2}
                             opacity={0.8}
                             label={{
-                              value: `${strike.label} $${strike.value}`,
+                              value: `${strike.label} $${Math.round(strike.value / 5) * 5}`,
                               position: index % 2 === 0 ? "bottomLeft" : "bottomRight",
                               offset: 8,
                               fill: strike.color,
