@@ -523,24 +523,9 @@ export const ConsolidatedStrategyCard: React.FC<ConsolidatedStrategyCardProps> =
                           }}
                         />
                         
-                        {/* Strike level indicators - show lines only, no overlapping labels */}
-                        {getStrikeLines(strategy, spreadConfig).map((strike, index, strikes) => {
-                          // Calculate minimum distance between strikes to determine if we should show labels
+                        {/* Strike level indicators - lines only, no labels to prevent overlap */}
+                        {getStrikeLines(strategy, spreadConfig).map((strike, index) => {
                           const currentStrike = Math.round(strike.value / 5) * 5;
-                          const currentPriceRounded = Math.round(currentPrice);
-                          const minDistanceFromPrice = 15; // Minimum $15 away from current price
-                          const minDistanceBetweenStrikes = 10; // Minimum $10 between strikes
-                          
-                          // Check if this strike is too close to current price or other strikes
-                          const tooCloseToPrice = Math.abs(currentStrike - currentPriceRounded) < minDistanceFromPrice;
-                          const tooCloseToOtherStrikes = strikes.some((otherStrike, otherIndex) => {
-                            if (otherIndex === index) return false;
-                            const otherValue = Math.round(otherStrike.value / 5) * 5;
-                            return Math.abs(currentStrike - otherValue) < minDistanceBetweenStrikes;
-                          });
-                          
-                          // Only show label if strike is far enough away
-                          const showLabel = !tooCloseToPrice && !tooCloseToOtherStrikes;
                           
                           return (
                             <ReferenceLine
@@ -549,15 +534,7 @@ export const ConsolidatedStrategyCard: React.FC<ConsolidatedStrategyCardProps> =
                               stroke={strike.color}
                               strokeDasharray="4 4"
                               strokeWidth={2}
-                              opacity={0.8}
-                              label={showLabel ? {
-                                value: `${strike.label} $${currentStrike}`,
-                                position: index % 2 === 0 ? "bottomLeft" : "bottomRight",
-                                offset: 12,
-                                fill: strike.color,
-                                fontSize: 12,
-                                fontWeight: "bold"
-                              } : undefined}
+                              opacity={0.7}
                             />
                           );
                         })}
