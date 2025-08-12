@@ -524,13 +524,16 @@ export const ConsolidatedStrategyCard: React.FC<ConsolidatedStrategyCardProps> =
                             key={`strike-${index}`}
                             x={strike.value}
                             stroke={strike.color}
-                            strokeDasharray="3 3"
-                            strokeWidth={1}
+                            strokeDasharray="4 4"
+                            strokeWidth={2}
+                            opacity={0.8}
                             label={{
-                              value: strike.label,
-                              position: "bottom",
+                              value: `${strike.label} $${strike.value}`,
+                              position: index % 2 === 0 ? "bottomLeft" : "bottomRight",
+                              offset: 8,
                               fill: strike.color,
-                              fontSize: 10
+                              fontSize: 11,
+                              fontWeight: "medium"
                             }}
                           />
                         ))}
