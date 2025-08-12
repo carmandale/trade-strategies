@@ -821,7 +821,7 @@ class IBConnectionLog(Base):
     status = Column(String(20), nullable=False)  # success, error, warning
     account = Column(String(50), nullable=True)
     error_message = Column(Text, nullable=True)
-    metadata = Column(JSONType, nullable=True)  # Additional event data
+    event_metadata = Column(JSONType, nullable=True)  # Additional event data (renamed from metadata)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     
     # Indexes
