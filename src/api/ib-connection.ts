@@ -61,7 +61,7 @@ class IBConnectionAPI {
 	 * Update IB settings
 	 */
 	async updateSettings(settings: Partial<IBSettings>): Promise<APIResponse> {
-		const response = await fetch(`${this.baseUrl}/api/ib/settings`, {
+		const response = await fetch(`${this.baseUrl}/api/v1/ib/settings`, {
 			method: 'PUT',
 			headers: {
 				'Content-Type': 'application/json',
@@ -81,7 +81,7 @@ class IBConnectionAPI {
 	 * Connect to Interactive Brokers
 	 */
 	async connect(): Promise<APIResponse> {
-		const response = await fetch(`${this.baseUrl}/api/ib/connection/connect`, {
+		const response = await fetch(`${this.baseUrl}/api/v1/ib/connection/connect`, {
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/json',
@@ -100,7 +100,7 @@ class IBConnectionAPI {
 	 * Disconnect from Interactive Brokers
 	 */
 	async disconnect(): Promise<APIResponse> {
-		const response = await fetch(`${this.baseUrl}/api/ib/connection/disconnect`, {
+		const response = await fetch(`${this.baseUrl}/api/v1/ib/connection/disconnect`, {
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/json',
@@ -119,7 +119,7 @@ class IBConnectionAPI {
 	 * Get connection status
 	 */
 	async getConnectionStatus(): Promise<ConnectionStatus> {
-		const response = await fetch(`${this.baseUrl}/api/ib/connection/status`, {
+		const response = await fetch(`${this.baseUrl}/api/v1/ib/connection/status`, {
 			method: 'GET',
 			headers: {
 				'Content-Type': 'application/json',
@@ -137,7 +137,7 @@ class IBConnectionAPI {
 	 * Test connection with given settings
 	 */
 	async testConnection(settings: Partial<IBSettings>): Promise<APIResponse> {
-		const response = await fetch(`${this.baseUrl}/api/ib/connection/test`, {
+		const response = await fetch(`${this.baseUrl}/api/v1/ib/connection/test`, {
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/json',
@@ -157,7 +157,7 @@ class IBConnectionAPI {
 	 * Get connection health metrics
 	 */
 	async getHealthMetrics(): Promise<any> {
-		const response = await fetch(`${this.baseUrl}/api/ib/connection/health`, {
+		const response = await fetch(`${this.baseUrl}/api/v1/ib/connection/health`, {
 			method: 'GET',
 			headers: {
 				'Content-Type': 'application/json',
