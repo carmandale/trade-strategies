@@ -1,7 +1,11 @@
 import React, { useEffect, useState } from 'react'
 import { StrategyList } from './StrategyList'
+import { StrikeSelector } from './StrikeSelector'
+import { StrikeVisualization } from './StrikeVisualization'
+import { useStrikeSelection } from '../hooks/useStrikeSelection'
 import type { StrategyData, StrategyPerformance } from '../types/strategy'
 import { StrategyApiService } from '../services/strategyApi'
+import { MarketApiService } from '../services/marketApi'
 
 export const StrategyDashboard: React.FC<{ symbol?: string }> = ({ symbol = 'SPY' }) => {
   const [strategies, setStrategies] = useState<StrategyData[]>([])
