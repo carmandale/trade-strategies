@@ -8,7 +8,7 @@ interface IBSettings {
 	client_id: number;
 	username?: string;
 	password?: string;
-	account_id?: string;
+	account?: string;  // Changed from account_id to match backend
 	auto_connect: boolean;
 }
 
