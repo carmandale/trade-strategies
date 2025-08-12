@@ -277,13 +277,6 @@ export const ConsolidatedStrategyCard: React.FC<ConsolidatedStrategyCardProps> =
     return generatePnLData(strategy, spreadConfig, currentPrice);
   }, [strategy, spreadConfig, currentPrice]);
   
-  // Debugging: log chart data range and current price
-  if (chartData.length > 0 && currentPrice) {
-    console.log(`[${strategy}] Chart data range: ${chartData[0].price} - ${chartData[chartData.length - 1].price}, Current price: ${Math.round(currentPrice)}`);
-    if (strategy === 'bullCall' && spreadConfig) {
-      console.log(`[${strategy}] Strike levels: ${spreadConfig.bullCallLower}, ${spreadConfig.bullCallUpper}`);
-    }
-  }
   
   // Calculate time to expiration for delta calculations
   const timeToExpiration = 0.001; // Assume 0DTE for now
