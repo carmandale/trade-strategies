@@ -12,8 +12,9 @@ import {
   BarChart3
 } from 'lucide-react';
 import { 
-  LineChart, 
+  ComposedChart, 
   Line, 
+  Area,
   XAxis, 
   YAxis, 
   CartesianGrid, 
@@ -474,7 +475,17 @@ export const ConsolidatedStrategyCard: React.FC<ConsolidatedStrategyCardProps> =
                   </div>
                   <div className="bg-slate-900/50 rounded-lg p-1 h-80">
                     <ResponsiveContainer width="100%" height="100%">
-                      <LineChart data={chartData} margin={{ top: 5, right: 35, left: 35, bottom: 20 }}>
+                      <ComposedChart data={chartData} margin={{ top: 5, right: 35, left: 35, bottom: 20 }}>
+                        <defs>
+                          <linearGradient id={`profitGradient-${strategy}`} x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stopColor="#10b981" stopOpacity={0.3}/>
+                            <stop offset="100%" stopColor="#10b981" stopOpacity={0.1}/>
+                          </linearGradient>
+                          <linearGradient id={`lossGradient-${strategy}`} x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stopColor="#ef4444" stopOpacity={0.1}/>
+                            <stop offset="100%" stopColor="#ef4444" stopOpacity={0.3}/>
+                          </linearGradient>
+                        </defs>
                         <CartesianGrid strokeDasharray="3 3" stroke="#374151" opacity={0.2} />
                         <XAxis 
                           dataKey="price" 
@@ -525,6 +536,22 @@ export const ConsolidatedStrategyCard: React.FC<ConsolidatedStrategyCardProps> =
                           );
                         })}
                         
+                        {/* Profit area (above zero) */}
+                        <Area
+                          type="linear"
+                          dataKey={(entry: any) => Math.max(0, entry.pnl)}
+                          stroke="none"
+                          fill={`url(#profitGradient-${strategy})`}
+                        />
+                        
+                        {/* Loss area (below zero) */}
+                        <Area
+                          type="linear"
+                          dataKey={(entry: any) => Math.min(0, entry.pnl)}
+                          stroke="none"
+                          fill={`url(#lossGradient-${strategy})`}
+                        />
+                        
                         {/* P&L Line - straight lines, no curves */}
                         <Line
                           type="linear"
@@ -534,7 +561,7 @@ export const ConsolidatedStrategyCard: React.FC<ConsolidatedStrategyCardProps> =
                           dot={{ fill: '#60a5fa', strokeWidth: 0, r: 4 }}
                           activeDot={{ r: 5 }}
                         />
-                      </LineChart>
+                      </ComposedChart>
                     </ResponsiveContainer>
                   </div>
                 </div>
