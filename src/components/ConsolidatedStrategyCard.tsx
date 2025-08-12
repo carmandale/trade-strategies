@@ -482,12 +482,12 @@ export const ConsolidatedStrategyCard: React.FC<ConsolidatedStrategyCardProps> =
                       <ComposedChart data={chartData} margin={{ top: 15, right: 5, left: 5, bottom: 20 }}>
                         <defs>
                           <linearGradient id={`profitGradient-${strategy}`} x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="0%" stopColor="#10b981" stopOpacity={0.3}/>
-                            <stop offset="100%" stopColor="#10b981" stopOpacity={0.1}/>
+                            <stop offset="0%" stopColor="#10b981" stopOpacity={0.6}/>
+                            <stop offset="100%" stopColor="#10b981" stopOpacity={0.3}/>
                           </linearGradient>
                           <linearGradient id={`lossGradient-${strategy}`} x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="0%" stopColor="#ef4444" stopOpacity={0.1}/>
-                            <stop offset="100%" stopColor="#ef4444" stopOpacity={0.3}/>
+                            <stop offset="0%" stopColor="#ef4444" stopOpacity={0.3}/>
+                            <stop offset="100%" stopColor="#ef4444" stopOpacity={0.6}/>
                           </linearGradient>
                         </defs>
                         <CartesianGrid strokeDasharray="3 3" stroke="#374151" opacity={0.2} />
