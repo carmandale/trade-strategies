@@ -84,7 +84,7 @@ const formatPrice = (value: number): string => {
 // Generate P&L data for visualization
 const generatePnLData = (strategy: StrategyType, config: SpreadConfig, currentPrice: number) => {
   const data = [];
-  const priceRange = currentPrice * 0.2; // ±20% price range
+  const priceRange = currentPrice * 0.15; // ±15% price range for better focus
   const step = priceRange / 100;
   
   for (let i = 0; i <= 200; i++) {
@@ -185,12 +185,15 @@ export const ConsolidatedStrategyCard: React.FC<ConsolidatedStrategyCardProps> =
   // Calculate time to expiration for delta calculations
   const timeToExpiration = 0.001; // Assume 0DTE for now
   
-  // Apply delta preset
+  // Apply delta preset with proper differentiation
   const applyDeltaPreset = (preset: typeof DELTA_STRATEGIES[0]) => {
     if (!currentPrice || !preset.putDelta || !preset.callDelta) return;
     
-    const putStrike = findStrikeForDelta(currentPrice, preset.putDelta, timeToExpiration, 0.05, 0.20, false);
-    const callStrike = findStrikeForDelta(currentPrice, preset.callDelta, timeToExpiration, 0.05, 0.20, true);
+    // Use longer expiration for better delta calculations when not 0DTE
+    const deltaTimeToExpiration = timeToExpiration < 0.01 ? 0.04 : timeToExpiration; // Use 2 weeks minimum for delta calc
+    
+    const putStrike = findStrikeForDelta(currentPrice, preset.putDelta, deltaTimeToExpiration, 0.05, 0.20, false);
+    const callStrike = findStrikeForDelta(currentPrice, preset.callDelta, deltaTimeToExpiration, 0.05, 0.20, true);
     const atmStrike = Math.round(currentPrice / 5) * 5;
     
     const updates: Partial<SpreadConfig> = {};
@@ -201,10 +204,12 @@ export const ConsolidatedStrategyCard: React.FC<ConsolidatedStrategyCardProps> =
         updates.bullCallUpper = callStrike;
         break;
       case 'ironCondor':
+        // Use proper spread widths based on delta
+        const spreadWidth = Math.abs(preset.callDelta) > 0.3 ? 15 : 10; // Wider spreads for aggressive
         updates.ironCondorPutShort = putStrike;
-        updates.ironCondorPutLong = putStrike - 10;
+        updates.ironCondorPutLong = putStrike - spreadWidth;
         updates.ironCondorCallShort = callStrike;
-        updates.ironCondorCallLong = callStrike + 10;
+        updates.ironCondorCallLong = callStrike + spreadWidth;
         break;
       case 'butterfly':
         updates.butterflyLower = putStrike;
@@ -341,12 +346,21 @@ export const ConsolidatedStrategyCard: React.FC<ConsolidatedStrategyCardProps> =
               )}
               
               {/* P&L Chart */}
-              {chartData.length > 0 && currentPrice && (
+              {chartData.length > 0 && currentPrice && spreadConfig && (
                 <div>
                   <h4 className="text-sm font-medium text-slate-300 mb-3 flex items-center gap-2">
                     <BarChart3 className="w-4 h-4" />
-                    Profit & Loss Chart
+                    {getChartTitle(strategy, spreadConfig, currentPrice)}
                   </h4>
+                  {/* Chart Info */}
+                  <div className="mb-4 grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
+                    {getChartInfo(strategy, spreadConfig, currentPrice).map((info, index) => (
+                      <div key={index} className="bg-slate-700/30 rounded-lg p-2 text-center">
+                        <div className="text-slate-400 uppercase tracking-wider">{info.label}</div>
+                        <div className="text-slate-100 font-medium">{info.value}</div>
+                      </div>
+                    ))}
+                  </div>
                   <div className="bg-slate-900/50 rounded-lg p-4 h-64">
                     <ResponsiveContainer width="100%" height="100%">
                       <AreaChart data={chartData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
@@ -378,13 +392,36 @@ export const ConsolidatedStrategyCard: React.FC<ConsolidatedStrategyCardProps> =
                         {/* Zero P&L line */}
                         <ReferenceLine y={0} stroke="#6b7280" strokeDasharray="2 2" />
                         
-                        {/* Current price line */}
+                        {/* Current price line with enhanced label */}
                         <ReferenceLine 
-                          x={currentPrice} 
+                          x={Math.round(currentPrice)} 
                           stroke="#3b82f6" 
                           strokeWidth={2}
-                          label="Current"
+                          label={{ 
+                            value: `Today ~$${currentPrice.toFixed(2)}`, 
+                            position: "top",
+                            fill: "#3b82f6",
+                            fontSize: 12,
+                            fontWeight: "medium"
+                          }}
                         />
+                        
+                        {/* Strike level indicators */}
+                        {getStrikeLines(strategy, spreadConfig).map((strike, index) => (
+                          <ReferenceLine
+                            key={`strike-${index}`}
+                            x={strike.value}
+                            stroke={strike.color}
+                            strokeDasharray="3 3"
+                            strokeWidth={1}
+                            label={{
+                              value: strike.label,
+                              position: "bottom",
+                              fill: strike.color,
+                              fontSize: 10
+                            }}
+                          />
+                        ))}
                         
                         {/* Profit area (above zero) */}
                         <Area
