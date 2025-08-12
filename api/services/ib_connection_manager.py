@@ -9,6 +9,11 @@ from sqlalchemy.orm import sessionmaker
 from api.models.ib_models import IBSettings, IBConnectionLog
 import os
 from contextlib import contextmanager
+try:
+	from ib_insync import IB, util
+except ImportError:
+	IB = None
+	util = None
 
 logger = logging.getLogger(__name__)
 
