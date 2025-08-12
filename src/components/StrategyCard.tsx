@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { StrategyCardProps } from '../types/strategy'
-import { TrendingUp, TrendingDown, Activity, Target, Calendar, DollarSign } from 'lucide-react'
+import { TrendingUp, TrendingDown, Activity, Target, Calendar, DollarSign, Zap } from 'lucide-react'
 import { AIAssessmentButton } from './AIAssessmentButton'
 import { AIAssessmentResult } from './AIAssessmentResult'
 import { AIAssessment, StrategyParams } from '../services/aiAssessmentService'
