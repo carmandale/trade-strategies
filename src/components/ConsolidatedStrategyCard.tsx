@@ -523,42 +523,41 @@ export const ConsolidatedStrategyCard: React.FC<ConsolidatedStrategyCardProps> =
                           }}
                         />
                         
-                        {/* Strike level indicators with smart positioning */}
+                        {/* Strike level indicators - show lines only, no overlapping labels */}
                         {getStrikeLines(strategy, spreadConfig).map((strike, index, strikes) => {
-                          // Smart label positioning to prevent overlap
-                          let position: any;
-                          let offset = 12;
+                          // Calculate minimum distance between strikes to determine if we should show labels
+                          const currentStrike = Math.round(strike.value / 5) * 5;
+                          const currentPrice = Math.round(currentPrice);
+                          const minDistanceFromPrice = 15; // Minimum $15 away from current price
+                          const minDistanceBetweenStrikes = 10; // Minimum $10 between strikes
                           
-                          if (strikes.length <= 2) {
-                            // For 2 strikes: alternate left/right
-                            position = index % 2 === 0 ? "bottomLeft" : "bottomRight";
-                          } else if (strikes.length === 3) {
-                            // For 3 strikes: left, top, right
-                            position = index === 0 ? "bottomLeft" : 
-                                     index === 1 ? "top" : "bottomRight";
-                            offset = index === 1 ? 15 : 12;
-                          } else {
-                            // For 4+ strikes: distribute around
-                            position = ["bottomLeft", "topLeft", "topRight", "bottomRight"][index] || "bottom";
-                            offset = position.includes("top") ? 15 : 12;
-                          }
+                          // Check if this strike is too close to current price or other strikes
+                          const tooCloseToPrice = Math.abs(currentStrike - currentPrice) < minDistanceFromPrice;
+                          const tooCloseToOtherStrikes = strikes.some((otherStrike, otherIndex) => {
+                            if (otherIndex === index) return false;
+                            const otherValue = Math.round(otherStrike.value / 5) * 5;
+                            return Math.abs(currentStrike - otherValue) < minDistanceBetweenStrikes;
+                          });
+                          
+                          // Only show label if strike is far enough away
+                          const showLabel = !tooCloseToPrice && !tooCloseToOtherStrikes;
                           
                           return (
                             <ReferenceLine
                               key={`strike-${index}`}
-                              x={Math.round(strike.value / 5) * 5}
+                              x={currentStrike}
                               stroke={strike.color}
                               strokeDasharray="4 4"
                               strokeWidth={2}
                               opacity={0.8}
-                              label={{
-                                value: `${strike.label} $${Math.round(strike.value / 5) * 5}`,
-                                position: position,
-                                offset: offset,
+                              label={showLabel ? {
+                                value: `${strike.label} $${currentStrike}`,
+                                position: index % 2 === 0 ? "bottomLeft" : "bottomRight",
+                                offset: 12,
                                 fill: strike.color,
-                                fontSize: 13,
+                                fontSize: 12,
                                 fontWeight: "bold"
-                              }}
+                              } : undefined}
                             />
                           );
                         })}
