@@ -293,7 +293,7 @@ const SPYSpreadStrategiesApp: React.FC = () => {
       }} transition={{
         duration: 0.6
       }}>
-          <HeaderSection spyPrice={spyPrice} lastUpdate={lastUpdate} />
+          <HeaderSection spyPrice={spyPrice} lastUpdate={lastUpdate} connectionError={connectionError} />
         </motion.div>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mt-8">
