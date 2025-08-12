@@ -2,12 +2,14 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { TrendingUp, Clock, DollarSign } from 'lucide-react';
 interface HeaderSectionProps {
-  spyPrice: number;
-  lastUpdate: Date;
+  spyPrice: number | null;
+  lastUpdate: Date | null;
+  connectionError?: string | null;
 }
 const HeaderSection: React.FC<HeaderSectionProps> = ({
   spyPrice,
-  lastUpdate
+  lastUpdate,
+  connectionError
 }) => {
   const formatTime = (date: Date): string => {
     return date.toLocaleTimeString('en-US', {
@@ -17,7 +19,8 @@ const HeaderSection: React.FC<HeaderSectionProps> = ({
       hour12: false
     });
   };
-  const formatPrice = (price: number): string => {
+  const formatPrice = (price: number | null): string => {
+    if (price === null) return '---.--';
     return price.toFixed(2);
   };
   const getPriceChange = (): {
@@ -27,7 +30,7 @@ const HeaderSection: React.FC<HeaderSectionProps> = ({
   } => {
     // Mock price change calculation (in real app, this would come from API)
     const change = (Math.random() - 0.5) * 10;
-    const percentage = change / spyPrice * 100;
+    const percentage = spyPrice ? (change / spyPrice * 100) : 0;
     return {
       value: change,
       percentage,
