@@ -490,6 +490,8 @@ export const ConsolidatedStrategyCard: React.FC<ConsolidatedStrategyCardProps> =
                           stroke="#9ca3af" 
                           fontSize={12}
                           tickFormatter={formatPrice}
+                          domain={['dataMin', 'dataMax']}
+                          type="number"
                         />
                         <YAxis 
                           stroke="#9ca3af" 
