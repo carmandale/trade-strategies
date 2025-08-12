@@ -478,7 +478,7 @@ export const ConsolidatedStrategyCard: React.FC<ConsolidatedStrategyCardProps> =
                       </div>
                     ))}
                   </div>
-                  <div className="bg-slate-900/50 rounded-lg p-4 h-64">
+                  <div className="bg-slate-900/50 rounded-lg p-4 h-80">
                     <ResponsiveContainer width="100%" height="100%">
                       <AreaChart data={chartData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
                         <defs>
