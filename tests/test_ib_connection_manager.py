@@ -79,7 +79,7 @@ class TestIBConnectionManager:
 		assert settings is None
 		assert manager.connection_settings is None
 	
-	@patch('services.ib_connection_manager.IB')
+	@patch('ib_insync.IB')
 	@patch('api.services.ib_connection_manager.IBConnectionManager.get_db_session')
 	def test_connect_success(self, mock_get_db, mock_ib_class):
 		"""Test successful connection to IB."""
@@ -121,7 +121,7 @@ class TestIBConnectionManager:
 		mock_db.add.assert_called()
 		mock_db.commit.assert_called()
 	
-	@patch('services.ib_connection_manager.IB')
+	@patch('ib_insync.IB')
 	@patch('api.services.ib_connection_manager.IBConnectionManager.get_db_session')
 	def test_connect_failure(self, mock_get_db, mock_ib_class):
 		"""Test failed connection to IB."""
