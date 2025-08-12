@@ -177,39 +177,35 @@ const getChartInfo = (strategy: StrategyType, config: SpreadConfig, currentPrice
   switch (strategy) {
     case 'bullCall':
       const bullCallSpreadWidth = config.bullCallUpper - config.bullCallLower;
-      const bullCallProfitZone = `$${config.bullCallLower} - $${config.bullCallUpper}`;
       const bullCallNetDebit = Math.round(bullCallSpreadWidth * 0.4 * 100);
       info.push(
-        { label: 'Spread Width', value: `$${bullCallSpreadWidth}` },
-        { label: 'Profit Zone', value: bullCallProfitZone },
-        { label: 'Zone Width', value: `$${bullCallSpreadWidth}` },
+        { label: 'Long Call', value: `$${config.bullCallLower}` },
+        { label: 'Short Call', value: `$${config.bullCallUpper}` },
+        { label: 'Width', value: `$${bullCallSpreadWidth}` },
         { label: 'Est. Debit', value: `$${bullCallNetDebit}` }
       );
       break;
       
     case 'ironCondor':
-      const putSpreadWidth = config.ironCondorPutShort - config.ironCondorPutLong;
-      const callSpreadWidth = config.ironCondorCallLong - config.ironCondorCallShort;
-      const profitZone = `$${config.ironCondorPutShort} - $${config.ironCondorCallShort}`;
-      const zoneWidth = config.ironCondorCallShort - config.ironCondorPutShort;
-      const netCredit = Math.round(Math.min(putSpreadWidth, callSpreadWidth) * 0.3 * 100);
+      const netCredit = Math.round(Math.min(
+        config.ironCondorPutShort - config.ironCondorPutLong,
+        config.ironCondorCallLong - config.ironCondorCallShort
+      ) * 0.3 * 100);
       info.push(
-        { label: 'Spread Width', value: `$${Math.min(putSpreadWidth, callSpreadWidth)}` },
-        { label: 'Profit Zone', value: profitZone },
-        { label: 'Zone Width', value: `$${zoneWidth}` },
+        { label: 'Put Spread', value: `$${config.ironCondorPutLong}/$${config.ironCondorPutShort}` },
+        { label: 'Call Spread', value: `$${config.ironCondorCallShort}/$${config.ironCondorCallLong}` },
+        { label: 'Profit Zone', value: `$${config.ironCondorPutShort}-$${config.ironCondorCallShort}` },
         { label: 'Est. Credit', value: `$${netCredit}` }
       );
       break;
       
     case 'butterfly':
       const wingWidth = config.butterflyBody - config.butterflyLower;
-      const butterflyProfitZone = `$${config.butterflyLower} - $${config.butterflyUpper}`;
-      const butterflyZoneWidth = config.butterflyUpper - config.butterflyLower;
       const butterflyDebit = Math.round(wingWidth * 0.25 * 100);
       info.push(
-        { label: 'Wing Width', value: `$${wingWidth}` },
-        { label: 'Profit Zone', value: butterflyProfitZone },
-        { label: 'Zone Width', value: `$${butterflyZoneWidth}` },
+        { label: 'Lower Wing', value: `$${config.butterflyLower}` },
+        { label: 'Body (2x)', value: `$${config.butterflyBody}` },
+        { label: 'Upper Wing', value: `$${config.butterflyUpper}` },
         { label: 'Est. Debit', value: `$${butterflyDebit}` }
       );
       break;
