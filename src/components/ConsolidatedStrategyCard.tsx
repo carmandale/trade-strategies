@@ -104,9 +104,9 @@ const generatePnLData = (strategy: StrategyType, config: SpreadConfig, currentPr
       const bullCallMaxProfit = (config.bullCallUpper - config.bullCallLower) * 100 - bullCallDebit;
       
       // Interpolate between key points for smooth tooltip
-      data.push(...interpolatePoints(config.bullCallLower - 15, -bullCallDebit, config.bullCallLower, -bullCallDebit, 10));
-      data.push(...interpolatePoints(config.bullCallLower, -bullCallDebit, config.bullCallUpper, bullCallMaxProfit, 30));
-      data.push(...interpolatePoints(config.bullCallUpper, bullCallMaxProfit, config.bullCallUpper + 15, bullCallMaxProfit, 10));
+      data.push(...interpolatePoints(config.bullCallLower - 15, -bullCallDebit, config.bullCallLower, -bullCallDebit, 100));
+      data.push(...interpolatePoints(config.bullCallLower, -bullCallDebit, config.bullCallUpper, bullCallMaxProfit, 200));
+      data.push(...interpolatePoints(config.bullCallUpper, bullCallMaxProfit, config.bullCallUpper + 15, bullCallMaxProfit, 100));
       break;
       
     case 'ironCondor':
@@ -117,11 +117,11 @@ const generatePnLData = (strategy: StrategyType, config: SpreadConfig, currentPr
       ) * 0.3 * 100;
       const ironCondorMaxLoss = -((config.ironCondorPutShort - config.ironCondorPutLong) * 100 - ironCondorCredit);
       
-      data.push(...interpolatePoints(config.ironCondorPutLong - 10, ironCondorMaxLoss, config.ironCondorPutLong, ironCondorMaxLoss, 5));
-      data.push(...interpolatePoints(config.ironCondorPutLong, ironCondorMaxLoss, config.ironCondorPutShort, ironCondorCredit, 20));
-      data.push(...interpolatePoints(config.ironCondorPutShort, ironCondorCredit, config.ironCondorCallShort, ironCondorCredit, 20));
-      data.push(...interpolatePoints(config.ironCondorCallShort, ironCondorCredit, config.ironCondorCallLong, ironCondorMaxLoss, 20));
-      data.push(...interpolatePoints(config.ironCondorCallLong, ironCondorMaxLoss, config.ironCondorCallLong + 10, ironCondorMaxLoss, 5));
+      data.push(...interpolatePoints(config.ironCondorPutLong - 10, ironCondorMaxLoss, config.ironCondorPutLong, ironCondorMaxLoss, 50));
+      data.push(...interpolatePoints(config.ironCondorPutLong, ironCondorMaxLoss, config.ironCondorPutShort, ironCondorCredit, 100));
+      data.push(...interpolatePoints(config.ironCondorPutShort, ironCondorCredit, config.ironCondorCallShort, ironCondorCredit, 100));
+      data.push(...interpolatePoints(config.ironCondorCallShort, ironCondorCredit, config.ironCondorCallLong, ironCondorMaxLoss, 100));
+      data.push(...interpolatePoints(config.ironCondorCallLong, ironCondorMaxLoss, config.ironCondorCallLong + 10, ironCondorMaxLoss, 50));
       break;
       
     case 'butterfly':
@@ -129,10 +129,10 @@ const generatePnLData = (strategy: StrategyType, config: SpreadConfig, currentPr
       const butterflyDebit = (config.butterflyBody - config.butterflyLower) * 0.25 * 100;
       const butterflyMaxProfit = (config.butterflyBody - config.butterflyLower) * 100 - butterflyDebit;
       
-      data.push(...interpolatePoints(config.butterflyLower - 5, -butterflyDebit, config.butterflyLower, -butterflyDebit, 5));
-      data.push(...interpolatePoints(config.butterflyLower, -butterflyDebit, config.butterflyBody, butterflyMaxProfit, 20));
-      data.push(...interpolatePoints(config.butterflyBody, butterflyMaxProfit, config.butterflyUpper, -butterflyDebit, 20));
-      data.push(...interpolatePoints(config.butterflyUpper, -butterflyDebit, config.butterflyUpper + 5, -butterflyDebit, 5));
+      data.push(...interpolatePoints(config.butterflyLower - 5, -butterflyDebit, config.butterflyLower, -butterflyDebit, 50));
+      data.push(...interpolatePoints(config.butterflyLower, -butterflyDebit, config.butterflyBody, butterflyMaxProfit, 100));
+      data.push(...interpolatePoints(config.butterflyBody, butterflyMaxProfit, config.butterflyUpper, -butterflyDebit, 100));
+      data.push(...interpolatePoints(config.butterflyUpper, -butterflyDebit, config.butterflyUpper + 5, -butterflyDebit, 50));
       break;
   }
   
