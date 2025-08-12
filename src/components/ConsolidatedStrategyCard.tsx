@@ -79,81 +79,56 @@ const formatPrice = (value: number): string => {
   return `$${value.toFixed(0)}`;
 };
 
-// Generate P&L data for visualization
+// Generate P&L data for visualization - key points only for straight lines
 const generatePnLData = (strategy: StrategyType, config: SpreadConfig, currentPrice: number) => {
   const data = [];
   
-  // Strategy-specific ranges based on strike positions
-  let minPrice: number;
-  let maxPrice: number;
-  
   switch (strategy) {
     case 'bullCall':
-      // Range from 10 below lower strike to 10 above upper strike
-      minPrice = config.bullCallLower - 10;
-      maxPrice = config.bullCallUpper + 10;
+      // Bull Call Spread - just key points for straight lines
+      const bullCallDebit = (config.bullCallUpper - config.bullCallLower) * 0.4 * 100;
+      const bullCallMaxProfit = (config.bullCallUpper - config.bullCallLower) * 100 - bullCallDebit;
+      
+      // Key points: far left, lower strike, upper strike, far right
+      data.push(
+        { price: config.bullCallLower - 15, pnl: -bullCallDebit },
+        { price: config.bullCallLower, pnl: -bullCallDebit },
+        { price: config.bullCallUpper, pnl: bullCallMaxProfit },
+        { price: config.bullCallUpper + 15, pnl: bullCallMaxProfit }
+      );
       break;
+      
     case 'ironCondor':
-      // Range from 10 below put long to 10 above call long
-      minPrice = config.ironCondorPutLong - 10;
-      maxPrice = config.ironCondorCallLong + 10;
+      // Iron Condor - key points for the classic shape
+      const ironCondorCredit = Math.min(
+        config.ironCondorPutShort - config.ironCondorPutLong,
+        config.ironCondorCallLong - config.ironCondorCallShort
+      ) * 0.3 * 100;
+      const ironCondorMaxLoss = -((config.ironCondorPutShort - config.ironCondorPutLong) * 100 - ironCondorCredit);
+      
+      data.push(
+        { price: config.ironCondorPutLong - 10, pnl: ironCondorMaxLoss },
+        { price: config.ironCondorPutLong, pnl: ironCondorMaxLoss },
+        { price: config.ironCondorPutShort, pnl: ironCondorCredit },
+        { price: config.ironCondorCallShort, pnl: ironCondorCredit },
+        { price: config.ironCondorCallLong, pnl: ironCondorMaxLoss },
+        { price: config.ironCondorCallLong + 10, pnl: ironCondorMaxLoss }
+      );
       break;
+      
     case 'butterfly':
-      // Range from 5 below lower to 5 above upper
-      minPrice = config.butterflyLower - 5;
-      maxPrice = config.butterflyUpper + 5;
+      // Butterfly - key points for the peak shape
+      const butterflyDebit = (config.butterflyBody - config.butterflyLower) * 0.25 * 100;
+      const butterflyMaxProfit = (config.butterflyBody - config.butterflyLower) * 100 - butterflyDebit;
+      
+      data.push(
+        { price: config.butterflyLower - 5, pnl: -butterflyDebit },
+        { price: config.butterflyLower, pnl: -butterflyDebit },
+        { price: config.butterflyBody, pnl: butterflyMaxProfit },
+        { price: config.butterflyUpper, pnl: -butterflyDebit },
+        { price: config.butterflyUpper + 5, pnl: -butterflyDebit }
+      );
       break;
-    default:
-      // Fallback to percentage range
-      const priceRange = currentPrice * 0.10;
-      minPrice = currentPrice - priceRange;
-      maxPrice = currentPrice + priceRange;
-  }
-  
-  const range = maxPrice - minPrice;
-  const step = range / 100;
-  
-  for (let i = 0; i <= 100; i++) {
-    const price = minPrice + (i * step);
-    let pnl = 0;
-    
-    switch (strategy) {
-      case 'bullCall':
-        // Bull Call Spread P&L calculation
-        const longCallPayoff = Math.max(0, price - config.bullCallLower) * 100;
-        const shortCallPayoff = Math.max(0, price - config.bullCallUpper) * 100;
-        const netDebit = (config.bullCallUpper - config.bullCallLower) * 0.4 * 100; // Assume 40% of spread width as debit
-        pnl = longCallPayoff - shortCallPayoff - netDebit;
-        break;
-        
-      case 'ironCondor':
-        // Iron Condor P&L calculation
-        const shortPutPayoff = Math.max(0, config.ironCondorPutShort - price) * 100;
-        const longPutPayoff = Math.max(0, config.ironCondorPutLong - price) * 100;
-        const shortCallPayoff2 = Math.max(0, price - config.ironCondorCallShort) * 100;
-        const longCallPayoff2 = Math.max(0, price - config.ironCondorCallLong) * 100;
-        const netCredit = Math.min(
-          config.ironCondorPutShort - config.ironCondorPutLong,
-          config.ironCondorCallLong - config.ironCondorCallShort
-        ) * 0.3 * 100; // Assume 30% of spread width as credit
-        pnl = netCredit - shortPutPayoff + longPutPayoff - shortCallPayoff2 + longCallPayoff2;
-        break;
-        
-      case 'butterfly':
-        // Butterfly Spread P&L calculation
-        const longLowerPayoff = Math.max(0, price - config.butterflyLower) * 100;
-        const shortBodyPayoff = Math.max(0, price - config.butterflyBody) * 100 * 2; // Short 2 contracts
-        const longUpperPayoff = Math.max(0, price - config.butterflyUpper) * 100;
-        const butterflyDebit = (config.butterflyBody - config.butterflyLower) * 0.25 * 100; // Assume 25% of wing width as debit
-        pnl = longLowerPayoff - shortBodyPayoff + longUpperPayoff - butterflyDebit;
-        break;
-    }
-    
-    data.push({
-      price: Math.round(price),
-      pnl: Math.round(pnl),
-      isProfitable: pnl > 0
-    });
   }
   
   return data;
