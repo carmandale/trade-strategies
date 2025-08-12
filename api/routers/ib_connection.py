@@ -3,7 +3,7 @@ import logging
 from typing import Optional, Dict, Any
 from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel
-from services.ib_connection_manager import ib_connection_manager
+from api.services.ib_connection_manager import ib_connection_manager
 
 logger = logging.getLogger(__name__)
 
