@@ -456,10 +456,12 @@ export const ConsolidatedStrategyCard: React.FC<ConsolidatedStrategyCardProps> =
               {/* P&L Chart */}
               {chartData.length > 0 && currentPrice && spreadConfig && (
                 <div>
-                  <h4 className="text-sm font-medium text-slate-300 mb-3 flex items-center gap-2">
-                    <BarChart3 className="w-4 h-4" />
-                    {getChartTitle(strategy, spreadConfig, currentPrice)}
-                  </h4>
+                  <div className="mb-3">
+                    <h4 className="text-sm font-medium text-slate-300 flex items-center gap-2">
+                      <BarChart3 className="w-4 h-4" />
+                      {getChartTitle(strategy, spreadConfig, currentPrice)}
+                    </h4>
+                  </div>
                   {/* Chart Info */}
                   <div className="mb-4 grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
                     {getChartInfo(strategy, spreadConfig, currentPrice).map((info, index) => (
