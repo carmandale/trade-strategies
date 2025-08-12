@@ -62,6 +62,20 @@ class IBConnectionManager:
 			logger.error(f"Error getting connection settings: {e}")
 			return None
 	
+	def load_settings(self) -> Optional[IBSettings]:
+		"""Load connection settings from database."""
+		try:
+			with self.get_db_session() as session:
+				settings = session.query(IBSettings).filter(IBSettings.active == True).first()
+				if settings:
+					# Detach from session to avoid lazy loading issues
+					session.expunge(settings)
+					self._connection_settings = settings
+				return settings
+		except Exception as e:
+			logger.error(f"Failed to load IB settings: {e}")
+			return None
+	
 	def get_connection_status(self) -> Dict[str, Any]:
 		"""Get current connection status."""
 		try:
