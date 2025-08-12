@@ -182,39 +182,64 @@ export const StrategyDashboard: React.FC<{ symbol?: string }> = ({ symbol = 'SPY
           )}
           {timeframeData && (
             <div className="space-y-4" id={`panel-${selectedTimeframe}`} role="tabpanel" aria-labelledby={`tab-${selectedTimeframe}`}>
-              {/* Metrics row */}
-              <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-                <div className="text-center">
-                  <div className="text-xs text-gray-600 dark:text-gray-400">Win Rate</div>
-                  <div aria-label="Timeframe Win Rate Value" className="text-lg font-bold text-blue-600 dark:text-blue-400">
-                    {((timeframeData.performance?.win_rate ?? 0) * 100).toFixed(1)}%
+              {/* Metrics row - prioritize custom calculation results */}
+              {(() => {
+                // Use custom calculation results if available, otherwise fall back to original timeframe data
+                const displayData = calculationResult?.performance || timeframeData.performance || {}
+                
+                return (
+                  <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                    <div className="text-center">
+                      <div className="text-xs text-gray-600 dark:text-gray-400">
+                        Win Rate {calculationResult && <span className="text-blue-500">*</span>}
+                      </div>
+                      <div aria-label="Timeframe Win Rate Value" className="text-lg font-bold text-blue-600 dark:text-blue-400">
+                        {((displayData.win_rate ?? 0) * 100).toFixed(1)}%
+                      </div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-xs text-gray-600 dark:text-gray-400">
+                        Total P&L {calculationResult && <span className="text-blue-500">*</span>}
+                      </div>
+                      <div aria-label="Timeframe Total PnL Value" className={`text-lg font-bold ${Number(displayData.total_pnl ?? 0) >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                        {Number(displayData.total_pnl ?? 0) >= 0 ? '+' : ''}${Math.abs(Number(displayData.total_pnl ?? 0)).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      </div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-xs text-gray-600 dark:text-gray-400">
+                        Avg Trade {calculationResult && <span className="text-blue-500">*</span>}
+                      </div>
+                      <div aria-label="Timeframe Avg Trade Value" className={`text-lg font-bold ${Number(displayData.average_trade ?? 0) >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                        {Number(displayData.average_trade ?? 0) >= 0 ? '+' : ''}${Math.abs(Number(displayData.average_trade ?? 0)).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      </div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-xs text-gray-600 dark:text-gray-400">
+                        Sharpe {calculationResult && <span className="text-blue-500">*</span>}
+                      </div>
+                      <div className="text-lg font-bold text-purple-600 dark:text-purple-400">
+                        {Number(displayData.sharpe_ratio ?? 0).toFixed(2)}
+                      </div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-xs text-gray-600 dark:text-gray-400">
+                        Max DD {calculationResult && <span className="text-blue-500">*</span>}
+                      </div>
+                      <div className="text-lg font-bold text-red-600 dark:text-red-400">
+                        ${Math.abs(Number(displayData.max_drawdown ?? 0)).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      </div>
+                    </div>
                   </div>
-                </div>
+                )
+              })()}
+              
+              {calculationResult && (
                 <div className="text-center">
-                  <div className="text-xs text-gray-600 dark:text-gray-400">Total P&L</div>
-                  <div aria-label="Timeframe Total PnL Value" className={`text-lg font-bold ${Number(timeframeData.performance?.total_pnl ?? 0) >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
-                    {Number(timeframeData.performance?.total_pnl ?? 0) >= 0 ? '+' : ''}${Math.abs(Number(timeframeData.performance?.total_pnl ?? 0)).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                  </div>
+                  <p className="text-xs text-blue-600 dark:text-blue-400">
+                    <span className="text-blue-500">*</span> Updated with custom strike configuration
+                  </p>
                 </div>
-                <div className="text-center">
-                  <div className="text-xs text-gray-600 dark:text-gray-400">Avg Trade</div>
-                  <div aria-label="Timeframe Avg Trade Value" className={`text-lg font-bold ${Number(timeframeData.performance?.average_trade ?? 0) >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
-                    {Number(timeframeData.performance?.average_trade ?? 0) >= 0 ? '+' : ''}${Math.abs(Number(timeframeData.performance?.average_trade ?? 0)).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                  </div>
-                </div>
-                <div className="text-center">
-                  <div className="text-xs text-gray-600 dark:text-gray-400">Sharpe</div>
-                  <div className="text-lg font-bold text-purple-600 dark:text-purple-400">
-                    {Number(timeframeData.performance?.sharpe_ratio ?? 0).toFixed(2)}
-                  </div>
-                </div>
-                <div className="text-center">
-                  <div className="text-xs text-gray-600 dark:text-gray-400">Max DD</div>
-                  <div className="text-lg font-bold text-red-600 dark:text-red-400">
-                    ${Math.abs(Number(timeframeData.performance?.max_drawdown ?? 0)).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                  </div>
-                </div>
-              </div>
+              )}
 
               {/* Strike Selection and Visualization */}
               <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
