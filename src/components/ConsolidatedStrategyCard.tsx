@@ -527,7 +527,7 @@ export const ConsolidatedStrategyCard: React.FC<ConsolidatedStrategyCardProps> =
                         {getStrikeLines(strategy, spreadConfig).map((strike, index, strikes) => {
                           // Calculate minimum distance between strikes to determine if we should show labels
                           const currentStrike = Math.round(strike.value / 5) * 5;
-                          const currentPrice = Math.round(currentPrice);
+                          const currentPriceRounded = Math.round(currentPrice);
                           const minDistanceFromPrice = 15; // Minimum $15 away from current price
                           const minDistanceBetweenStrikes = 10; // Minimum $10 between strikes
                           
