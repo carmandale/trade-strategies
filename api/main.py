@@ -48,6 +48,10 @@ app.include_router(market_data.router)
 app.include_router(trade_tickets.router)
 app.include_router(ai_assessment.router)
 
+# Import and include Interactive Brokers router
+from api.routers import ib_connection
+app.include_router(ib_connection.router)
+
 # Set up comprehensive error handling
 setup_exception_handlers(app)
 
