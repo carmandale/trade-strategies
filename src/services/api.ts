@@ -1,7 +1,10 @@
 // API service for connecting React frontend to FastAPI backend
 import { SpreadConfig, AnalysisData, Trade } from '../components/generated/SPYSpreadStrategiesApp';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+// HARDCODING to correct port since environment variable not loading properly
+const API_BASE_URL = 'http://localhost:8001';
+console.warn('HARDCODED API_BASE_URL to:', API_BASE_URL);
+console.warn('Environment VITE_API_URL was:', import.meta.env.VITE_API_URL || 'undefined');
 
 export interface SpreadAnalysisRequest {
   date: string;
@@ -378,11 +381,15 @@ export class ApiService {
   // Get market data for a symbol
   static async getMarketData(symbol: string): Promise<MarketData> {
     try {
-      const response = await fetch(`${API_BASE_URL}/current_price/${symbol}`);
+      const url = `${API_BASE_URL}/current_price/${symbol}`;
+      console.log('Fetching market data from:', url);
+      console.log('API_BASE_URL is:', API_BASE_URL);
+      const response = await fetch(url);
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
       const data = await response.json();
+      console.log('Received market data:', data);
       return {
         current_price: data.price,  // Backend returns { price: number }
         change: 0,  // Backend doesn't provide change yet
@@ -392,14 +399,8 @@ export class ApiService {
       };
     } catch (error) {
       console.error('Error fetching market data:', error);
-      // Return fallback data
-      return {
-        current_price: 425.50,
-        change: 1.25,
-        change_percent: 0.29,
-        volume: 45000000,
-        timestamp: new Date().toISOString()
-      };
+      // Throw error instead of returning fallback - let the UI handle it
+      throw new Error('Unable to fetch market data. Check API connection.');
     }
   }
 

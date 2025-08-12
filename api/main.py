@@ -21,7 +21,7 @@ app = FastAPI(
 # CORS configuration
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[os.getenv("FRONTEND_URL", "http://localhost:3000")],
+    allow_origins=[os.getenv("FRONTEND_URL", "http://localhost:3003")],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -47,6 +47,14 @@ app.include_router(iron_condor.router)
 app.include_router(market_data.router)
 app.include_router(trade_tickets.router)
 app.include_router(ai_assessment.router)
+
+# Import and include Interactive Brokers router
+from api.routers import ib_connection
+app.include_router(ib_connection.router)
+
+# Import and include WebSocket router for real-time updates
+from api.routes import websocket_strategies
+app.include_router(websocket_strategies.router)
 
 # Set up comprehensive error handling
 setup_exception_handlers(app)

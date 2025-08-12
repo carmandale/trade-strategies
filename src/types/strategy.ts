@@ -25,6 +25,8 @@ export interface StrategyData {
 	parameters: Record<string, any>
 	performance: StrategyPerformance
 	is_active: boolean
+	data_source?: 'ib_realtime' | 'estimate' | 'mixed'
+	ib_snapshot?: Record<string, any>
 	created_at: string
 	updated_at: string
 }
