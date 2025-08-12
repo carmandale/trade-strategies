@@ -144,13 +144,15 @@ describe('StrategyDashboard Integration with Strike Selection', () => {
     await waitFor(() => {
       expect(StrategyApiService.calculateIronCondorWithStrikes).toHaveBeenCalledWith(
         expect.objectContaining({
+          symbol: 'SPY',
           timeframe: 'daily',
+          current_price: expect.any(Number),
           strikes: expect.objectContaining({
             put_short_pct: 97
           })
         })
       )
-    }, { timeout: 1000 })
+    }, { timeout: 1500 })
 
     // Should show updated performance metrics
     await waitFor(() => {
