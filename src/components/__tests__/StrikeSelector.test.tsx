@@ -28,11 +28,11 @@ describe('StrikeSelector Component', () => {
 			/>
 		)
 
-		// Check that inputs show correct default values
-		expect(screen.getByLabelText(/Put Short Strike/i)).toHaveValue(97.5)
-		expect(screen.getByLabelText(/Put Long Strike/i)).toHaveValue(97.0)
-		expect(screen.getByLabelText(/Call Short Strike/i)).toHaveValue(102.5)
-		expect(screen.getByLabelText(/Call Long Strike/i)).toHaveValue(103.0)
+		// Check that number inputs show correct default values
+		expect(screen.getByRole('spinbutton', { name: /Put Short Strike/i })).toHaveValue(97.5)
+		expect(screen.getByRole('spinbutton', { name: /Put Long Strike/i })).toHaveValue(97.0)
+		expect(screen.getByRole('spinbutton', { name: /Call Short Strike/i })).toHaveValue(102.5)
+		expect(screen.getByRole('spinbutton', { name: /Call Long Strike/i })).toHaveValue(103.0)
 	})
 
 	it('displays calculated strike prices correctly', () => {
@@ -66,7 +66,7 @@ describe('StrikeSelector Component', () => {
 			/>
 		)
 
-		const putShortInput = screen.getByLabelText(/Put Short Strike/i)
+		const putShortInput = screen.getByRole('spinbutton', { name: /Put Short Strike/i })
 		
 		// Clear and type new value
 		await user.clear(putShortInput)
@@ -93,7 +93,7 @@ describe('StrikeSelector Component', () => {
 			/>
 		)
 
-		const putShortInput = screen.getByLabelText(/Put Short Strike/i)
+		const putShortInput = screen.getByRole('spinbutton', { name: /Put Short Strike/i })
 		
 		// Try to enter invalid value > 100
 		await user.clear(putShortInput)
@@ -114,7 +114,7 @@ describe('StrikeSelector Component', () => {
 			/>
 		)
 
-		const callShortInput = screen.getByLabelText(/Call Short Strike/i)
+		const callShortInput = screen.getByRole('spinbutton', { name: /Call Short Strike/i })
 		
 		// Try to enter invalid value < 100
 		await user.clear(callShortInput)
@@ -135,7 +135,7 @@ describe('StrikeSelector Component', () => {
 			/>
 		)
 
-		const putShortInput = screen.getByLabelText(/Put Short Strike/i)
+		const putShortInput = screen.getByRole('spinbutton', { name: /Put Short Strike/i })
 		
 		// Simulate input change directly (use valid value that doesn't violate ordering)
 		fireEvent.change(putShortInput, { target: { value: '98' } })
@@ -157,7 +157,9 @@ describe('StrikeSelector Component', () => {
 		vi.useRealTimers()
 	})
 
-	it('handles slider movements correctly', () => {
+	it('handles slider movements correctly', async () => {
+		const user = userEvent.setup()
+		
 		render(
 			<StrikeSelector
 				strikes={defaultStrikes}
@@ -166,13 +168,19 @@ describe('StrikeSelector Component', () => {
 			/>
 		)
 
-		const putShortSlider = screen.getByTestId('put-short-slider')
+		const putShortSlider = screen.getAllByRole('slider')[0] // First slider is put short
 		
-		// Simulate slider change
-		fireEvent.change(putShortSlider, { target: { value: '95' } })
+		// Simulate slider interaction by focusing and using arrow keys
+		await user.click(putShortSlider)
+		
+		// Use arrow keys to decrease value (from 97.5 to 95)
+		// Each arrow key press typically changes by step (0.5), so we need 5 presses
+		for (let i = 0; i < 5; i++) {
+			await user.keyboard('[ArrowDown]')
+		}
 
 		// Check that the input reflects the change
-		expect(screen.getByLabelText(/Put Short Strike/i)).toHaveValue(95)
+		expect(screen.getByRole('spinbutton', { name: /Put Short Strike/i })).toHaveValue(95)
 		
 		// Check price updates (500 * 0.95 = 475)
 		expect(screen.getByTestId('put-short-price')).toHaveTextContent('$475')
@@ -187,7 +195,7 @@ describe('StrikeSelector Component', () => {
 			/>
 		)
 
-		const putLongInput = screen.getByLabelText(/Put Long Strike/i)
+		const putLongInput = screen.getByRole('spinbutton', { name: /Put Long Strike/i })
 		
 		// Try to set put long higher than put short (97.5)
 		fireEvent.change(putLongInput, { target: { value: '98' } })
@@ -205,7 +213,7 @@ describe('StrikeSelector Component', () => {
 			/>
 		)
 
-		const putShortInput = screen.getByLabelText(/Put Short Strike/i)
+		const putShortInput = screen.getByRole('spinbutton', { name: /Put Short Strike/i })
 		
 		// Focus the input
 		putShortInput.focus()
@@ -251,10 +259,10 @@ describe('StrikeSelector Component', () => {
 		)
 
 		// Inputs should be disabled during loading
-		expect(screen.getByLabelText(/Put Short Strike/i)).toBeDisabled()
-		expect(screen.getByLabelText(/Put Long Strike/i)).toBeDisabled()
-		expect(screen.getByLabelText(/Call Short Strike/i)).toBeDisabled()
-		expect(screen.getByLabelText(/Call Long Strike/i)).toBeDisabled()
+		expect(screen.getByRole('spinbutton', { name: /Put Short Strike/i })).toBeDisabled()
+		expect(screen.getByRole('spinbutton', { name: /Put Long Strike/i })).toBeDisabled()
+		expect(screen.getByRole('spinbutton', { name: /Call Short Strike/i })).toBeDisabled()
+		expect(screen.getByRole('spinbutton', { name: /Call Long Strike/i })).toBeDisabled()
 		
 		// Loading indicator should be visible
 		expect(screen.getByText(/Calculating.../i)).toBeInTheDocument()

@@ -1,7 +1,11 @@
 import React, { useEffect, useState } from 'react'
 import { StrategyList } from './StrategyList'
+import { StrikeSelector } from './StrikeSelector'
+import { StrikeVisualization } from './StrikeVisualization'
+import { useStrikeSelection } from '../hooks/useStrikeSelection'
 import type { StrategyData, StrategyPerformance } from '../types/strategy'
 import { StrategyApiService } from '../services/strategyApi'
+import { MarketApiService } from '../services/marketApi'
 
 export const StrategyDashboard: React.FC<{ symbol?: string }> = ({ symbol = 'SPY' }) => {
   const [strategies, setStrategies] = useState<StrategyData[]>([])
@@ -17,6 +21,37 @@ export const StrategyDashboard: React.FC<{ symbol?: string }> = ({ symbol = 'SPY
   const [timeframeLoading, setTimeframeLoading] = useState<boolean>(false)
   const [timeframeError, setTimeframeError] = useState<string | null>(null)
   const [timeframeData, setTimeframeData] = useState<any | null>(null)
+  const [currentPrice, setCurrentPrice] = useState<number>(430.50) // Default SPY price
+
+  // Strike selection hook
+  const {
+    strikes,
+    setStrikes,
+    calculationResult,
+    isCalculating,
+    calculationError,
+    resetToDefaults,
+    resetError
+  } = useStrikeSelection({
+    symbol,
+    currentPrice,
+    selectedTimeframe
+  })
+
+  // Fetch current price when symbol changes
+  useEffect(() => {
+    const fetchCurrentPrice = async () => {
+      try {
+        const priceData = await MarketApiService.getCurrentPrice(symbol)
+        setCurrentPrice(priceData.price)
+      } catch (err) {
+        console.error('Failed to fetch current price:', err)
+        // Keep default price if fetch fails
+      }
+    }
+    
+    fetchCurrentPrice()
+  }, [symbol])
 
   useEffect(() => {
     const fetchData = async () => {
@@ -147,37 +182,111 @@ export const StrategyDashboard: React.FC<{ symbol?: string }> = ({ symbol = 'SPY
           )}
           {timeframeData && (
             <div className="space-y-4" id={`panel-${selectedTimeframe}`} role="tabpanel" aria-labelledby={`tab-${selectedTimeframe}`}>
-              {/* Metrics row */}
-              <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+              {/* Metrics row - prioritize custom calculation results */}
+              {(() => {
+                // Use custom calculation results if available, otherwise fall back to original timeframe data
+                const displayData = calculationResult?.performance || timeframeData.performance || {}
+                
+                return (
+                  <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                    <div className="text-center">
+                      <div className="text-xs text-gray-600 dark:text-gray-400">
+                        Win Rate {calculationResult && <span className="text-blue-500">*</span>}
+                      </div>
+                      <div aria-label="Timeframe Win Rate Value" className="text-lg font-bold text-blue-600 dark:text-blue-400">
+                        {((displayData.win_rate ?? 0) * 100).toFixed(1)}%
+                      </div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-xs text-gray-600 dark:text-gray-400">
+                        Total P&L {calculationResult && <span className="text-blue-500">*</span>}
+                      </div>
+                      <div aria-label="Timeframe Total PnL Value" className={`text-lg font-bold ${Number(displayData.total_pnl ?? 0) >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                        {Number(displayData.total_pnl ?? 0) >= 0 ? '+' : ''}${Math.abs(Number(displayData.total_pnl ?? 0)).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      </div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-xs text-gray-600 dark:text-gray-400">
+                        Avg Trade {calculationResult && <span className="text-blue-500">*</span>}
+                      </div>
+                      <div aria-label="Timeframe Avg Trade Value" className={`text-lg font-bold ${Number(displayData.average_trade ?? 0) >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                        {Number(displayData.average_trade ?? 0) >= 0 ? '+' : ''}${Math.abs(Number(displayData.average_trade ?? 0)).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      </div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-xs text-gray-600 dark:text-gray-400">
+                        Sharpe {calculationResult && <span className="text-blue-500">*</span>}
+                      </div>
+                      <div className="text-lg font-bold text-purple-600 dark:text-purple-400">
+                        {Number(displayData.sharpe_ratio ?? 0).toFixed(2)}
+                      </div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-xs text-gray-600 dark:text-gray-400">
+                        Max DD {calculationResult && <span className="text-blue-500">*</span>}
+                      </div>
+                      <div className="text-lg font-bold text-red-600 dark:text-red-400">
+                        ${Math.abs(Number(displayData.max_drawdown ?? 0)).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      </div>
+                    </div>
+                  </div>
+                )
+              })()}
+              
+              {calculationResult && (
                 <div className="text-center">
-                  <div className="text-xs text-gray-600 dark:text-gray-400">Win Rate</div>
-                  <div aria-label="Timeframe Win Rate Value" className="text-lg font-bold text-blue-600 dark:text-blue-400">
-                    {((timeframeData.performance?.win_rate ?? 0) * 100).toFixed(1)}%
+                  <p className="text-xs text-blue-600 dark:text-blue-400">
+                    <span className="text-blue-500">*</span> Updated with custom strike configuration
+                  </p>
+                </div>
+              )}
+
+              {/* Strike Selection and Visualization */}
+              <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+                {/* Strike Selection Controls */}
+                <div>
+                  <StrikeSelector
+                    strikes={strikes}
+                    currentPrice={currentPrice}
+                    onStrikesChange={setStrikes}
+                    loading={isCalculating}
+                  />
+                  
+                  {calculationError && (
+                    <div className="mt-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
+                      <div className="flex items-center">
+                        <div className="text-red-800 dark:text-red-200 text-sm">
+                          <strong>Calculation Error:</strong> {calculationError}
+                        </div>
+                        <button
+                          onClick={resetError}
+                          className="ml-auto text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-200 text-sm underline"
+                        >
+                          Dismiss
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                  
+                  <div className="mt-4 flex flex-wrap gap-2">
+                    <button
+                      onClick={resetToDefaults}
+                      className="px-3 py-1 text-sm bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+                    >
+                      Reset to Defaults
+                    </button>
                   </div>
                 </div>
-                <div className="text-center">
-                  <div className="text-xs text-gray-600 dark:text-gray-400">Total P&L</div>
-                  <div aria-label="Timeframe Total PnL Value" className={`text-lg font-bold ${Number(timeframeData.performance?.total_pnl ?? 0) >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
-                    {Number(timeframeData.performance?.total_pnl ?? 0) >= 0 ? '+' : ''}${Math.abs(Number(timeframeData.performance?.total_pnl ?? 0)).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                  </div>
-                </div>
-                <div className="text-center">
-                  <div className="text-xs text-gray-600 dark:text-gray-400">Avg Trade</div>
-                  <div aria-label="Timeframe Avg Trade Value" className={`text-lg font-bold ${Number(timeframeData.performance?.average_trade ?? 0) >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
-                    {Number(timeframeData.performance?.average_trade ?? 0) >= 0 ? '+' : ''}${Math.abs(Number(timeframeData.performance?.average_trade ?? 0)).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                  </div>
-                </div>
-                <div className="text-center">
-                  <div className="text-xs text-gray-600 dark:text-gray-400">Sharpe</div>
-                  <div className="text-lg font-bold text-purple-600 dark:text-purple-400">
-                    {Number(timeframeData.performance?.sharpe_ratio ?? 0).toFixed(2)}
-                  </div>
-                </div>
-                <div className="text-center">
-                  <div className="text-xs text-gray-600 dark:text-gray-400">Max DD</div>
-                  <div className="text-lg font-bold text-red-600 dark:text-red-400">
-                    ${Math.abs(Number(timeframeData.performance?.max_drawdown ?? 0)).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                  </div>
+
+                {/* Strike Visualization */}
+                <div>
+                  <StrikeVisualization
+                    strikes={strikes}
+                    currentPrice={currentPrice}
+                    loading={isCalculating}
+                    height={350}
+                    showPercentages={true}
+                  />
                 </div>
               </div>
 
