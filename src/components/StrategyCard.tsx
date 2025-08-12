@@ -135,8 +135,23 @@ export const StrategyCard: React.FC<StrategyCardProps> = ({
 					<span className="text-sm font-medium text-gray-600 dark:text-gray-400">
 						{strategy.symbol}
 					</span>
+					{/* Real-time data indicator */}
+					{strategy.data_source === 'ib_realtime' && (
+						<div className="flex items-center gap-1 px-2 py-1 bg-green-100 dark:bg-green-900 rounded-full">
+							<Zap className="w-3 h-3 text-green-600 dark:text-green-400" />
+							<span className="text-xs font-medium text-green-700 dark:text-green-300">Real-Time</span>
+						</div>
+					)}
+					{/* Mixed data source indicator */}
+					{strategy.data_source === 'mixed' && (
+						<div className="flex items-center gap-1 px-2 py-1 bg-yellow-100 dark:bg-yellow-900 rounded-full">
+							<Zap className="w-3 h-3 text-yellow-600 dark:text-yellow-400" />
+							<span className="text-xs font-medium text-yellow-700 dark:text-yellow-300">Partial IB</span>
+						</div>
+					)}
+					{/* Active indicator */}
 					{strategy.is_active && (
-						<div className="w-2 h-2 bg-green-500 rounded-full" />
+						<div className="w-2 h-2 bg-green-500 rounded-full" title="Active strategy" />
 					)}
 				</div>
 			</div>
