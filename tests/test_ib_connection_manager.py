@@ -12,7 +12,7 @@ class TestIBConnectionManager:
 	@pytest.fixture
 	def mock_ib_client(self):
 		"""Create a mock IB client."""
-		with patch('services.ib_connection_manager.IB') as mock_ib:
+		with patch('ib_insync.IB') as mock_ib:
 			client = Mock()
 			client.connect = Mock(return_value=None)
 			client.disconnect = Mock(return_value=None)
@@ -40,7 +40,7 @@ class TestIBConnectionManager:
 		assert manager.reconnect_attempts == 0
 		assert manager.max_reconnect_attempts == 3
 	
-	@patch('services.ib_connection_manager.get_db_session')
+	@patch('api.services.ib_connection_manager.IBConnectionManager.get_db_session')
 	def test_load_settings(self, mock_get_db):
 		"""Test loading connection settings from database."""
 		# Mock database session
@@ -66,7 +66,7 @@ class TestIBConnectionManager:
 		assert manager.connection_settings == mock_settings
 		mock_db.query.assert_called_once()
 	
-	@patch('services.ib_connection_manager.get_db_session')
+	@patch('api.services.ib_connection_manager.IBConnectionManager.get_db_session')
 	def test_load_settings_not_found(self, mock_get_db):
 		"""Test loading settings when none exist."""
 		mock_db = Mock()
@@ -80,7 +80,7 @@ class TestIBConnectionManager:
 		assert manager.connection_settings is None
 	
 	@patch('services.ib_connection_manager.IB')
-	@patch('services.ib_connection_manager.get_db_session')
+	@patch('api.services.ib_connection_manager.IBConnectionManager.get_db_session')
 	def test_connect_success(self, mock_get_db, mock_ib_class):
 		"""Test successful connection to IB."""
 		# Setup mock DB
@@ -122,7 +122,7 @@ class TestIBConnectionManager:
 		mock_db.commit.assert_called()
 	
 	@patch('services.ib_connection_manager.IB')
-	@patch('services.ib_connection_manager.get_db_session')
+	@patch('api.services.ib_connection_manager.IBConnectionManager.get_db_session')
 	def test_connect_failure(self, mock_get_db, mock_ib_class):
 		"""Test failed connection to IB."""
 		# Setup mock DB
@@ -267,7 +267,7 @@ class TestIBConnectionManager:
 		
 		assert account_info is None
 	
-	@patch('services.ib_connection_manager.get_db_session')
+	@patch('api.services.ib_connection_manager.IBConnectionManager.get_db_session')
 	def test_save_settings(self, mock_get_db):
 		"""Test saving connection settings."""
 		mock_db = Mock()
@@ -293,7 +293,7 @@ class TestIBConnectionManager:
 		mock_db.commit.assert_called_once()
 		assert manager.connection_settings is not None
 	
-	@patch('services.ib_connection_manager.get_db_session')
+	@patch('api.services.ib_connection_manager.IBConnectionManager.get_db_session')
 	def test_update_existing_settings(self, mock_get_db):
 		"""Test updating existing connection settings."""
 		mock_db = Mock()
@@ -382,7 +382,7 @@ class TestIBConnectionManager:
 		mock_task.cancel.assert_called_once()
 		assert connection_manager.health_monitor_task is None
 	
-	@patch('services.ib_connection_manager.get_db_session')
+	@patch('api.services.ib_connection_manager.IBConnectionManager.get_db_session')
 	def test_log_connection_event(self, mock_get_db, connection_manager):
 		"""Test logging connection events."""
 		mock_db = Mock()
