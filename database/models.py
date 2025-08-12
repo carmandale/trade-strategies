@@ -619,3 +619,242 @@ class MarketDataSnapshot(Base):
             'expires_at': self.expires_at.isoformat() if self.expires_at else None,
             'is_expired': self.is_expired()
         }
+
+
+# ==================== Interactive Brokers Integration Models ====================
+
+class IBSettings(Base):
+    """Interactive Brokers connection configuration."""
+    __tablename__ = "ib_settings"
+    
+    id = Column(UUIDType, primary_key=True, default=uuid.uuid4, server_default=UUID_SERVER_DEFAULT)
+    user_id = Column(Integer, nullable=True)  # NULL for single-user app, ready for Phase 2
+    host = Column(String(255), server_default='127.0.0.1')
+    port = Column(Integer, server_default='7497')
+    client_id = Column(Integer, server_default='1')
+    account = Column(String(50), nullable=True)
+    market_data_type = Column(Integer, server_default='1')
+    auto_connect = Column(Boolean, server_default='false')
+    encrypted_credentials = Column(Text, nullable=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+    
+    # Indexes
+    __table_args__ = (
+        Index('idx_ib_settings_user', 'user_id'),
+    )
+    
+    @classmethod
+    def get_settings(cls, db_session, user_id: Optional[int] = None):
+        """Get IB settings for user or default settings."""
+        settings = db_session.query(cls).filter(cls.user_id == user_id).first()
+        return settings
+    
+    def to_dict(self) -> Dict[str, Any]:
+        """Convert settings to dictionary."""
+        return {
+            'id': str(self.id),
+            'user_id': self.user_id,
+            'host': self.host,
+            'port': self.port,
+            'client_id': self.client_id,
+            'account': self.account,
+            'market_data_type': self.market_data_type,
+            'auto_connect': self.auto_connect,
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+            'updated_at': self.updated_at.isoformat() if self.updated_at else None
+        }
+
+
+class OptionsDataCache(Base):
+    """Cache for real-time options data from IB."""
+    __tablename__ = "options_data_cache"
+    
+    id = Column(UUIDType, primary_key=True, default=uuid.uuid4, server_default=UUID_SERVER_DEFAULT)
+    symbol = Column(String(10), nullable=False)
+    strike = Column(DECIMAL(10, 2), nullable=False)
+    expiration = Column(DateTime, nullable=False)  # Date only
+    option_type = Column(String(4), nullable=False)  # 'call' or 'put'
+    bid = Column(DECIMAL(10, 2), nullable=True)
+    ask = Column(DECIMAL(10, 2), nullable=True)
+    last = Column(DECIMAL(10, 2), nullable=True)
+    volume = Column(Integer, nullable=True)
+    open_interest = Column(Integer, nullable=True)
+    implied_volatility = Column(DECIMAL(6, 4), nullable=True)
+    delta = Column(DECIMAL(6, 4), nullable=True)
+    gamma = Column(DECIMAL(8, 6), nullable=True)
+    theta = Column(DECIMAL(8, 2), nullable=True)
+    vega = Column(DECIMAL(8, 2), nullable=True)
+    rho = Column(DECIMAL(8, 2), nullable=True)
+    timestamp = Column(DateTime(timezone=True), nullable=False)
+    ttl_seconds = Column(Integer, server_default='5')  # Time to live in seconds
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    
+    # Constraints and indexes
+    __table_args__ = (
+        UniqueConstraint('symbol', 'strike', 'expiration', 'option_type', 'timestamp'),
+        CheckConstraint("option_type IN ('call', 'put')", name='check_option_type'),
+        Index('idx_options_cache_symbol', 'symbol', 'expiration'),
+        Index('idx_options_cache_timestamp', 'timestamp'),
+    )
+    
+    @classmethod
+    def get_cached_data(cls, db_session, symbol: str, strike: Decimal, 
+                       expiration: datetime, option_type: str):
+        """Get cached data if not expired."""
+        current_time = datetime.now(timezone.utc)
+        entry = db_session.query(cls).filter(
+            cls.symbol == symbol,
+            cls.strike == strike,
+            cls.expiration == expiration,
+            cls.option_type == option_type,
+            cls.timestamp >= current_time - timedelta(seconds=5)  # Default 5 second TTL
+        ).order_by(cls.timestamp.desc()).first()
+        return entry
+    
+    @classmethod
+    def cleanup_expired(cls, db_session) -> int:
+        """Remove expired cache entries."""
+        current_time = datetime.now(timezone.utc)
+        expired = db_session.query(cls).filter(
+            cls.timestamp < current_time - timedelta(seconds=300)  # Keep max 5 minutes
+        )
+        count = expired.count()
+        expired.delete()
+        return count
+    
+    def is_expired(self) -> bool:
+        """Check if cache entry is expired."""
+        current_time = datetime.now(timezone.utc)
+        age_seconds = (current_time - self.timestamp).total_seconds()
+        return age_seconds > self.ttl_seconds
+    
+    def to_dict(self) -> Dict[str, Any]:
+        """Convert cache entry to dictionary."""
+        return {
+            'id': str(self.id),
+            'symbol': self.symbol,
+            'strike': float(self.strike) if self.strike else None,
+            'expiration': self.expiration.isoformat() if self.expiration else None,
+            'option_type': self.option_type,
+            'bid': float(self.bid) if self.bid else None,
+            'ask': float(self.ask) if self.ask else None,
+            'last': float(self.last) if self.last else None,
+            'volume': self.volume,
+            'open_interest': self.open_interest,
+            'implied_volatility': float(self.implied_volatility) if self.implied_volatility else None,
+            'delta': float(self.delta) if self.delta else None,
+            'gamma': float(self.gamma) if self.gamma else None,
+            'theta': float(self.theta) if self.theta else None,
+            'vega': float(self.vega) if self.vega else None,
+            'rho': float(self.rho) if self.rho else None,
+            'timestamp': self.timestamp.isoformat() if self.timestamp else None,
+            'is_expired': self.is_expired()
+        }
+
+
+class HistoricalOptionsData(Base):
+    """Historical options data from IB for backtesting."""
+    __tablename__ = "historical_options_data"
+    
+    id = Column(UUIDType, primary_key=True, default=uuid.uuid4, server_default=UUID_SERVER_DEFAULT)
+    symbol = Column(String(10), nullable=False)
+    strike = Column(DECIMAL(10, 2), nullable=False)
+    expiration = Column(DateTime, nullable=False)  # Date only
+    option_type = Column(String(4), nullable=False)  # 'call' or 'put'
+    date = Column(DateTime, nullable=False)  # Date of the data
+    open = Column(DECIMAL(10, 2), nullable=True)
+    high = Column(DECIMAL(10, 2), nullable=True)
+    low = Column(DECIMAL(10, 2), nullable=True)
+    close = Column(DECIMAL(10, 2), nullable=True)
+    volume = Column(Integer, nullable=True)
+    open_interest = Column(Integer, nullable=True)
+    implied_volatility = Column(DECIMAL(6, 4), nullable=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    
+    # Constraints and indexes
+    __table_args__ = (
+        UniqueConstraint('symbol', 'strike', 'expiration', 'option_type', 'date'),
+        CheckConstraint("option_type IN ('call', 'put')", name='check_hist_option_type'),
+        Index('idx_historical_options_symbol', 'symbol', 'date'),
+        Index('idx_historical_options_range', 'symbol', 'date', 'strike'),
+    )
+    
+    @classmethod
+    def get_date_range(cls, db_session, symbol: str, start_date: datetime, end_date: datetime):
+        """Get historical data for a date range."""
+        return db_session.query(cls).filter(
+            cls.symbol == symbol,
+            cls.date >= start_date,
+            cls.date <= end_date
+        ).order_by(cls.date).all()
+    
+    def to_dict(self) -> Dict[str, Any]:
+        """Convert historical data to dictionary."""
+        return {
+            'id': str(self.id),
+            'symbol': self.symbol,
+            'strike': float(self.strike) if self.strike else None,
+            'expiration': self.expiration.isoformat() if self.expiration else None,
+            'option_type': self.option_type,
+            'date': self.date.isoformat() if self.date else None,
+            'open': float(self.open) if self.open else None,
+            'high': float(self.high) if self.high else None,
+            'low': float(self.low) if self.low else None,
+            'close': float(self.close) if self.close else None,
+            'volume': self.volume,
+            'open_interest': self.open_interest,
+            'implied_volatility': float(self.implied_volatility) if self.implied_volatility else None
+        }
+
+
+class IBConnectionLog(Base):
+    """IB connection event logging."""
+    __tablename__ = "ib_connection_log"
+    
+    id = Column(UUIDType, primary_key=True, default=uuid.uuid4, server_default=UUID_SERVER_DEFAULT)
+    event_type = Column(String(50), nullable=False)  # connect, disconnect, error, heartbeat
+    status = Column(String(20), nullable=False)  # success, error, warning
+    account = Column(String(50), nullable=True)
+    error_message = Column(Text, nullable=True)
+    metadata = Column(JSONType, nullable=True)  # Additional event data
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    
+    # Indexes
+    __table_args__ = (
+        Index('idx_ib_log_created', 'created_at'),
+        Index('idx_ib_log_event', 'event_type'),
+    )
+    
+    @classmethod
+    def get_recent_logs(cls, db_session, limit: int = 100):
+        """Get recent connection logs."""
+        return db_session.query(cls).order_by(cls.created_at.desc()).limit(limit).all()
+    
+    @classmethod
+    def log_event(cls, db_session, event_type: str, status: str, 
+                  account: Optional[str] = None, error_message: Optional[str] = None,
+                  metadata: Optional[Dict] = None):
+        """Create a new log entry."""
+        log = cls(
+            event_type=event_type,
+            status=status,
+            account=account,
+            error_message=error_message,
+            metadata=metadata
+        )
+        db_session.add(log)
+        db_session.commit()
+        return log
+    
+    def to_dict(self) -> Dict[str, Any]:
+        """Convert log entry to dictionary."""
+        return {
+            'id': str(self.id),
+            'event_type': self.event_type,
+            'status': self.status,
+            'account': self.account,
+            'error_message': self.error_message,
+            'metadata': self.metadata,
+            'created_at': self.created_at.isoformat() if self.created_at else None
+        }
