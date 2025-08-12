@@ -43,7 +43,7 @@ class IBConnectionAPI {
 	 * Get current IB settings
 	 */
 	async getSettings(): Promise<IBSettings> {
-		const response = await fetch(`${this.baseUrl}/api/ib/settings`, {
+		const response = await fetch(`${this.baseUrl}/api/v1/ib/settings`, {
 			method: 'GET',
 			headers: {
 				'Content-Type': 'application/json',
