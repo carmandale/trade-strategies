@@ -378,11 +378,15 @@ export class ApiService {
   // Get market data for a symbol
   static async getMarketData(symbol: string): Promise<MarketData> {
     try {
-      const response = await fetch(`${API_BASE_URL}/current_price/${symbol}`);
+      const url = `${API_BASE_URL}/current_price/${symbol}`;
+      console.log('Fetching market data from:', url);
+      console.log('API_BASE_URL is:', API_BASE_URL);
+      const response = await fetch(url);
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
       const data = await response.json();
+      console.log('Received market data:', data);
       return {
         current_price: data.price,  // Backend returns { price: number }
         change: 0,  // Backend doesn't provide change yet
@@ -392,6 +396,7 @@ export class ApiService {
       };
     } catch (error) {
       console.error('Error fetching market data:', error);
+      console.error('Falling back to hardcoded price 425.50');
       // Return fallback data
       return {
         current_price: 425.50,
