@@ -119,6 +119,8 @@ class Strategy(Base):
             'symbol': self.symbol,
             'parameters': self.parameters,
             'is_active': self.is_active,
+            'data_source': self.data_source,
+            'ib_snapshot': self.ib_snapshot,
             'created_at': self.created_at.isoformat() if self.created_at else None,
             'updated_at': self.updated_at.isoformat() if self.updated_at else None
         }
