@@ -326,7 +326,7 @@ describe('StrategyDashboard Integration with Strike Selection', () => {
 
     // Set invalid strike order (put long >= put short)
     const putLongInput = screen.getByLabelText('Put Long Strike (%)')
-    const putShortInput = screen.getByLabelLabel('Put Short Strike (%)')
+    const putShortInput = screen.getByLabelText('Put Short Strike (%)')
 
     await user.clear(putLongInput)
     await user.type(putLongInput, '99') // Higher than put short (should be 98%)
