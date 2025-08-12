@@ -472,21 +472,21 @@ export const ConsolidatedStrategyCard: React.FC<ConsolidatedStrategyCardProps> =
                       </div>
                     ))}
                   </div>
-                  <div className="bg-slate-900/50 rounded-lg p-4 h-80">
+                  <div className="bg-slate-900/50 rounded-lg p-2 h-80">
                     <ResponsiveContainer width="100%" height="100%">
-                      <LineChart data={chartData} margin={{ top: 10, right: 30, left: 20, bottom: 10 }}>
+                      <LineChart data={chartData} margin={{ top: 5, right: 50, left: 50, bottom: 30 }}>
                         <CartesianGrid strokeDasharray="3 3" stroke="#374151" opacity={0.2} />
                         <XAxis 
                           dataKey="price" 
                           stroke="#9ca3af" 
-                          fontSize={10}
+                          fontSize={11}
                           tickFormatter={formatPrice}
                           domain={['dataMin', 'dataMax']}
                           type="number"
                         />
                         <YAxis 
                           stroke="#9ca3af" 
-                          fontSize={10}
+                          fontSize={11}
                           tickFormatter={formatCurrency}
                         />
                         <Tooltip content={<PnLTooltip />} />
@@ -501,11 +501,11 @@ export const ConsolidatedStrategyCard: React.FC<ConsolidatedStrategyCardProps> =
                           strokeWidth={1}
                           strokeDasharray="5 2"
                           label={{ 
-                            value: `$${Math.round(currentPrice)}`, 
+                            value: `Now $${Math.round(currentPrice)}`, 
                             position: "top",
                             offset: 5,
                             fill: "#60a5fa",
-                            fontSize: 11
+                            fontSize: 12
                           }}
                         />
                         
