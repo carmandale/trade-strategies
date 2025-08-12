@@ -135,16 +135,34 @@ export function findStrikeForDelta(
   isCall: boolean = true
 ): number {
   // For very short expiration or when delta calculation isn't meaningful,
-  // use a simplified percentage-based approach
+  // use a simplified percentage-based approach with better differentiation
   if (timeToExpiration < 0.02) { // Less than ~7 days
-    // Simplified approach based on target delta
+    // Improved delta-to-percentage mapping for better differentiation
     if (isCall) {
-      // 16-delta = ~2% OTM, 25-delta = ~1.5% OTM, 35-delta = ~1% OTM, 50-delta = ATM
-      const percentageOTM = (1 - targetDelta) * 0.03;
+      let percentageOTM: number;
+      if (targetDelta >= 0.45) {
+        percentageOTM = 0; // ATM for 50-delta
+      } else if (targetDelta >= 0.30) {
+        percentageOTM = 0.015; // ~1.5% OTM for 35-delta 
+      } else if (targetDelta >= 0.20) {
+        percentageOTM = 0.025; // ~2.5% OTM for 25-delta
+      } else {
+        percentageOTM = 0.035; // ~3.5% OTM for 16-delta
+      }
       return Math.round((spotPrice * (1 + percentageOTM)) / 5) * 5;
     } else {
       // Put strikes below current price (targetDelta is negative)
-      const percentageOTM = Math.abs(targetDelta) * 0.03;
+      const absTargetDelta = Math.abs(targetDelta);
+      let percentageOTM: number;
+      if (absTargetDelta >= 0.45) {
+        percentageOTM = 0; // ATM for 50-delta
+      } else if (absTargetDelta >= 0.30) {
+        percentageOTM = 0.015; // ~1.5% OTM for 35-delta
+      } else if (absTargetDelta >= 0.20) {
+        percentageOTM = 0.025; // ~2.5% OTM for 25-delta
+      } else {
+        percentageOTM = 0.035; // ~3.5% OTM for 16-delta
+      }
       return Math.round((spotPrice * (1 - percentageOTM)) / 5) * 5;
     }
   }
