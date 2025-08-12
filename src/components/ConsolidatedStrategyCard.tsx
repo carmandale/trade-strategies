@@ -284,8 +284,8 @@ export const ConsolidatedStrategyCard: React.FC<ConsolidatedStrategyCardProps> =
   const applyDeltaPreset = (preset: typeof DELTA_STRATEGIES[0]) => {
     if (!currentPrice || !preset.putDelta || !preset.callDelta) return;
     
-    // Use longer expiration for better delta calculations when not 0DTE
-    const deltaTimeToExpiration = timeToExpiration < 0.01 ? 0.04 : timeToExpiration; // Use 2 weeks minimum for delta calc
+    // Always use meaningful time to expiration for delta calculations (minimum 2 weeks)
+    const deltaTimeToExpiration = Math.max(0.04, timeToExpiration); // 2 weeks minimum
     
     const putStrike = findStrikeForDelta(currentPrice, preset.putDelta, deltaTimeToExpiration, 0.05, 0.20, false);
     const callStrike = findStrikeForDelta(currentPrice, preset.callDelta, deltaTimeToExpiration, 0.05, 0.20, true);
@@ -295,21 +295,35 @@ export const ConsolidatedStrategyCard: React.FC<ConsolidatedStrategyCardProps> =
     
     switch (strategy) {
       case 'bullCall':
+        // For bull call, use ATM as long and the call strike as short
         updates.bullCallLower = atmStrike;
         updates.bullCallUpper = callStrike;
         break;
       case 'ironCondor':
-        // Use proper spread widths based on delta
-        const spreadWidth = Math.abs(preset.callDelta) > 0.3 ? 15 : 10; // Wider spreads for aggressive
+        // Use different spread widths based on aggressiveness - more differentiation
+        const isAggressive = Math.abs(preset.callDelta) >= 0.35;
+        const isConservative = Math.abs(preset.callDelta) <= 0.16;
+        let spreadWidth: number;
+        
+        if (isConservative) {
+          spreadWidth = 10; // Narrow spreads for conservative (16-delta)
+        } else if (isAggressive) {
+          spreadWidth = 20; // Wide spreads for aggressive (35-delta)
+        } else {
+          spreadWidth = 15; // Medium spreads for moderate (25-delta)
+        }
+        
         updates.ironCondorPutShort = putStrike;
         updates.ironCondorPutLong = putStrike - spreadWidth;
         updates.ironCondorCallShort = callStrike;
         updates.ironCondorCallLong = callStrike + spreadWidth;
         break;
       case 'butterfly':
-        updates.butterflyLower = putStrike;
+        // For butterfly, use put/call strikes as wings and ATM as body
+        const wingWidth = Math.abs(callStrike - atmStrike); // Distance from ATM to call strike
+        updates.butterflyLower = atmStrike - wingWidth;
         updates.butterflyBody = atmStrike;
-        updates.butterflyUpper = callStrike;
+        updates.butterflyUpper = atmStrike + wingWidth;
         break;
     }
     
