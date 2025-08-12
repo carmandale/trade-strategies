@@ -119,20 +119,18 @@ async def reconnect_to_ib():
 		Reconnection response with status
 	"""
 	try:
-		success = ib_connection_manager.reconnect()
+		result = ib_connection_manager.reconnect()
 		
-		if success:
-			status = ib_connection_manager.get_connection_status()
+		if result["success"]:
 			return ConnectionResponse(
 				success=True,
-				message="Reconnected to Interactive Brokers",
-				status=status
+				message=result["message"],
+				status=result["status"]
 			)
 		else:
-			status = ib_connection_manager.get_connection_status()
 			raise HTTPException(
 				status_code=500,
-				detail="Failed to reconnect to Interactive Brokers"
+				detail=result["message"]
 			)
 	except HTTPException:
 		raise
