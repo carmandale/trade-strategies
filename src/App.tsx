@@ -1,12 +1,15 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { Container, Theme } from './settings/types';
 import SPYSpreadStrategiesApp from './components/generated/SPYSpreadStrategiesApp';
+import ConsolidatedSPYApp from './components/ConsolidatedSPYApp';
 import { AccuracyReport } from './components/AccuracyReport';
 
 const theme: Theme = 'dark';
 const container: Container = 'none';
 
 function App() {
+  const [useConsolidatedLayout, setUseConsolidatedLayout] = useState(true); // Default to new layout
+
   function setTheme(theme: Theme) {
     if (theme === 'dark') {
       document.documentElement.classList.add('dark');
@@ -18,9 +21,13 @@ function App() {
   setTheme(theme);
 
   const generatedComponent = useMemo(() => {
-    // THIS IS WHERE THE TOP LEVEL GENRATED COMPONENT WILL BE RETURNED!
-    return <SPYSpreadStrategiesApp />; // %EXPORT_STATEMENT%
-  }, []);
+    // Switch between layouts for comparison
+    if (useConsolidatedLayout) {
+      return <ConsolidatedSPYApp />;
+    } else {
+      return <SPYSpreadStrategiesApp />; // Original layout
+    }
+  }, [useConsolidatedLayout]);
 
   if (container === 'centered') {
     return (
