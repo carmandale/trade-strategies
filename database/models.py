@@ -66,6 +66,8 @@ class Strategy(Base):
     symbol = Column(String(10), nullable=False, server_default='SPY')
     parameters = Column(JSONType, nullable=False)  # Flexible storage for strategy-specific params
     is_active = Column(Boolean, server_default='true')
+    data_source = Column(String(20), server_default='estimated')  # 'estimated', 'ib_realtime', 'ib_historical'
+    ib_snapshot = Column(JSONType, nullable=True)  # IB market data snapshot at strategy creation
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
     
