@@ -521,25 +521,45 @@ export const ConsolidatedStrategyCard: React.FC<ConsolidatedStrategyCardProps> =
                           }}
                         />
                         
-                        {/* Strike level indicators */}
-                        {getStrikeLines(strategy, spreadConfig).map((strike, index) => (
-                          <ReferenceLine
-                            key={`strike-${index}`}
-                            x={Math.round(strike.value / 5) * 5} // Round to nearest $5 to match data
-                            stroke={strike.color}
-                            strokeDasharray="4 4"
-                            strokeWidth={2}
-                            opacity={0.8}
-                            label={{
-                              value: `${strike.label} $${Math.round(strike.value / 5) * 5}`,
-                              position: index % 2 === 0 ? "bottomLeft" : "bottomRight",
-                              offset: 10,
-                              fill: strike.color,
-                              fontSize: 15,
-                              fontWeight: "bold"
-                            }}
-                          />
-                        ))}
+                        {/* Strike level indicators with smart positioning */}
+                        {getStrikeLines(strategy, spreadConfig).map((strike, index, strikes) => {
+                          // Smart label positioning to prevent overlap
+                          let position: any;
+                          let offset = 12;
+                          
+                          if (strikes.length <= 2) {
+                            // For 2 strikes: alternate left/right
+                            position = index % 2 === 0 ? "bottomLeft" : "bottomRight";
+                          } else if (strikes.length === 3) {
+                            // For 3 strikes: left, top, right
+                            position = index === 0 ? "bottomLeft" : 
+                                     index === 1 ? "top" : "bottomRight";
+                            offset = index === 1 ? 15 : 12;
+                          } else {
+                            // For 4+ strikes: distribute around
+                            position = ["bottomLeft", "topLeft", "topRight", "bottomRight"][index] || "bottom";
+                            offset = position.includes("top") ? 15 : 12;
+                          }
+                          
+                          return (
+                            <ReferenceLine
+                              key={`strike-${index}`}
+                              x={Math.round(strike.value / 5) * 5}
+                              stroke={strike.color}
+                              strokeDasharray="4 4"
+                              strokeWidth={2}
+                              opacity={0.8}
+                              label={{
+                                value: `${strike.label} $${Math.round(strike.value / 5) * 5}`,
+                                position: position,
+                                offset: offset,
+                                fill: strike.color,
+                                fontSize: 13,
+                                fontWeight: "bold"
+                              }}
+                            />
+                          );
+                        })}
                         
                         {/* Profit area (above zero) */}
                         <Area
