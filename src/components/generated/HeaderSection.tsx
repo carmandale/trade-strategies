@@ -11,7 +11,8 @@ const HeaderSection: React.FC<HeaderSectionProps> = ({
   lastUpdate,
   connectionError
 }) => {
-  const formatTime = (date: Date): string => {
+  const formatTime = (date: Date | null): string => {
+    if (!date) return '--:--:--';
     return date.toLocaleTimeString('en-US', {
       hour: '2-digit',
       minute: '2-digit',
