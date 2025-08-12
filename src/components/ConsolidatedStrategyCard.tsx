@@ -19,9 +19,7 @@ import {
   CartesianGrid, 
   Tooltip, 
   ResponsiveContainer, 
-  ReferenceLine,
-  Area,
-  AreaChart
+  ReferenceLine
 } from 'recharts';
 import { SpreadConfig, AnalysisData } from './generated/SPYSpreadStrategiesApp';
 import { calculateDelta, findStrikeForDelta, DELTA_STRATEGIES } from '../utils/optionsCalculations';
@@ -501,55 +499,42 @@ export const ConsolidatedStrategyCard: React.FC<ConsolidatedStrategyCardProps> =
                   </div>
                   <div className="bg-slate-900/50 rounded-lg p-4 h-80">
                     <ResponsiveContainer width="100%" height="100%">
-                      <AreaChart data={chartData} margin={{ top: 20, right: 40, left: 30, bottom: 20 }}>
-                        <defs>
-                          <linearGradient id={`profitGradient-${strategy}`} x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="0%" stopColor="#10b981" stopOpacity={0.4}/>
-                            <stop offset="100%" stopColor="#10b981" stopOpacity={0.05}/>
-                          </linearGradient>
-                          <linearGradient id={`lossGradient-${strategy}`} x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="0%" stopColor="#ef4444" stopOpacity={0.05}/>
-                            <stop offset="100%" stopColor="#ef4444" stopOpacity={0.4}/>
-                          </linearGradient>
-                        </defs>
-                        
-                        <CartesianGrid strokeDasharray="3 3" stroke="#374151" opacity={0.3} />
+                      <LineChart data={chartData} margin={{ top: 10, right: 30, left: 20, bottom: 10 }}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#374151" opacity={0.2} />
                         <XAxis 
                           dataKey="price" 
                           stroke="#9ca3af" 
-                          fontSize={16}
+                          fontSize={10}
                           tickFormatter={formatPrice}
                           domain={['dataMin', 'dataMax']}
                           type="number"
                         />
                         <YAxis 
                           stroke="#9ca3af" 
-                          fontSize={16}
+                          fontSize={10}
                           tickFormatter={formatCurrency}
                         />
                         <Tooltip content={<PnLTooltip />} />
                         
                         {/* Zero P&L line */}
-                        <ReferenceLine y={0} stroke="#6b7280" strokeDasharray="2 2" />
+                        <ReferenceLine y={0} stroke="#6b7280" strokeDasharray="2 2" strokeWidth={1} />
                         
-                        {/* Current price line with enhanced label */}
+                        {/* Current price line */}
                         <ReferenceLine 
                           x={Math.round(currentPrice)} 
                           stroke="#60a5fa" 
-                          strokeWidth={3}
+                          strokeWidth={1}
                           strokeDasharray="5 2"
                           label={{ 
-                            value: `Today $${Math.round(currentPrice)}`, 
-                            position: "topRight",
-                            offset: 12,
+                            value: `$${Math.round(currentPrice)}`, 
+                            position: "top",
+                            offset: 5,
                             fill: "#60a5fa",
-                            fontSize: 18,
-                            fontWeight: "bold",
-                            textAnchor: "start"
+                            fontSize: 11
                           }}
                         />
                         
-                        {/* Strike level indicators - lines only, no labels to prevent overlap */}
+                        {/* Strike level indicators */}
                         {getStrikeLines(strategy, spreadConfig).map((strike, index) => {
                           const currentStrike = Math.round(strike.value / 5) * 5;
                           
@@ -558,31 +543,23 @@ export const ConsolidatedStrategyCard: React.FC<ConsolidatedStrategyCardProps> =
                               key={`strike-${index}`}
                               x={currentStrike}
                               stroke={strike.color}
-                              strokeDasharray="4 4"
-                              strokeWidth={2}
-                              opacity={0.7}
+                              strokeDasharray="3 3"
+                              strokeWidth={1}
+                              opacity={0.5}
                             />
                           );
                         })}
                         
-                        {/* Profit area (above zero) */}
-                        <Area
-                          type="monotone"
-                          dataKey={(entry: any) => Math.max(0, entry.pnl)}
-                          stroke="#10b981"
-                          strokeWidth={2}
-                          fill={`url(#profitGradient-${strategy})`}
+                        {/* P&L Line - straight lines, no curves */}
+                        <Line
+                          type="linear"
+                          dataKey="pnl"
+                          stroke={(entry: any) => entry.pnl >= 0 ? "#10b981" : "#ef4444"}
+                          strokeWidth={1}
+                          dot={false}
+                          activeDot={{ r: 3 }}
                         />
-                        
-                        {/* Loss area (below zero) */}
-                        <Area
-                          type="monotone"
-                          dataKey={(entry: any) => Math.min(0, entry.pnl)}
-                          stroke="#ef4444"
-                          strokeWidth={2}
-                          fill={`url(#lossGradient-${strategy})`}
-                        />
-                      </AreaChart>
+                      </LineChart>
                     </ResponsiveContainer>
                   </div>
                 </div>
