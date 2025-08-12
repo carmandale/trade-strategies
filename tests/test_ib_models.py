@@ -213,6 +213,10 @@ class TestOptionsDataCache:
 	def test_cleanup_expired_cache(self):
 		"""Test cleaning up expired cache entries."""
 		with SessionLocal() as db:
+			# Clean up any existing data first
+			db.query(OptionsDataCache).delete()
+			db.commit()
+			
 			# Add expired entries
 			for i in range(3):
 				cache = OptionsDataCache(
