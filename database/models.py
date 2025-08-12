@@ -1,6 +1,6 @@
 """SQLAlchemy models for trading strategy application."""
 import uuid
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from typing import Optional, List, Dict, Any
 from decimal import Decimal
 from sqlalchemy import (
