@@ -7,7 +7,7 @@ from datetime import datetime, timezone
 import base64
 from cryptography.fernet import Fernet
 from cryptography.hazmat.primitives import hashes
-from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2
+from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 from ib_insync import IB, util
 from database.config import get_db_session
 from database.models import IBSettings, IBConnectionLog
