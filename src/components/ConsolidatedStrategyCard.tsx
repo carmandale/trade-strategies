@@ -496,14 +496,14 @@ export const ConsolidatedStrategyCard: React.FC<ConsolidatedStrategyCardProps> =
                         <XAxis 
                           dataKey="price" 
                           stroke="#9ca3af" 
-                          fontSize={12}
+                          fontSize={16}
                           tickFormatter={formatPrice}
                           domain={['dataMin', 'dataMax']}
                           type="number"
                         />
                         <YAxis 
                           stroke="#9ca3af" 
-                          fontSize={12}
+                          fontSize={16}
                           tickFormatter={formatCurrency}
                         />
                         <Tooltip content={<PnLTooltip />} />
@@ -520,9 +520,9 @@ export const ConsolidatedStrategyCard: React.FC<ConsolidatedStrategyCardProps> =
                           label={{ 
                             value: `Today $${Math.round(currentPrice)}`, 
                             position: "topRight",
-                            offset: 10,
+                            offset: 12,
                             fill: "#60a5fa",
-                            fontSize: 14,
+                            fontSize: 18,
                             fontWeight: "bold",
                             textAnchor: "start"
                           }}
@@ -540,10 +540,10 @@ export const ConsolidatedStrategyCard: React.FC<ConsolidatedStrategyCardProps> =
                             label={{
                               value: `${strike.label} $${Math.round(strike.value / 5) * 5}`,
                               position: index % 2 === 0 ? "bottomLeft" : "bottomRight",
-                              offset: 8,
+                              offset: 10,
                               fill: strike.color,
-                              fontSize: 11,
-                              fontWeight: "medium"
+                              fontSize: 15,
+                              fontWeight: "bold"
                             }}
                           />
                         ))}
