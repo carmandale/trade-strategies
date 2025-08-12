@@ -21,7 +21,7 @@ test.describe('Interactive Brokers Integration E2E Tests', () => {
 	})
 
 	test('should get connection status from backend', async ({ page }) => {
-		const response = await page.request.get('/api/v1/ib/connection/status')
+		const response = await page.request.get('http://localhost:8001/api/v1/ib/connection/status')
 		expect(response.status()).toBe(200)
 		
 		const status = await response.json()
@@ -40,9 +40,9 @@ test.describe('Interactive Brokers Integration E2E Tests', () => {
 	test('should handle API endpoint consistency', async ({ page }) => {
 		// Test all IB API endpoints are accessible
 		const endpoints = [
-			'/api/v1/ib/settings',
-			'/api/v1/ib/connection/status',
-			'/api/v1/ib/connection/health'
+			'http://localhost:8001/api/v1/ib/settings',
+			'http://localhost:8001/api/v1/ib/connection/status',
+			'http://localhost:8001/api/v1/ib/connection/health'
 		]
 
 		for (const endpoint of endpoints) {
@@ -61,14 +61,14 @@ test.describe('Interactive Brokers Integration E2E Tests', () => {
 			auto_connect: true
 		}
 
-		const response = await page.request.put('/api/v1/ib/settings', {
+		const response = await page.request.put('http://localhost:8001/api/v1/ib/settings', {
 			data: newSettings
 		})
 		
 		expect(response.status()).toBe(200)
 		
 		// Verify settings were updated
-		const getResponse = await page.request.get('/api/v1/ib/settings')
+		const getResponse = await page.request.get('http://localhost:8001/api/v1/ib/settings')
 		const settings = await getResponse.json()
 		expect(settings.client_id).toBe(2)
 		expect(settings.account).toBe('DU54321')
@@ -77,7 +77,7 @@ test.describe('Interactive Brokers Integration E2E Tests', () => {
 
 	test('should handle connection attempts gracefully', async ({ page }) => {
 		// Test connection attempt (will fail since no IB Gateway running)
-		const response = await page.request.post('/api/v1/ib/connection/connect')
+		const response = await page.request.post('http://localhost:8001/api/v1/ib/connection/connect')
 		
 		// Should return 200 with success: false (graceful failure)
 		expect(response.status()).toBe(200)
@@ -93,7 +93,7 @@ test.describe('Interactive Brokers Integration E2E Tests', () => {
 	})
 
 	test('should disconnect gracefully', async ({ page }) => {
-		const response = await page.request.post('/api/v1/ib/connection/disconnect')
+		const response = await page.request.post('http://localhost:8001/api/v1/ib/connection/disconnect')
 		expect(response.status()).toBe(200)
 		
 		const result = await response.json()
@@ -102,7 +102,7 @@ test.describe('Interactive Brokers Integration E2E Tests', () => {
 	})
 
 	test('should provide health metrics', async ({ page }) => {
-		const response = await page.request.get('/api/v1/ib/connection/health')
+		const response = await page.request.get('http://localhost:8001/api/v1/ib/connection/health')
 		expect(response.status()).toBe(200)
 		
 		const health = await response.json()
