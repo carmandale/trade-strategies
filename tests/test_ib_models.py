@@ -299,7 +299,7 @@ class TestIBConnectionLog:
 			event_type="connect",
 			status="success",
 			account="DU123456",
-			metadata={"server_version": 176, "connection_time": 1.5}
+			event_metadata={"server_version": 176, "connection_time": 1.5}
 		)
 		db_session.add(log)
 		db_session.commit()
@@ -307,7 +307,7 @@ class TestIBConnectionLog:
 		assert log.id is not None
 		assert log.event_type == "connect"
 		assert log.status == "success"
-		assert log.metadata["server_version"] == 176
+		assert log.event_metadata["server_version"] == 176
 	
 	def test_connection_log_error(self, db_session):
 		"""Test logging connection errors."""
@@ -315,13 +315,13 @@ class TestIBConnectionLog:
 			event_type="connect",
 			status="error",
 			error_message="Connection refused: IB Gateway not running",
-			metadata={"attempted_port": 7497}
+			event_metadata={"attempted_port": 7497}
 		)
 		db_session.add(log)
 		db_session.commit()
 		
 		assert log.error_message == "Connection refused: IB Gateway not running"
-		assert log.metadata["attempted_port"] == 7497
+		assert log.event_metadata["attempted_port"] == 7497
 	
 	def test_get_recent_logs(self, db_session):
 		"""Test retrieving recent connection logs."""
