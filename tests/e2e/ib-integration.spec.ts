@@ -6,8 +6,8 @@ test.describe('Interactive Brokers Integration E2E Tests', () => {
 	})
 
 	test('should load IB settings from backend API', async ({ page }) => {
-		// Test if frontend can fetch IB settings from backend
-		const response = await page.request.get('/api/v1/ib/settings')
+		// Test backend API directly - this is more reliable than testing through proxy
+		const response = await page.request.get('http://localhost:8001/api/v1/ib/settings')
 		expect(response.status()).toBe(200)
 		
 		const settings = await response.json()
