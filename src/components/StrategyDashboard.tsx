@@ -38,6 +38,21 @@ export const StrategyDashboard: React.FC<{ symbol?: string }> = ({ symbol = 'SPY
     selectedTimeframe
   })
 
+  // Fetch current price when symbol changes
+  useEffect(() => {
+    const fetchCurrentPrice = async () => {
+      try {
+        const priceData = await MarketApiService.getCurrentPrice(symbol)
+        setCurrentPrice(priceData.price)
+      } catch (err) {
+        console.error('Failed to fetch current price:', err)
+        // Keep default price if fetch fails
+      }
+    }
+    
+    fetchCurrentPrice()
+  }, [symbol])
+
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true)
