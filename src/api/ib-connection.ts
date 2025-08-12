@@ -16,11 +16,8 @@ interface ConnectionStatus {
 	connected: boolean;
 	host?: string;
 	port?: number;
-	last_heartbeat?: string;
-	account_info?: {
-		account_id: string;
-		account_type: string;
-	};
+	last_check?: string;  // Changed from last_heartbeat to match backend
+	account?: string;  // Simplified to match backend response
 	error?: string;
 }
 
