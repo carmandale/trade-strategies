@@ -472,21 +472,21 @@ export const ConsolidatedStrategyCard: React.FC<ConsolidatedStrategyCardProps> =
                       </div>
                     ))}
                   </div>
-                  <div className="bg-slate-900/50 rounded-lg p-2 h-80">
+                  <div className="bg-slate-900/50 rounded-lg p-1 h-80">
                     <ResponsiveContainer width="100%" height="100%">
-                      <LineChart data={chartData} margin={{ top: 5, right: 50, left: 50, bottom: 30 }}>
+                      <LineChart data={chartData} margin={{ top: 5, right: 35, left: 35, bottom: 20 }}>
                         <CartesianGrid strokeDasharray="3 3" stroke="#374151" opacity={0.2} />
                         <XAxis 
                           dataKey="price" 
                           stroke="#9ca3af" 
-                          fontSize={11}
+                          fontSize={9}
                           tickFormatter={formatPrice}
                           domain={['dataMin', 'dataMax']}
                           type="number"
                         />
                         <YAxis 
                           stroke="#9ca3af" 
-                          fontSize={11}
+                          fontSize={9}
                           tickFormatter={formatCurrency}
                         />
                         <Tooltip content={<PnLTooltip />} />
