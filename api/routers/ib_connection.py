@@ -99,13 +99,12 @@ async def disconnect_from_ib():
 		Disconnection response with status
 	"""
 	try:
-		ib_connection_manager.disconnect()
-		status = ib_connection_manager.get_connection_status()
+		result = ib_connection_manager.disconnect()
 		
 		return ConnectionResponse(
-			success=True,
-			message="Disconnected from Interactive Brokers",
-			status=status
+			success=result["success"],
+			message=result["message"],
+			status=result["status"]
 		)
 	except Exception as e:
 		logger.error(f"Disconnection error: {str(e)}")
