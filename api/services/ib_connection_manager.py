@@ -9,6 +9,10 @@ from sqlalchemy.orm import sessionmaker
 from api.models.ib_models import IBSettings, IBConnectionLog
 import os
 from contextlib import contextmanager
+from cryptography.fernet import Fernet
+import base64
+import secrets
+import threading
 try:
 	from ib_insync import IB, util
 except ImportError:
