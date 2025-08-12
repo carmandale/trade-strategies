@@ -504,14 +504,17 @@ export const ConsolidatedStrategyCard: React.FC<ConsolidatedStrategyCardProps> =
                         {/* Current price line with enhanced label */}
                         <ReferenceLine 
                           x={Math.round(currentPrice)} 
-                          stroke="#3b82f6" 
-                          strokeWidth={2}
+                          stroke="#60a5fa" 
+                          strokeWidth={3}
+                          strokeDasharray="5 2"
                           label={{ 
-                            value: `Today ~$${currentPrice.toFixed(2)}`, 
-                            position: "top",
-                            fill: "#3b82f6",
-                            fontSize: 12,
-                            fontWeight: "medium"
+                            value: `Today ~$${currentPrice.toFixed(0)}`, 
+                            position: "topRight",
+                            offset: 10,
+                            fill: "#60a5fa",
+                            fontSize: 14,
+                            fontWeight: "bold",
+                            textAnchor: "start"
                           }}
                         />
                         
