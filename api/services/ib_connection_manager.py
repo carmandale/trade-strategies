@@ -31,6 +31,8 @@ class IBConnectionManager:
 		self.account = None
 		self.ib_client = None
 		self._connection_settings = None
+		self.reconnect_attempts = 0
+		self.max_reconnect_attempts = 3
 		logger.info("IBConnectionManager initialized")
 	
 	@contextmanager
