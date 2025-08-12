@@ -80,55 +80,59 @@ const formatPrice = (value: number): string => {
   return `$${value.toFixed(0)}`;
 };
 
-// Generate P&L data for visualization - key points only for straight lines
+// Helper to interpolate between two points
+const interpolatePoints = (x1: number, y1: number, x2: number, y2: number, steps: number = 20) => {
+  const points = [];
+  for (let i = 0; i <= steps; i++) {
+    const t = i / steps;
+    points.push({
+      price: Math.round(x1 + (x2 - x1) * t),
+      pnl: Math.round(y1 + (y2 - y1) * t)
+    });
+  }
+  return points;
+};
+
+// Generate P&L data for visualization - interpolated for smooth tooltips
 const generatePnLData = (strategy: StrategyType, config: SpreadConfig, currentPrice: number) => {
   const data = [];
   
   switch (strategy) {
     case 'bullCall':
-      // Bull Call Spread - just key points for straight lines
+      // Bull Call Spread
       const bullCallDebit = (config.bullCallUpper - config.bullCallLower) * 0.4 * 100;
       const bullCallMaxProfit = (config.bullCallUpper - config.bullCallLower) * 100 - bullCallDebit;
       
-      // Key points: far left, lower strike, upper strike, far right
-      data.push(
-        { price: config.bullCallLower - 15, pnl: -bullCallDebit },
-        { price: config.bullCallLower, pnl: -bullCallDebit },
-        { price: config.bullCallUpper, pnl: bullCallMaxProfit },
-        { price: config.bullCallUpper + 15, pnl: bullCallMaxProfit }
-      );
+      // Interpolate between key points for smooth tooltip
+      data.push(...interpolatePoints(config.bullCallLower - 15, -bullCallDebit, config.bullCallLower, -bullCallDebit, 10));
+      data.push(...interpolatePoints(config.bullCallLower, -bullCallDebit, config.bullCallUpper, bullCallMaxProfit, 30));
+      data.push(...interpolatePoints(config.bullCallUpper, bullCallMaxProfit, config.bullCallUpper + 15, bullCallMaxProfit, 10));
       break;
       
     case 'ironCondor':
-      // Iron Condor - key points for the classic shape
+      // Iron Condor 
       const ironCondorCredit = Math.min(
         config.ironCondorPutShort - config.ironCondorPutLong,
         config.ironCondorCallLong - config.ironCondorCallShort
       ) * 0.3 * 100;
       const ironCondorMaxLoss = -((config.ironCondorPutShort - config.ironCondorPutLong) * 100 - ironCondorCredit);
       
-      data.push(
-        { price: config.ironCondorPutLong - 10, pnl: ironCondorMaxLoss },
-        { price: config.ironCondorPutLong, pnl: ironCondorMaxLoss },
-        { price: config.ironCondorPutShort, pnl: ironCondorCredit },
-        { price: config.ironCondorCallShort, pnl: ironCondorCredit },
-        { price: config.ironCondorCallLong, pnl: ironCondorMaxLoss },
-        { price: config.ironCondorCallLong + 10, pnl: ironCondorMaxLoss }
-      );
+      data.push(...interpolatePoints(config.ironCondorPutLong - 10, ironCondorMaxLoss, config.ironCondorPutLong, ironCondorMaxLoss, 5));
+      data.push(...interpolatePoints(config.ironCondorPutLong, ironCondorMaxLoss, config.ironCondorPutShort, ironCondorCredit, 20));
+      data.push(...interpolatePoints(config.ironCondorPutShort, ironCondorCredit, config.ironCondorCallShort, ironCondorCredit, 20));
+      data.push(...interpolatePoints(config.ironCondorCallShort, ironCondorCredit, config.ironCondorCallLong, ironCondorMaxLoss, 20));
+      data.push(...interpolatePoints(config.ironCondorCallLong, ironCondorMaxLoss, config.ironCondorCallLong + 10, ironCondorMaxLoss, 5));
       break;
       
     case 'butterfly':
-      // Butterfly - key points for the peak shape
+      // Butterfly
       const butterflyDebit = (config.butterflyBody - config.butterflyLower) * 0.25 * 100;
       const butterflyMaxProfit = (config.butterflyBody - config.butterflyLower) * 100 - butterflyDebit;
       
-      data.push(
-        { price: config.butterflyLower - 5, pnl: -butterflyDebit },
-        { price: config.butterflyLower, pnl: -butterflyDebit },
-        { price: config.butterflyBody, pnl: butterflyMaxProfit },
-        { price: config.butterflyUpper, pnl: -butterflyDebit },
-        { price: config.butterflyUpper + 5, pnl: -butterflyDebit }
-      );
+      data.push(...interpolatePoints(config.butterflyLower - 5, -butterflyDebit, config.butterflyLower, -butterflyDebit, 5));
+      data.push(...interpolatePoints(config.butterflyLower, -butterflyDebit, config.butterflyBody, butterflyMaxProfit, 20));
+      data.push(...interpolatePoints(config.butterflyBody, butterflyMaxProfit, config.butterflyUpper, -butterflyDebit, 20));
+      data.push(...interpolatePoints(config.butterflyUpper, -butterflyDebit, config.butterflyUpper + 5, -butterflyDebit, 5));
       break;
   }
   
