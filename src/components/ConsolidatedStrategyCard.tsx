@@ -562,8 +562,8 @@ export const ConsolidatedStrategyCard: React.FC<ConsolidatedStrategyCardProps> =
                           dataKey="pnl"
                           stroke="#60a5fa"
                           strokeWidth={2}
-                          dot={{ fill: '#60a5fa', strokeWidth: 0, r: 4 }}
-                          activeDot={{ r: 5 }}
+                          dot={false}
+                          activeDot={{ r: 4 }}
                         />
                       </ComposedChart>
                     </ResponsiveContainer>
