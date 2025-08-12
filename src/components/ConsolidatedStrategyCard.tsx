@@ -475,12 +475,12 @@ export const ConsolidatedStrategyCard: React.FC<ConsolidatedStrategyCardProps> =
                       <AreaChart data={chartData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
                         <defs>
                           <linearGradient id={`profitGradient-${strategy}`} x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="5%" stopColor="#10b981" stopOpacity={0.3}/>
-                            <stop offset="95%" stopColor="#10b981" stopOpacity={0.1}/>
+                            <stop offset="0%" stopColor="#10b981" stopOpacity={0.4}/>
+                            <stop offset="100%" stopColor="#10b981" stopOpacity={0.05}/>
                           </linearGradient>
                           <linearGradient id={`lossGradient-${strategy}`} x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="5%" stopColor="#ef4444" stopOpacity={0.1}/>
-                            <stop offset="95%" stopColor="#ef4444" stopOpacity={0.3}/>
+                            <stop offset="0%" stopColor="#ef4444" stopOpacity={0.05}/>
+                            <stop offset="100%" stopColor="#ef4444" stopOpacity={0.4}/>
                           </linearGradient>
                         </defs>
                         
