@@ -406,21 +406,25 @@ const AnalysisAndChartSection: React.FC<AnalysisAndChartSectionProps> = ({
               <Line type="monotone" dataKey="price" stroke="#3b82f6" strokeWidth={2} dot={false} />
               
               {/* Strike Price Reference Lines */}
-              <ReferenceLine y={spreadConfig.bullCallLower} stroke="#22c55e" strokeDasharray="5 5" label={{
-              value: `Bull Call Lower: $${spreadConfig.bullCallLower}`
-            }} />
-              <ReferenceLine y={spreadConfig.bullCallUpper} stroke="#22c55e" strokeDasharray="5 5" label={{
-              value: `Bull Call Upper: $${spreadConfig.bullCallUpper}`
-            }} />
-              <ReferenceLine y={spreadConfig.ironCondorPutShort} stroke="#a855f7" strokeDasharray="3 3" label={{
-              value: `IC Put Short: $${spreadConfig.ironCondorPutShort}`
-            }} />
-              <ReferenceLine y={spreadConfig.ironCondorCallShort} stroke="#a855f7" strokeDasharray="3 3" label={{
-              value: `IC Call Short: $${spreadConfig.ironCondorCallShort}`
-            }} />
-              <ReferenceLine y={spreadConfig.butterflyBody} stroke="#eab308" strokeDasharray="2 2" label={{
-              value: `Butterfly Body: $${spreadConfig.butterflyBody}`
-            }} />
+              {spreadConfig && (
+                <>
+                  <ReferenceLine y={spreadConfig.bullCallLower} stroke="#22c55e" strokeDasharray="5 5" label={{
+                    value: `Bull Call Lower: $${spreadConfig.bullCallLower}`
+                  }} />
+                  <ReferenceLine y={spreadConfig.bullCallUpper} stroke="#22c55e" strokeDasharray="5 5" label={{
+                    value: `Bull Call Upper: $${spreadConfig.bullCallUpper}`
+                  }} />
+                  <ReferenceLine y={spreadConfig.ironCondorPutShort} stroke="#a855f7" strokeDasharray="3 3" label={{
+                    value: `IC Put Short: $${spreadConfig.ironCondorPutShort}`
+                  }} />
+                  <ReferenceLine y={spreadConfig.ironCondorCallShort} stroke="#a855f7" strokeDasharray="3 3" label={{
+                    value: `IC Call Short: $${spreadConfig.ironCondorCallShort}`
+                  }} />
+                  <ReferenceLine y={spreadConfig.butterflyBody} stroke="#eab308" strokeDasharray="2 2" label={{
+                    value: `Butterfly Body: $${spreadConfig.butterflyBody}`
+                  }} />
+                </>
+              )}
             </LineChart>
           </ResponsiveContainer>
         </div>
