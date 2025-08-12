@@ -23,6 +23,10 @@ class IBSettings(Base):
 	market_data_type = Column(Integer, default=1)
 	auto_connect = Column(Boolean, default=False)
 	encrypted_credentials = Column(Text, nullable=True)
+	active = Column(Boolean, default=True)  # Added missing field
+	connection_timeout = Column(Integer, default=10)  # Added for timeout management
+	retry_attempts = Column(Integer, default=3)  # Added for retry logic
+	market_data_permissions = Column(JSONB, nullable=True)  # Added for permissions tracking
 	created_at = Column(DateTime(timezone=True), default=func.now())
 	updated_at = Column(DateTime(timezone=True), default=func.now(), onupdate=func.now())
 	
