@@ -136,7 +136,7 @@ describe('StrategyDashboard Integration with Strike Selection', () => {
     expect(putShortSlider).toBeInTheDocument()
 
     // Simulate changing put short strike from default 98% to 97%
-    const putShortInput = screen.getByLabelText('Put Short Strike (%)')
+    const putShortInput = screen.getByRole('spinbutton', { name: 'Put Short Strike (%)' })
     await user.clear(putShortInput)
     await user.type(putShortInput, '97')
 
