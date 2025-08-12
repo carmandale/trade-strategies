@@ -14,7 +14,7 @@ interface AnalysisAndChartSectionProps {
     price: number;
     volume: number;
   }[];
-  spreadConfig: SpreadConfig;
+  spreadConfig: SpreadConfig | null;
   trades: Trade[];
   onLogTrade: (strategy: string, pnl: number) => void;
   onDeleteTrade: (tradeId: string) => void;
@@ -40,7 +40,8 @@ const AnalysisAndChartSection: React.FC<AnalysisAndChartSectionProps> = ({
   const [showFullAssessment, setShowFullAssessment] = useState<string | null>(null)
   
   // Convert strategy data to AI service format
-  const convertToAIStrategyParams = (strategyType: string, data: any): StrategyParams => {
+  const convertToAIStrategyParams = (strategyType: string, data: any): StrategyParams | null => {
+    if (!spreadConfig) return null;
     // For 0DTE (same day expiration) strategies, use the selected trading date
     const tradingDate = selectedDate || new Date()
     const expiration = tradingDate.toISOString().split('T')[0] // Same day expiration (0DTE)
@@ -50,23 +51,23 @@ const AnalysisAndChartSection: React.FC<AnalysisAndChartSectionProps> = ({
     switch (strategyType) {
       case 'bull_call':
         strikes = {
-          long_strike: spreadConfig.bullCallLower,
-          short_strike: spreadConfig.bullCallUpper
+          long_strike: spreadConfig!.bullCallLower,
+          short_strike: spreadConfig!.bullCallUpper
         }
         break
       case 'iron_condor':
         strikes = {
-          put_long: spreadConfig.ironCondorPutLong,
-          put_short: spreadConfig.ironCondorPutShort,
-          call_short: spreadConfig.ironCondorCallShort,
-          call_long: spreadConfig.ironCondorCallLong
+          put_long: spreadConfig!.ironCondorPutLong,
+          put_short: spreadConfig!.ironCondorPutShort,
+          call_short: spreadConfig!.ironCondorCallShort,
+          call_long: spreadConfig!.ironCondorCallLong
         }
         break
       case 'butterfly':
         strikes = {
-          lower_strike: spreadConfig.butterflyLower,
-          body_strike: spreadConfig.butterflyBody,
-          upper_strike: spreadConfig.butterflyUpper
+          lower_strike: spreadConfig!.butterflyLower,
+          body_strike: spreadConfig!.butterflyBody,
+          upper_strike: spreadConfig!.butterflyUpper
         }
         break
     }
