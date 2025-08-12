@@ -62,6 +62,10 @@ class IBConnectionManager:
 			with self.get_db_session() as session:
 				settings = session.query(IBSettings).first()
 				if settings:
+					# Access all properties to eagerly load them before expunging
+					_ = (settings.id, settings.host, settings.port, settings.client_id, 
+						 settings.account, settings.market_data_type, settings.auto_connect,
+						 settings.active, settings.created_at, settings.updated_at)
 					# Detach from session to avoid lazy loading issues
 					session.expunge(settings)
 				return settings
