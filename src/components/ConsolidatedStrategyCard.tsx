@@ -480,7 +480,7 @@ export const ConsolidatedStrategyCard: React.FC<ConsolidatedStrategyCardProps> =
                   </div>
                   <div className="bg-slate-900/50 rounded-lg p-4 h-80">
                     <ResponsiveContainer width="100%" height="100%">
-                      <AreaChart data={chartData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+                      <AreaChart data={chartData} margin={{ top: 20, right: 40, left: 30, bottom: 20 }}>
                         <defs>
                           <linearGradient id={`profitGradient-${strategy}`} x1="0" y1="0" x2="0" y2="1">
                             <stop offset="0%" stopColor="#10b981" stopOpacity={0.4}/>
