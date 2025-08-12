@@ -477,9 +477,9 @@ export const ConsolidatedStrategyCard: React.FC<ConsolidatedStrategyCardProps> =
                       </div>
                     ))}
                   </div>
-                  <div className="bg-slate-900/50 rounded-lg p-1 h-80">
+                  <div className="bg-slate-900/50 rounded-lg h-96">
                     <ResponsiveContainer width="100%" height="100%">
-                      <ComposedChart data={chartData} margin={{ top: 5, right: 35, left: 35, bottom: 20 }}>
+                      <ComposedChart data={chartData} margin={{ top: 15, right: 5, left: 5, bottom: 20 }}>
                         <defs>
                           <linearGradient id={`profitGradient-${strategy}`} x1="0" y1="0" x2="0" y2="1">
                             <stop offset="0%" stopColor="#10b981" stopOpacity={0.3}/>
@@ -495,14 +495,17 @@ export const ConsolidatedStrategyCard: React.FC<ConsolidatedStrategyCardProps> =
                           dataKey="price" 
                           stroke="#9ca3af" 
                           fontSize={9}
-                          tickFormatter={formatPrice}
+                          tick={{ fontSize: 9 }}
+                          tickFormatter={(value) => `${value}`}
                           domain={['dataMin', 'dataMax']}
                           type="number"
                         />
                         <YAxis 
                           stroke="#9ca3af" 
                           fontSize={9}
-                          tickFormatter={formatCurrency}
+                          tick={{ fontSize: 9 }}
+                          tickFormatter={(value) => value >= 0 ? `+${value}` : `${value}`}
+                          width={40}
                         />
                         <Tooltip content={<PnLTooltip />} />
                         
