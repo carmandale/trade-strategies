@@ -71,20 +71,18 @@ async def connect_to_ib():
 		Connection response with status
 	"""
 	try:
-		success = ib_connection_manager.connect()
+		result = ib_connection_manager.connect()
 		
-		if success:
-			status = ib_connection_manager.get_connection_status()
+		if result["success"]:
 			return ConnectionResponse(
 				success=True,
-				message="Connected to Interactive Brokers",
-				status=status
+				message=result["message"],
+				status=result["status"]
 			)
 		else:
-			status = ib_connection_manager.get_connection_status()
 			raise HTTPException(
 				status_code=500, 
-				detail="Failed to connect to Interactive Brokers"
+				detail=result["message"]
 			)
 	except HTTPException:
 		raise
