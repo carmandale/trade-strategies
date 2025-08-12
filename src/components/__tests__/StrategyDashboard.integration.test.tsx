@@ -189,8 +189,14 @@ describe('StrategyDashboard Integration with Strike Selection', () => {
     await user.click(dailyCard)
 
     await waitFor(() => {
-      expect(screen.getByRole('spinbutton', { name: 'Put Short Strike (%)' })).toHaveValue(97)
+      expect(screen.getByText(/Iron Condor — Daily/i)).toBeInTheDocument()
     })
+    
+    // Wait a bit for hook to restore state
+    await waitFor(() => {
+      const putShortInput = screen.getByRole('spinbutton', { name: 'Put Short Strike (%)' })
+      expect(putShortInput).toHaveValue(97)
+    }, { timeout: 1000 })
   })
 
   it('shows loading states during strike recalculation', async () => {
