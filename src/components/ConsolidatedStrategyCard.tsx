@@ -554,7 +554,7 @@ export const ConsolidatedStrategyCard: React.FC<ConsolidatedStrategyCardProps> =
                         <Line
                           type="linear"
                           dataKey="pnl"
-                          stroke={(entry: any) => entry.pnl >= 0 ? "#10b981" : "#ef4444"}
+                          stroke="#60a5fa"
                           strokeWidth={1}
                           dot={false}
                           activeDot={{ r: 3 }}
