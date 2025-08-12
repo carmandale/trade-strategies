@@ -2,8 +2,8 @@
 import pytest
 from unittest.mock import Mock, patch, MagicMock, AsyncMock
 from datetime import datetime, timezone
-from services.ib_connection_manager import IBConnectionManager
-from database.models import IBSettings, IBConnectionLog
+from api.services.ib_connection_manager import IBConnectionManager
+from api.models.ib_models import IBSettings, IBConnectionLog
 
 
 class TestIBConnectionManager:
