@@ -195,13 +195,18 @@ class IBConnectionManager:
 	def disconnect(self) -> Dict[str, Any]:
 		"""Disconnect from Interactive Brokers."""
 		try:
-			if self.ib_client:
-				# self.ib_client.disconnect()
-				pass
+			logger.info("Disconnecting from IB")
+			
+			if self.ib_client and IB is not None:
+				try:
+					self.ib_client.disconnect()
+				except Exception as e:
+					logger.warning(f"Error during IB disconnect: {e}")
 			
 			self.is_connected = False
 			self.account = None
 			self.ib_client = None
+			self.reconnect_attempts = 0
 			
 			self._log_connection_event("disconnect", "disconnected", None)
 			
