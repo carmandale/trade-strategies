@@ -532,7 +532,7 @@ export const ConsolidatedStrategyCard: React.FC<ConsolidatedStrategyCardProps> =
                           const minDistanceBetweenStrikes = 10; // Minimum $10 between strikes
                           
                           // Check if this strike is too close to current price or other strikes
-                          const tooCloseToPrice = Math.abs(currentStrike - currentPrice) < minDistanceFromPrice;
+                          const tooCloseToPrice = Math.abs(currentStrike - currentPriceRounded) < minDistanceFromPrice;
                           const tooCloseToOtherStrikes = strikes.some((otherStrike, otherIndex) => {
                             if (otherIndex === index) return false;
                             const otherValue = Math.round(otherStrike.value / 5) * 5;
