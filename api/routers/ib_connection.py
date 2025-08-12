@@ -217,7 +217,7 @@ async def update_ib_settings(settings: SettingsUpdate):
 	"""
 	try:
 		# Convert to dict and remove None values
-		settings_dict = {k: v for k, v in settings.dict().items() if v is not None}
+		settings_dict = {k: v for k, v in settings.model_dump().items() if v is not None}
 		
 		success = ib_connection_manager.save_settings(settings_dict)
 		
