@@ -335,9 +335,12 @@ class TestIBStrategyCalculator:
 	@patch('services.ib_strategy_calculator.get_db_session')
 	def test_save_strategy_with_ib_data(self, mock_get_db, calculator, sample_ib_options_data):
 		"""Test saving strategy calculation with IB data tracking."""
-		# Mock database session
+		# Mock database session with context manager support
 		mock_db = Mock()
-		mock_get_db.return_value = iter([mock_db])
+		mock_context_manager = MagicMock()
+		mock_context_manager.__enter__.return_value = mock_db
+		mock_context_manager.__exit__.return_value = None
+		mock_get_db.return_value = mock_context_manager
 		
 		calculator.market_data_service.fetch_options_chain.return_value = sample_ib_options_data
 		
