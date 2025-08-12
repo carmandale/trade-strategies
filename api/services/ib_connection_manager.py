@@ -124,17 +124,55 @@ class IBConnectionManager:
 			# Log connection attempt
 			self._log_connection_event("connect_attempt", "attempting", settings.account)
 			
-			# For now, simulate connection (would use ib_insync in real implementation)
 			logger.info(f"Attempting to connect to IB at {settings.host}:{settings.port}")
 			
-			# TODO: Implement actual IB connection using ib_insync
-			# from ib_insync import IB
-			# self.ib_client = IB()
-			# self.ib_client.connect(settings.host, settings.port, settings.client_id)
-			
-			# Simulate successful connection for now
-			self.is_connected = True
-			self.account = settings.account
+			# Check if ib_insync is available
+			if IB is None:
+				logger.warning("ib_insync not available, using simulation mode")
+				# Simulate successful connection for testing
+				self.is_connected = True
+				self.account = settings.account
+			else:
+				# Actual IB connection using ib_insync
+				if self.ib_client:
+					self.disconnect()
+				
+				self.ib_client = IB()
+				try:
+					self.ib_client.connect(
+						host=settings.host,
+						port=settings.port,
+						clientId=settings.client_id,
+						timeout=10
+					)
+					
+					if self.ib_client.isConnected():
+						# Set market data type
+						if hasattr(settings, 'market_data_type'):
+							self.ib_client.reqMarketDataType(settings.market_data_type)
+						
+						# Get account info
+						account_summary = self.ib_client.accountSummary()
+						if account_summary:
+							self.account = account_summary[0].account
+						else:
+							self.account = settings.account
+						
+						self.is_connected = True
+						self.reconnect_attempts = 0
+					else:
+						raise Exception("Failed to connect to IB")
+					
+				except Exception as e:
+					logger.error(f"IB connection failed: {e}")
+					if self.ib_client:
+						try:
+							self.ib_client.disconnect()
+						except:
+							pass
+					self.ib_client = None
+					self.is_connected = False
+					raise
 			
 			self._log_connection_event("connect_success", "connected", settings.account)
 			
