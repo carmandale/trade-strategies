@@ -156,6 +156,101 @@ const PnLTooltip = ({ active, payload, label }: any) => {
   return null;
 };
 
+// Get chart title with strike configuration
+const getChartTitle = (strategy: StrategyType, config: SpreadConfig, currentPrice: number): string => {
+  switch (strategy) {
+    case 'bullCall':
+      return `Bull Call Spread (${config.bullCallLower}/${config.bullCallUpper})`;
+    case 'ironCondor':
+      return `Iron Condor (${config.ironCondorPutLong}/${config.ironCondorPutShort}/${config.ironCondorCallShort}/${config.ironCondorCallLong})`;
+    case 'butterfly':
+      return `Butterfly Spread (${config.butterflyLower}/${config.butterflyBody}/${config.butterflyUpper})`;
+    default:
+      return 'Profit & Loss Chart';
+  }
+};
+
+// Get chart information panels
+const getChartInfo = (strategy: StrategyType, config: SpreadConfig, currentPrice: number) => {
+  const info = [];
+  
+  switch (strategy) {
+    case 'bullCall':
+      const bullCallSpreadWidth = config.bullCallUpper - config.bullCallLower;
+      const bullCallProfitZone = `$${config.bullCallLower} - $${config.bullCallUpper}`;
+      const bullCallNetDebit = Math.round(bullCallSpreadWidth * 0.4 * 100);
+      info.push(
+        { label: 'Spread Width', value: `$${bullCallSpreadWidth}` },
+        { label: 'Profit Zone', value: bullCallProfitZone },
+        { label: 'Zone Width', value: `$${bullCallSpreadWidth}` },
+        { label: 'Est. Debit', value: `$${bullCallNetDebit}` }
+      );
+      break;
+      
+    case 'ironCondor':
+      const putSpreadWidth = config.ironCondorPutShort - config.ironCondorPutLong;
+      const callSpreadWidth = config.ironCondorCallLong - config.ironCondorCallShort;
+      const profitZone = `$${config.ironCondorPutShort} - $${config.ironCondorCallShort}`;
+      const zoneWidth = config.ironCondorCallShort - config.ironCondorPutShort;
+      const netCredit = Math.round(Math.min(putSpreadWidth, callSpreadWidth) * 0.3 * 100);
+      info.push(
+        { label: 'Spread Width', value: `$${Math.min(putSpreadWidth, callSpreadWidth)}` },
+        { label: 'Profit Zone', value: profitZone },
+        { label: 'Zone Width', value: `$${zoneWidth}` },
+        { label: 'Est. Credit', value: `$${netCredit}` }
+      );
+      break;
+      
+    case 'butterfly':
+      const wingWidth = config.butterflyBody - config.butterflyLower;
+      const butterflyProfitZone = `$${config.butterflyLower} - $${config.butterflyUpper}`;
+      const butterflyZoneWidth = config.butterflyUpper - config.butterflyLower;
+      const butterflyDebit = Math.round(wingWidth * 0.25 * 100);
+      info.push(
+        { label: 'Wing Width', value: `$${wingWidth}` },
+        { label: 'Profit Zone', value: butterflyProfitZone },
+        { label: 'Zone Width', value: `$${butterflyZoneWidth}` },
+        { label: 'Est. Debit', value: `$${butterflyDebit}` }
+      );
+      break;
+  }
+  
+  return info;
+};
+
+// Get strike lines for chart
+const getStrikeLines = (strategy: StrategyType, config: SpreadConfig) => {
+  const strikes = [];
+  
+  switch (strategy) {
+    case 'bullCall':
+      strikes.push(
+        { value: config.bullCallLower, label: 'Long Call', color: '#10b981' },
+        { value: config.bullCallUpper, label: 'Short Call', color: '#ef4444' }
+      );
+      break;
+      
+    case 'ironCondor':
+      strikes.push(
+        { value: config.ironCondorPutLong, label: 'Long Put', color: '#8b5cf6' },
+        { value: config.ironCondorPutShort, label: 'Short Put', color: '#ef4444' },
+        { value: config.ironCondorCallShort, label: 'Short Call', color: '#ef4444' },
+        { value: config.ironCondorCallLong, label: 'Long Call', color: '#8b5cf6' }
+      );
+      break;
+      
+    case 'butterfly':
+      strikes.push(
+        { value: config.butterflyLower, label: 'Long Lower', color: '#10b981' },
+        { value: config.butterflyBody, label: 'Short Body', color: '#ef4444' },
+        { value: config.butterflyUpper, label: 'Long Upper', color: '#10b981' }
+      );
+      break;
+  }
+  
+  return strikes;
+};
+
 export const ConsolidatedStrategyCard: React.FC<ConsolidatedStrategyCardProps> = ({
   strategy,
   spreadConfig,
