@@ -95,7 +95,7 @@ def upgrade() -> None:
 		sa.Column('status', sa.String(length=20), nullable=False),
 		sa.Column('account', sa.String(length=50), nullable=True),
 		sa.Column('error_message', sa.Text(), nullable=True),
-		sa.Column('metadata', postgresql.JSONB(astext_type=sa.Text()), nullable=True),
+		sa.Column('event_metadata', postgresql.JSONB(astext_type=sa.Text()), nullable=True),
 		sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=True),
 		sa.PrimaryKeyConstraint('id')
 	)
