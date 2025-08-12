@@ -95,3 +95,7 @@ playwright-report/
 # Generated plot files
 spy_plot_*.png
 *.pngtest-app-loading.html
+
+# Test files and screenshots
+test-app-loading.html
+*.png
