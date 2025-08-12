@@ -43,9 +43,12 @@ class TestIBConnectionManager:
 	@patch('api.services.ib_connection_manager.IBConnectionManager.get_db_session')
 	def test_load_settings(self, mock_get_db):
 		"""Test loading connection settings from database."""
-		# Mock database session
+		# Mock database session and context manager
 		mock_db = Mock()
-		mock_get_db.return_value = iter([mock_db])
+		mock_context = Mock()
+		mock_context.__enter__ = Mock(return_value=mock_db)
+		mock_context.__exit__ = Mock(return_value=None)
+		mock_get_db.return_value = mock_context
 		
 		# Mock settings
 		mock_settings = Mock(spec=IBSettings)
@@ -56,14 +59,16 @@ class TestIBConnectionManager:
 		mock_settings.market_data_type = 1
 		mock_settings.auto_connect = True
 		mock_settings.encrypted_credentials = None
+		mock_settings.active = True
 		
 		mock_db.query.return_value.filter.return_value.first.return_value = mock_settings
+		mock_db.expunge = Mock()  # Mock the expunge method
 		
 		manager = IBConnectionManager()
 		settings = manager.load_settings()
 		
 		assert settings == mock_settings
-		assert manager.connection_settings == mock_settings
+		assert manager._connection_settings == mock_settings
 		mock_db.query.assert_called_once()
 	
 	@patch('api.services.ib_connection_manager.IBConnectionManager.get_db_session')
