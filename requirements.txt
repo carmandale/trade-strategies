@@ -50,3 +50,5 @@ openai==1.99.8
 ib_insync==0.9.86
 # Cryptography for credential encryption
 cryptography==43.0.3
+# SciPy for Black-Scholes Greeks calculations
+scipy==1.15.0
