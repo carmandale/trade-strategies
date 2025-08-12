@@ -399,15 +399,8 @@ export class ApiService {
       };
     } catch (error) {
       console.error('Error fetching market data:', error);
-      console.error('Falling back to hardcoded price 425.50');
-      // Return fallback data
-      return {
-        current_price: 425.50,
-        change: 1.25,
-        change_percent: 0.29,
-        volume: 45000000,
-        timestamp: new Date().toISOString()
-      };
+      // Throw error instead of returning fallback - let the UI handle it
+      throw new Error('Unable to fetch market data. Check API connection.');
     }
   }
 
