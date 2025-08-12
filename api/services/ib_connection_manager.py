@@ -233,6 +233,18 @@ class IBConnectionManager:
 		else:
 			return disconnect_result
 	
+	def check_connection(self) -> bool:
+		"""Check if connection to IB is active."""
+		if self.ib_client and IB is not None:
+			try:
+				is_connected = self.ib_client.isConnected()
+				self.is_connected = is_connected
+				return is_connected
+			except:
+				self.is_connected = False
+				return False
+		return self.is_connected
+	
 	def _log_connection_event(self, event_type: str, status: str, account: Optional[str] = None, error: Optional[str] = None):
 		"""Log connection event to database."""
 		try:
