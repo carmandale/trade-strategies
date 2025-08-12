@@ -21,6 +21,22 @@ export const StrategyDashboard: React.FC<{ symbol?: string }> = ({ symbol = 'SPY
   const [timeframeLoading, setTimeframeLoading] = useState<boolean>(false)
   const [timeframeError, setTimeframeError] = useState<string | null>(null)
   const [timeframeData, setTimeframeData] = useState<any | null>(null)
+  const [currentPrice, setCurrentPrice] = useState<number>(430.50) // Default SPY price
+
+  // Strike selection hook
+  const {
+    strikes,
+    setStrikes,
+    calculationResult,
+    isCalculating,
+    calculationError,
+    resetToDefaults,
+    resetError
+  } = useStrikeSelection({
+    symbol,
+    currentPrice,
+    selectedTimeframe
+  })
 
   useEffect(() => {
     const fetchData = async () => {
