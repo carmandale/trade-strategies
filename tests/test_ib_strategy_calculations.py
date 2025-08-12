@@ -201,13 +201,15 @@ class TestIBStrategyCalculator:
 	def test_get_option_data_by_strike(self, calculator, sample_ib_options_data):
 		"""Test retrieving specific option data by strike."""
 		calculator.market_data_service.fetch_options_chain.return_value = sample_ib_options_data
+		calculator.market_data_service.get_cached_options_data.return_value = None
 		
-		# Get specific option data
+		# Get specific option data from IB data
 		put_445 = calculator.get_option_data_by_strike(
 			symbol='SPY',
 			expiration=date(2025, 1, 17),
 			strike=445,
-			option_type='put'
+			option_type='put',
+			ib_data=sample_ib_options_data
 		)
 		
 		assert put_445 is not None
