@@ -171,7 +171,7 @@ describe('StrategyDashboard Integration with Strike Selection', () => {
     })
 
     // Modify a strike
-    const putShortInput = screen.getByLabelText('Put Short Strike (%)')
+    const putShortInput = screen.getByRole('spinbutton', { name: 'Put Short Strike (%)' })
     await user.clear(putShortInput)
     await user.type(putShortInput, '97')
 
