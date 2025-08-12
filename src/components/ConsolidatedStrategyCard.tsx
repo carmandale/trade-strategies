@@ -84,11 +84,39 @@ const formatPrice = (value: number): string => {
 // Generate P&L data for visualization
 const generatePnLData = (strategy: StrategyType, config: SpreadConfig, currentPrice: number) => {
   const data = [];
-  const priceRange = currentPrice * 0.15; // ±15% price range for better focus
-  const step = priceRange / 100;
   
-  for (let i = 0; i <= 200; i++) {
-    const price = currentPrice - priceRange + (i * step);
+  // Strategy-specific ranges based on strike positions
+  let minPrice: number;
+  let maxPrice: number;
+  
+  switch (strategy) {
+    case 'bullCall':
+      // Range from 10 below lower strike to 10 above upper strike
+      minPrice = config.bullCallLower - 10;
+      maxPrice = config.bullCallUpper + 10;
+      break;
+    case 'ironCondor':
+      // Range from 10 below put long to 10 above call long
+      minPrice = config.ironCondorPutLong - 10;
+      maxPrice = config.ironCondorCallLong + 10;
+      break;
+    case 'butterfly':
+      // Range from 5 below lower to 5 above upper
+      minPrice = config.butterflyLower - 5;
+      maxPrice = config.butterflyUpper + 5;
+      break;
+    default:
+      // Fallback to percentage range
+      const priceRange = currentPrice * 0.10;
+      minPrice = currentPrice - priceRange;
+      maxPrice = currentPrice + priceRange;
+  }
+  
+  const range = maxPrice - minPrice;
+  const step = range / 100;
+  
+  for (let i = 0; i <= 100; i++) {
+    const price = minPrice + (i * step);
     let pnl = 0;
     
     switch (strategy) {
