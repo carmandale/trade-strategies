@@ -321,7 +321,7 @@ class IBConnectionManager:
 		if not self._encryption_key:
 			# Generate encryption key from a fixed salt
 			salt = b'trade-strategies-ib-salt'
-			kdf = PBKDF2(
+			kdf = PBKDF2HMAC(
 				algorithm=hashes.SHA256(),
 				length=32,
 				salt=salt,
