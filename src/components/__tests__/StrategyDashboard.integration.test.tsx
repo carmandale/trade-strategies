@@ -187,7 +187,7 @@ describe('StrategyDashboard Integration with Strike Selection', () => {
     await user.click(dailyCard)
 
     await waitFor(() => {
-      expect(screen.getByLabelText('Put Short Strike (%)')).toHaveValue(97)
+      expect(screen.getByRole('spinbutton', { name: 'Put Short Strike (%)' })).toHaveValue(97)
     })
   })
 
@@ -214,7 +214,7 @@ describe('StrategyDashboard Integration with Strike Selection', () => {
     })
 
     // Modify strike
-    const putShortInput = screen.getByLabelText('Put Short Strike (%)')
+    const putShortInput = screen.getByRole('spinbutton', { name: 'Put Short Strike (%)' })
     await user.clear(putShortInput)
     await user.type(putShortInput, '96')
 
@@ -247,7 +247,7 @@ describe('StrategyDashboard Integration with Strike Selection', () => {
     )
 
     // Modify strike
-    const putShortInput = screen.getByLabelText('Put Short Strike (%)')
+    const putShortInput = screen.getByRole('spinbutton', { name: 'Put Short Strike (%)' })
     await user.clear(putShortInput)
     await user.type(putShortInput, '95')
 
@@ -300,7 +300,7 @@ describe('StrategyDashboard Integration with Strike Selection', () => {
     expect(screen.getByText('Profit/Loss Chart')).toBeInTheDocument()
 
     // Modify strike
-    const putShortInput = screen.getByLabelText('Put Short Strike (%)')
+    const putShortInput = screen.getByRole('spinbutton', { name: 'Put Short Strike (%)' })
     await user.clear(putShortInput)
     await user.type(putShortInput, '96')
 
@@ -325,8 +325,8 @@ describe('StrategyDashboard Integration with Strike Selection', () => {
     })
 
     // Set invalid strike order (put long >= put short)
-    const putLongInput = screen.getByLabelText('Put Long Strike (%)')
-    const putShortInput = screen.getByLabelText('Put Short Strike (%)')
+    const putLongInput = screen.getByRole('spinbutton', { name: 'Put Long Strike (%)' })
+    const putShortInput = screen.getByRole('spinbutton', { name: 'Put Short Strike (%)' })
 
     await user.clear(putLongInput)
     await user.type(putLongInput, '99') // Higher than put short (should be 98%)
