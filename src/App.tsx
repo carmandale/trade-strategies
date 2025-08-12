@@ -29,9 +29,21 @@ function App() {
     }
   }, [useConsolidatedLayout]);
 
+  const toggleButton = (
+    <div className="fixed top-4 right-4 z-50">
+      <button
+        onClick={() => setUseConsolidatedLayout(!useConsolidatedLayout)}
+        className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded-lg transition-colors"
+      >
+        {useConsolidatedLayout ? 'Switch to Original' : 'Switch to Consolidated'}
+      </button>
+    </div>
+  );
+
   if (container === 'centered') {
     return (
       <>
+        {toggleButton}
         <div className="h-full w-full flex flex-col items-center justify-center">
           {generatedComponent}
         </div>
@@ -41,6 +53,7 @@ function App() {
   } else {
     return (
       <>
+        {toggleButton}
         {generatedComponent}
         <AccuracyReport />
       </>
