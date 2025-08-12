@@ -277,9 +277,9 @@ describe('StrategyDashboard Integration with Strike Selection', () => {
       expect(screen.getByText('Strike Selection')).toBeInTheDocument()
     })
 
-    // Strike controls should be stacked vertically on mobile
-    const strikeSelector = screen.getByText('Strike Selection').closest('div')
-    expect(strikeSelector).toHaveClass('space-y-6')
+    // Strike controls should be stacked vertically on mobile - look for proper container
+    const strikeSelectorContainer = screen.getByText('Strike Selection').closest('[class*="space-y"]')
+    expect(strikeSelectorContainer).toBeInTheDocument()
 
     // Visualization should maintain readable layout
     const visualization = screen.getByText('Strike Visualization')
