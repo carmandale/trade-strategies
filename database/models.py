@@ -845,7 +845,7 @@ class IBConnectionLog(Base):
             status=status,
             account=account,
             error_message=error_message,
-            metadata=metadata
+            event_metadata=metadata
         )
         db_session.add(log)
         db_session.commit()
@@ -859,6 +859,6 @@ class IBConnectionLog(Base):
             'status': self.status,
             'account': self.account,
             'error_message': self.error_message,
-            'metadata': self.metadata,
+            'metadata': self.event_metadata,
             'created_at': self.created_at.isoformat() if self.created_at else None
         }
