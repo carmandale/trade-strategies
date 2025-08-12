@@ -216,6 +216,55 @@ export const StrategyDashboard: React.FC<{ symbol?: string }> = ({ symbol = 'SPY
                 </div>
               </div>
 
+              {/* Strike Selection and Visualization */}
+              <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+                {/* Strike Selection Controls */}
+                <div>
+                  <StrikeSelector
+                    strikes={strikes}
+                    currentPrice={currentPrice}
+                    onStrikesChange={setStrikes}
+                    loading={isCalculating}
+                  />
+                  
+                  {calculationError && (
+                    <div className="mt-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
+                      <div className="flex items-center">
+                        <div className="text-red-800 dark:text-red-200 text-sm">
+                          <strong>Calculation Error:</strong> {calculationError}
+                        </div>
+                        <button
+                          onClick={resetError}
+                          className="ml-auto text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-200 text-sm underline"
+                        >
+                          Dismiss
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                  
+                  <div className="mt-4 flex flex-wrap gap-2">
+                    <button
+                      onClick={resetToDefaults}
+                      className="px-3 py-1 text-sm bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+                    >
+                      Reset to Defaults
+                    </button>
+                  </div>
+                </div>
+
+                {/* Strike Visualization */}
+                <div>
+                  <StrikeVisualization
+                    strikes={strikes}
+                    currentPrice={currentPrice}
+                    loading={isCalculating}
+                    height={350}
+                    showPercentages={true}
+                  />
+                </div>
+              </div>
+
               {/* Trades table */}
               <div className="overflow-x-auto">
                 <table className="min-w-full text-sm">
