@@ -218,32 +218,34 @@ const getChartInfo = (strategy: StrategyType, config: SpreadConfig, currentPrice
   return info;
 };
 
-// Get strike lines for chart
+// Get strike lines for chart with optimized labels
 const getStrikeLines = (strategy: StrategyType, config: SpreadConfig) => {
   const strikes = [];
   
   switch (strategy) {
     case 'bullCall':
+      // Shorter labels for close strikes
       strikes.push(
-        { value: config.bullCallLower, label: 'Long Call', color: '#10b981' },
-        { value: config.bullCallUpper, label: 'Short Call', color: '#ef4444' }
+        { value: config.bullCallLower, label: 'Long', color: '#10b981' },
+        { value: config.bullCallUpper, label: 'Short', color: '#ef4444' }
       );
       break;
       
     case 'ironCondor':
       strikes.push(
-        { value: config.ironCondorPutLong, label: 'Long Put', color: '#8b5cf6' },
-        { value: config.ironCondorPutShort, label: 'Short Put', color: '#ef4444' },
-        { value: config.ironCondorCallShort, label: 'Short Call', color: '#ef4444' },
-        { value: config.ironCondorCallLong, label: 'Long Call', color: '#8b5cf6' }
+        { value: config.ironCondorPutLong, label: 'LP', color: '#8b5cf6' },
+        { value: config.ironCondorPutShort, label: 'SP', color: '#ef4444' },
+        { value: config.ironCondorCallShort, label: 'SC', color: '#ef4444' },
+        { value: config.ironCondorCallLong, label: 'LC', color: '#8b5cf6' }
       );
       break;
       
     case 'butterfly':
+      // Shorter labels for close strikes
       strikes.push(
-        { value: config.butterflyLower, label: 'Long Lower', color: '#10b981' },
-        { value: config.butterflyBody, label: 'Short Body', color: '#ef4444' },
-        { value: config.butterflyUpper, label: 'Long Upper', color: '#10b981' }
+        { value: config.butterflyLower, label: 'Lower', color: '#10b981' },
+        { value: config.butterflyBody, label: 'Body', color: '#ef4444' },
+        { value: config.butterflyUpper, label: 'Upper', color: '#10b981' }
       );
       break;
   }
