@@ -303,7 +303,7 @@ const AnalysisAndChartSection: React.FC<AnalysisAndChartSectionProps> = ({
             <p className="text-xs text-slate-400">Analyzed strategies ready for execution</p>
           </div>
         </div>
-        {analysisData ? (
+        {analysisData && spreadConfig ? (
           <div className="space-y-3">
             {/* Bull Call Strategy */}
             <div className="bg-slate-700/30 rounded-lg p-3 hover:bg-slate-700/50 transition-colors">
