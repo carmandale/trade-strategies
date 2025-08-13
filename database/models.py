@@ -466,7 +466,7 @@ class AISettings(Base):
     temperature = Column(DECIMAL(3, 2), server_default='0.30')  # 0.00 to 1.00
     max_tokens = Column(Integer, server_default='800')
     cache_ttl = Column(Integer, server_default='300')  # 5 minutes default
-    reasoning_effort = Column(Enum(ReasoningEffort), server_default='medium')
+    reasoning_effort = Column(Enum(ReasoningEffort), server_default="'medium'")
     auto_assess = Column(Boolean, server_default='false')
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
