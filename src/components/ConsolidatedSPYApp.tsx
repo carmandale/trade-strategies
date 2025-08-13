@@ -142,9 +142,166 @@ const ConsolidatedSPYApp: React.FC = () => {
   };
 
   // Handle strategy execution
-  const handleExecuteStrategy = (strategy: StrategyType) => {
+  const handleExecuteStrategy = async (strategy: StrategyType) => {
     console.log(`Executing ${strategy} strategy`);
-    // TODO: Implement actual strategy execution
+    
+    if (!spreadConfig || !spyPrice) {
+      console.error('Cannot execute strategy: missing configuration or price data');
+      return;
+    }
+    
+    try {
+      // Format date for options expiration (third Friday of the month)
+      const expirationDate = new Date(selectedDate);
+      // Set to the next Friday
+      expirationDate.setDate(expirationDate.getDate() + (5 - expirationDate.getDay() + 7) % 7);
+      // Format as YYYY-MM-DD for API
+      const expirationStr = expirationDate.toISOString().split('T')[0];
+      
+      // Create appropriate legs and pricing based on strategy type
+      let legs = [];
+      let pricing = { side: 'DEBIT' as const, net: 0, tif: 'GTC' as const };
+      let strategyName = '';
+      
+      switch (strategy) {
+        case 'bullCall':
+          // Bull Call Spread: Buy lower strike call, sell higher strike call
+          legs = [
+            {
+              action: 'BUY' as const,
+              type: 'CALL' as const,
+              strike: spreadConfig.bullCallLower,
+              expiration: expirationDate,
+              quantity: 1
+            },
+            {
+              action: 'SELL' as const,
+              type: 'CALL' as const,
+              strike: spreadConfig.bullCallUpper,
+              expiration: expirationDate,
+              quantity: 1
+            }
+          ];
+          
+          // Calculate approximate debit (35% of width)
+          const bcSpreadWidth = spreadConfig.bullCallUpper - spreadConfig.bullCallLower;
+          const bcNetDebit = parseFloat((bcSpreadWidth * 0.35).toFixed(2));
+          pricing = { side: 'DEBIT' as const, net: bcNetDebit, tif: 'GTC' as const };
+          strategyName = 'Bull Call';
+          break;
+          
+        case 'ironCondor':
+          // Iron Condor: Sell put spread and call spread
+          legs = [
+            {
+              action: 'BUY' as const,
+              type: 'PUT' as const,
+              strike: spreadConfig.ironCondorPutLong,
+              expiration: expirationDate,
+              quantity: 1
+            },
+            {
+              action: 'SELL' as const,
+              type: 'PUT' as const,
+              strike: spreadConfig.ironCondorPutShort,
+              expiration: expirationDate,
+              quantity: 1
+            },
+            {
+              action: 'SELL' as const,
+              type: 'CALL' as const,
+              strike: spreadConfig.ironCondorCallShort,
+              expiration: expirationDate,
+              quantity: 1
+            },
+            {
+              action: 'BUY' as const,
+              type: 'CALL' as const,
+              strike: spreadConfig.ironCondorCallLong,
+              expiration: expirationDate,
+              quantity: 1
+            }
+          ];
+          
+          // Calculate approximate credit (25% of width)
+          const icSpreadWidth = Math.min(
+            spreadConfig.ironCondorPutShort - spreadConfig.ironCondorPutLong,
+            spreadConfig.ironCondorCallLong - spreadConfig.ironCondorCallShort
+          );
+          const icNetCredit = parseFloat((icSpreadWidth * 0.25).toFixed(2));
+          pricing = { side: 'CREDIT' as const, net: icNetCredit, tif: 'GTC' as const };
+          strategyName = 'Iron Condor';
+          break;
+          
+        case 'butterfly':
+          // Butterfly: Buy lower strike call, sell 2x body strike calls, buy upper strike call
+          legs = [
+            {
+              action: 'BUY' as const,
+              type: 'CALL' as const,
+              strike: spreadConfig.butterflyLower,
+              expiration: expirationDate,
+              quantity: 1
+            },
+            {
+              action: 'SELL' as const,
+              type: 'CALL' as const,
+              strike: spreadConfig.butterflyBody,
+              expiration: expirationDate,
+              quantity: 2
+            },
+            {
+              action: 'BUY' as const,
+              type: 'CALL' as const,
+              strike: spreadConfig.butterflyUpper,
+              expiration: expirationDate,
+              quantity: 1
+            }
+          ];
+          
+          // Calculate approximate debit (20% of width)
+          const bfSpreadWidth = spreadConfig.butterflyBody - spreadConfig.butterflyLower;
+          const bfNetDebit = parseFloat((bfSpreadWidth * 0.20).toFixed(2));
+          pricing = { side: 'DEBIT' as const, net: bfNetDebit, tif: 'GTC' as const };
+          strategyName = 'Butterfly';
+          break;
+      }
+      
+      // Create the options ticket
+      const response = await apiService.createOptionsTicket({
+        symbol: 'SPY',
+        strategy_type: strategyName,
+        contracts: contracts,
+        pricing: pricing,
+        legs: legs,
+        notes: `Executed from strategy analyzer on ${new Date().toLocaleString()}`
+      });
+      
+      console.log('Trade ticket created:', response);
+      
+      // Calculate P&L for trade log based on strategy
+      let pnl = 0;
+      if (analysisData) {
+        switch (strategy) {
+          case 'bullCall':
+            pnl = analysisData.bullCall.maxProfit;
+            break;
+          case 'ironCondor':
+            pnl = analysisData.ironCondor.maxProfit;
+            break;
+          case 'butterfly':
+            pnl = analysisData.butterfly.maxProfit;
+            break;
+        }
+      }
+      
+      // Log the trade
+      handleLogTrade(strategyName, pnl);
+      
+    } catch (error) {
+      console.error('Failed to execute strategy:', error);
+      // Could add UI error notification here
+    }
   };
 
   // Handle trade logging
