@@ -130,8 +130,14 @@ class AIAssessmentService:
                 
                 processing_time_ms = int((time.time() - start_time) * 1000)
                 
+                # Log the raw response for debugging
+                response_content = response.choices[0].message.content
+                logger.info(f"Raw OpenAI response content (first 200 chars): {response_content[:200] if response_content else 'None'}...")
+                logger.info(f"Response content type: {type(response_content)}")
+                logger.info(f"Response content length: {len(response_content) if response_content else 0}")
+                
                 # Parse response
-                assessment_data = self._parse_openai_response(response.choices[0].message.content)
+                assessment_data = self._parse_openai_response(response_content)
                 if not assessment_data:
                     logger.error("Failed to parse OpenAI response")
                     return None
