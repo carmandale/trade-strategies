@@ -277,11 +277,15 @@ class MarketDataCollector:
         avg_loss = losses.rolling(window=period, min_periods=1).mean()
         
         # Get the final values for calculation (avoid Series ambiguity)
-        final_avg_gain = avg_gain.iloc[-1]
-        final_avg_loss = avg_loss.iloc[-1]
+        try:
+            final_avg_gain = float(avg_gain.iloc[-1])
+            final_avg_loss = float(avg_loss.iloc[-1])
+        except (IndexError, ValueError, TypeError):
+            # If we can't extract the final values, return neutral RSI
+            return 50.0
         
-        # Handle edge cases
-        if pd.isna(final_avg_gain) or pd.isna(final_avg_loss):
+        # Handle edge cases (now working with floats, not Series)
+        if pd.isna(final_avg_gain) or pd.isna(final_avg_loss) or np.isnan(final_avg_gain) or np.isnan(final_avg_loss):
             return 50.0
             
         # Prevent division by zero
