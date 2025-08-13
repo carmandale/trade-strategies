@@ -4,7 +4,9 @@ import userEvent from '@testing-library/user-event'
 import React from 'react'
 import { StrategyDashboard } from '../StrategyDashboard'
 
-// Mock the strategy API
+// Mock the strategy API and AI assessment service
+vi.mock('../../services/aiAssessmentService')
+vi.mock('../../services/marketApi')
 vi.mock('../../services/strategyApi', () => {
   const getIronCondorAll = vi.fn(async () => ({
     strategies: {

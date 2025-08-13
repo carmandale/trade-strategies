@@ -717,6 +717,7 @@ export const ConsolidatedStrategyCard: React.FC<ConsolidatedStrategyCardProps> =
                 <button
                   onClick={() => setShowAiAssessmentPage(true)}
                   className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-lg font-medium transition-colors flex items-center justify-center gap-2"
+                  data-testid="ai-analyze-button"
                 >
                   <Brain className="w-4 h-4" />
                   Analyze with AI
