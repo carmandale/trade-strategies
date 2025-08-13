@@ -225,6 +225,11 @@ class AIAssessmentService:
         strike_list = sorted([float(v) for v in strikes.values()])
         expiration_date = strategy_params.get('expiration', 'unknown')
         
+        # Handle None values for profit/loss calculations
+        max_profit = strategy_params.get('max_profit') or 0
+        max_loss = strategy_params.get('max_loss') or 0
+        quantity = strategy_params.get('quantity') or 1
+        
         # Calculate days to expiration and time decay urgency
         try:
             from datetime import datetime
@@ -261,10 +266,10 @@ STRATEGY DETAILS:
 - Strike Analysis: {json.dumps(strike_analysis)}
 - Expiration: {expiration_date} ({days_to_exp} days remaining)
 - Time Decay Urgency: {time_decay_urgency}
-- Position Size: {strategy_params.get('quantity', 1)} contracts
-- Max Profit: ${strategy_params.get('max_profit', 0):,.0f}
-- Max Loss: ${strategy_params.get('max_loss', 0):,.0f}
-- Risk/Reward Ratio: 1:{(strategy_params.get('max_profit', 1) / strategy_params.get('max_loss', 1)):.2f}
+- Position Size: {quantity} contracts
+- Max Profit: ${max_profit:,.0f}
+- Max Loss: ${max_loss:,.0f}
+- Risk/Reward Ratio: 1:{(max_profit / max_loss if max_loss > 0 else 0):,.2f}
 
 CURRENT MARKET ENVIRONMENT:
 - {symbol} Momentum: {spy_change_percent:+.2f}% today, ${spy_change:+.2f} move
