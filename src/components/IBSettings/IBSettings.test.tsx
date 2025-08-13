@@ -16,6 +16,13 @@ vi.mock('../../api/ib-connection', () => ({
 }));
 
 describe('IBSettings', () => {
+	// Helper function to wait for loading state to complete
+	const waitForLoadingToComplete = async () => {
+		await waitFor(() => {
+			expect(screen.queryByText('Loading settings...')).not.toBeInTheDocument();
+		});
+	};
+	
 	beforeEach(() => {
 		vi.clearAllMocks();
 		
@@ -25,7 +32,8 @@ describe('IBSettings', () => {
 		});
 		
 		// Mock default settings - use mockImplementation to ensure it resolves immediately in tests
-		vi.mocked(ibConnectionApi.getSettings).mockImplementation(() => Promise.resolve({
+		// Return a resolved promise synchronously to avoid loading state
+		vi.mocked(ibConnectionApi.getSettings).mockReturnValue(Promise.resolve({
 			host: 'localhost',
 			port: 7497,
 			client_id: 1,
@@ -84,6 +92,9 @@ describe('IBSettings', () => {
 		it('should require host field', async () => {
 			render(<IBSettings />);
 			
+			// Wait for loading to complete
+			await waitForLoadingToComplete();
+			
 			const hostInput = screen.getByLabelText(/Host/i);
 			await userEvent.clear(hostInput);
 			
@@ -95,6 +106,9 @@ describe('IBSettings', () => {
 
 		it('should validate port range', async () => {
 			render(<IBSettings />);
+			
+			// Wait for loading to complete
+			await waitForLoadingToComplete();
 			
 			const portInput = screen.getByLabelText(/Port/i);
 			await userEvent.clear(portInput);
@@ -108,6 +122,9 @@ describe('IBSettings', () => {
 
 		it('should validate client ID is a positive number', async () => {
 			render(<IBSettings />);
+			
+			// Wait for loading to complete
+			await waitForLoadingToComplete();
 			
 			const clientIdInput = screen.getByLabelText(/Client ID/i);
 			await userEvent.clear(clientIdInput);
@@ -138,6 +155,9 @@ describe('IBSettings', () => {
 			});
 
 			render(<IBSettings />);
+			
+			// Wait for loading to complete
+			await waitForLoadingToComplete();
 
 			// Fill in the form
 			await userEvent.type(screen.getByLabelText(/Host/i), mockSettings.host);
@@ -174,6 +194,9 @@ describe('IBSettings', () => {
 			);
 
 			render(<IBSettings />);
+			
+			// Wait for loading to complete
+			await waitForLoadingToComplete();
 
 			const saveButton = screen.getByRole('button', { name: /Save Settings/i });
 			await userEvent.click(saveButton);
@@ -183,8 +206,11 @@ describe('IBSettings', () => {
 			});
 		});
 
-		it('should mask password input', () => {
+		it('should mask password input', async () => {
 			render(<IBSettings />);
+			
+			// Wait for loading to complete
+			await waitForLoadingToComplete();
 			
 			const passwordInput = screen.getByLabelText(/Password/i) as HTMLInputElement;
 			expect(passwordInput.type).toBe('password');
@@ -192,6 +218,9 @@ describe('IBSettings', () => {
 
 		it('should toggle password visibility', async () => {
 			render(<IBSettings />);
+			
+			// Wait for loading to complete
+			await waitForLoadingToComplete();
 			
 			const passwordInput = screen.getByLabelText(/Password/i) as HTMLInputElement;
 			const toggleButton = screen.getByRole('button', { name: /Show password/i });
@@ -336,6 +365,9 @@ describe('IBSettings', () => {
 	describe('Auto-connect Feature', () => {
 		it('should toggle auto-connect setting', async () => {
 			render(<IBSettings />);
+			
+			// Wait for loading to complete
+			await waitForLoadingToComplete();
 
 			const autoConnectCheckbox = screen.getByRole('checkbox', { name: /Auto-connect on startup/i });
 			
@@ -355,6 +387,9 @@ describe('IBSettings', () => {
 			});
 
 			render(<IBSettings />);
+			
+			// Wait for loading to complete
+			await waitForLoadingToComplete();
 
 			const autoConnectCheckbox = screen.getByRole('checkbox', { name: /Auto-connect on startup/i });
 			await userEvent.click(autoConnectCheckbox);
@@ -375,6 +410,9 @@ describe('IBSettings', () => {
 	describe('Environment Indicators', () => {
 		it('should show production warning for port 7496', async () => {
 			render(<IBSettings />);
+			
+			// Wait for loading to complete
+			await waitForLoadingToComplete();
 
 			const portInput = screen.getByLabelText(/Port/i);
 			await userEvent.clear(portInput);
@@ -385,6 +423,9 @@ describe('IBSettings', () => {
 
 		it('should show paper trading indicator for port 7497', async () => {
 			render(<IBSettings />);
+			
+			// Wait for loading to complete
+			await waitForLoadingToComplete();
 
 			const portInput = screen.getByLabelText(/Port/i);
 			await userEvent.clear(portInput);
