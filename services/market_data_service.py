@@ -239,6 +239,9 @@ class MarketDataCollector:
             
         except Exception as e:
             logger.error(f"Error calculating technical indicators: {e}")
+            logger.error(f"Exception type: {type(e)}")
+            import traceback
+            logger.error(f"Traceback: {traceback.format_exc()}")
             # Return fallback values instead of None to prevent format errors
             return {
                 'rsi_14': 50.0,  # Neutral RSI
