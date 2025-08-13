@@ -97,7 +97,8 @@ describe('IBSettings', () => {
 			// Mock connection status
 			vi.mocked(ibConnectionApi.getConnectionStatus).mockResolvedValue({
 				connected: false,
-				message: 'Not connected'
+				message: 'Not connected',
+				account_info: null
 			});
 
 			render(<IBSettings />);
