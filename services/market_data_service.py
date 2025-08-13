@@ -170,11 +170,21 @@ class MarketDataCollector:
             # Download historical data
             data = yf.download(symbol, period="3mo", progress=False)
             
-            if data.empty:
+            if data is None or len(data) == 0 or data.shape[0] == 0:
                 logger.warning(f"No data available for {symbol}")
                 return None
             
+            # Ensure we have Close price data
+            if 'Close' not in data.columns:
+                logger.warning(f"Close price data not available for {symbol}")
+                return None
+            
             close_prices = data['Close']
+            
+            # Additional check for close prices
+            if len(close_prices) == 0:
+                logger.warning(f"No close price data available for {symbol}")
+                return None
             
             # Calculate RSI
             rsi_14 = self._calculate_rsi(close_prices, 14)
