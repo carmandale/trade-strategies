@@ -331,9 +331,9 @@ class AIAssessmentService:
         # Calculate strike distances and moneyness
         strike_analysis = {}
         for strike_type, strike_price in strikes.items():
-            distance_pct = ((float(strike_price) - spy_price) / spy_price) * 100
-            moneyness = "ITM" if ((strike_type.lower().find('put') >= 0 and float(strike_price) > spy_price) or 
-                                 (strike_type.lower().find('call') >= 0 and float(strike_price) < spy_price)) else "OTM"
+            distance_pct = ((float(strike_price) - current_price) / current_price) * 100
+            moneyness = "ITM" if ((strike_type.lower().find('put') >= 0 and float(strike_price) > current_price) or 
+                                 (strike_type.lower().find('call') >= 0 and float(strike_price) < current_price)) else "OTM"
             strike_analysis[strike_type] = {
                 "price": float(strike_price),
                 "distance": f"{distance_pct:+.1f}%",
