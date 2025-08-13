@@ -180,8 +180,14 @@ class MarketDataCollector:
             rsi_14 = self._calculate_rsi(close_prices, 14)
             
             # Calculate moving averages
-            ma_20 = float(close_prices.tail(20).mean())
-            ma_50 = float(close_prices.tail(50).mean()) if len(close_prices) >= 50 else ma_20
+            ma_20_value = close_prices.tail(20).mean()
+            ma_20 = float(ma_20_value) if not pd.isna(ma_20_value) else float(close_prices.iloc[-1])
+            
+            if len(close_prices) >= 50:
+                ma_50_value = close_prices.tail(50).mean()
+                ma_50 = float(ma_50_value) if not pd.isna(ma_50_value) else ma_20
+            else:
+                ma_50 = ma_20
             
             # Calculate Bollinger Bands
             bb_period = 20
