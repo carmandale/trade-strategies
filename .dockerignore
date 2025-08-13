@@ -1,0 +1,67 @@
+## Development files
+node_modules/
+src/
+dist/
+.vite/
+
+## Frontend specific
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+## Git and IDE
+.git/
+.gitignore
+.vscode/
+.idea/
+
+## Documentation and tests
+docs/
+test-results/
+playwright-report/
+*.md
+README*
+
+## Environment files (but keep requirements.txt)
+.env*
+!.env.example
+
+## Cache and temporary files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.so
+.coverage
+.pytest_cache/
+.mypy_cache/
+
+## OS generated files  
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+## Build artifacts
+build/
+*.egg-info/
+
+## Testing
+test_*.py
+*_test.py
+tests/
+playwright.config.ts
+vitest.config.ts
+
+## Config files not needed in production
+.eslintrc*
+.prettierrc*
+tsconfig*.json
+vite.config.ts
+components.json
+package*.json
