@@ -214,14 +214,14 @@ const ConsolidatedSPYApp: React.FC = () => {
               action: 'BUY' as const,
               type: 'CALL' as const,
               strike: spreadConfig.bullCallLower,
-              expiration: expirationDate,
+              expiration: expirationStr,
               quantity: 1
             },
             {
               action: 'SELL' as const,
               type: 'CALL' as const,
               strike: spreadConfig.bullCallUpper,
-              expiration: expirationDate,
+              expiration: expirationStr,
               quantity: 1
             }
           ];
@@ -240,28 +240,28 @@ const ConsolidatedSPYApp: React.FC = () => {
               action: 'BUY' as const,
               type: 'PUT' as const,
               strike: spreadConfig.ironCondorPutLong,
-              expiration: expirationDate,
+              expiration: expirationStr,
               quantity: 1
             },
             {
               action: 'SELL' as const,
               type: 'PUT' as const,
               strike: spreadConfig.ironCondorPutShort,
-              expiration: expirationDate,
+              expiration: expirationStr,
               quantity: 1
             },
             {
               action: 'SELL' as const,
               type: 'CALL' as const,
               strike: spreadConfig.ironCondorCallShort,
-              expiration: expirationDate,
+              expiration: expirationStr,
               quantity: 1
             },
             {
               action: 'BUY' as const,
               type: 'CALL' as const,
               strike: spreadConfig.ironCondorCallLong,
-              expiration: expirationDate,
+              expiration: expirationStr,
               quantity: 1
             }
           ];
@@ -283,21 +283,21 @@ const ConsolidatedSPYApp: React.FC = () => {
               action: 'BUY' as const,
               type: 'CALL' as const,
               strike: spreadConfig.butterflyLower,
-              expiration: expirationDate,
+              expiration: expirationStr,
               quantity: 1
             },
             {
               action: 'SELL' as const,
               type: 'CALL' as const,
               strike: spreadConfig.butterflyBody,
-              expiration: expirationDate,
+              expiration: expirationStr,
               quantity: 2
             },
             {
               action: 'BUY' as const,
               type: 'CALL' as const,
               strike: spreadConfig.butterflyUpper,
-              expiration: expirationDate,
+              expiration: expirationStr,
               quantity: 1
             }
           ];
