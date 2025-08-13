@@ -347,8 +347,29 @@ Return comprehensive JSON analysis:
     
     def _parse_openai_response(self, response: str) -> Optional[Dict[str, Any]]:
         """Parse and validate OpenAI response."""
+        if not response:
+            logger.error("Empty response received from OpenAI")
+            return None
+        
+        # Log response details for debugging
+        logger.info(f"Attempting to parse response of length {len(response)}")
+        
+        # Handle common cases where response might not be JSON
+        response_stripped = response.strip()
+        
+        # Check if it looks like an HTML error page
+        if response_stripped.startswith('<!DOCTYPE') or response_stripped.startswith('<html'):
+            logger.error("Response appears to be HTML (possibly error page), not JSON")
+            logger.error(f"HTML response content: {response_stripped[:500]}...")
+            return None
+        
+        # Check if it looks like a plain text error message
+        if not response_stripped.startswith('{') and not response_stripped.startswith('['):
+            logger.error(f"Response doesn't appear to be JSON. Content: {response_stripped[:200]}...")
+            return None
+        
         try:
-            data = json.loads(response)
+            data = json.loads(response_stripped)
             
             # Validate required fields
             if not self._validate_assessment(data):
@@ -358,6 +379,25 @@ Return comprehensive JSON analysis:
             
         except json.JSONDecodeError as e:
             logger.error(f"Failed to parse JSON response: {str(e)}")
+            logger.error(f"Response content that failed to parse: {response_stripped[:500]}...")
+            
+            # Try to extract JSON if it's wrapped in other text
+            try:
+                # Look for JSON object in the response
+                start_idx = response_stripped.find('{')
+                end_idx = response_stripped.rfind('}') + 1
+                
+                if start_idx >= 0 and end_idx > start_idx:
+                    json_part = response_stripped[start_idx:end_idx]
+                    logger.info(f"Attempting to parse extracted JSON: {json_part[:200]}...")
+                    data = json.loads(json_part)
+                    
+                    if self._validate_assessment(data):
+                        logger.info("Successfully parsed extracted JSON")
+                        return data
+            except Exception as extract_error:
+                logger.error(f"Failed to extract and parse JSON: {str(extract_error)}")
+            
             return None
     
     def _validate_assessment(self, data: Dict[str, Any]) -> bool:
