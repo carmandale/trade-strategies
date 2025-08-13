@@ -18,14 +18,18 @@ app = FastAPI(
     version="1.0.0"
 )
 
-# CORS configuration
+# CORS configuration - Allow both localhost and network IP access
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         os.getenv("FRONTEND_URL", "http://localhost:3000"),
         "http://localhost:3001",  # Current frontend port
         "http://localhost:3002", 
-        "http://localhost:3003"   # Allow multiple frontend ports
+        "http://localhost:3003",  # Allow multiple frontend ports
+        "http://192.168.1.98:3001",  # Network IP access for phone
+        "http://192.168.1.98:3000",  # Alternative port
+        "http://192.168.1.20:3001",  # Previous IP that was detected
+        "*"  # Allow all origins for development (remove in production)
     ],
     allow_credentials=True,
     allow_methods=["*"],
