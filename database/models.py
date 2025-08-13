@@ -435,6 +435,11 @@ class AIAssessment(Base):
     
     def to_dict(self) -> Dict[str, Any]:
         """Convert assessment to dictionary."""
+        # Extract market_regime from market_conditions if it exists
+        market_regime = ''
+        if self.market_conditions and isinstance(self.market_conditions, dict):
+            market_regime = self.market_conditions.get('market_regime', '')
+        
         return {
             'id': str(self.id),
             'assessment_id': self.assessment_id,
@@ -445,6 +450,7 @@ class AIAssessment(Base):
             'recommendation': self.recommendation.value if self.recommendation else None,
             'confidence': self.confidence,
             'reasoning': self.reasoning,
+            'market_regime': market_regime,  # Add the missing field
             'market_conditions': self.market_conditions,
             'model_used': self.model_used,
             'token_usage': self.token_usage,
