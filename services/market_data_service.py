@@ -249,13 +249,28 @@ class MarketDataCollector:
         avg_gain = gains.rolling(window=period, min_periods=1).mean()
         avg_loss = losses.rolling(window=period, min_periods=1).mean()
         
-        # Calculate RS and RSI - handle division by zero
-        rs = avg_gain / avg_loss.replace(0, 1e-10)  # Replace zero with tiny number to avoid division by zero
+        # Get the final values for calculation (avoid Series ambiguity)
+        final_avg_gain = avg_gain.iloc[-1]
+        final_avg_loss = avg_loss.iloc[-1]
+        
+        # Handle edge cases
+        if pd.isna(final_avg_gain) or pd.isna(final_avg_loss):
+            return 50.0
+            
+        # Prevent division by zero
+        if final_avg_loss == 0:
+            # When there are no losses, RSI approaches 100
+            return 100.0 if final_avg_gain > 0 else 50.0
+            
+        # Calculate RS and RSI
+        rs = final_avg_gain / final_avg_loss
         rsi = 100 - (100 / (1 + rs))
         
-        # Return the most recent RSI value
-        final_rsi = rsi.iloc[-1]
-        return float(final_rsi) if not pd.isna(final_rsi) else 50.0
+        # Ensure RSI is within valid range and not NaN
+        if pd.isna(rsi):
+            return 50.0
+        
+        return max(0.0, min(100.0, float(rsi)))
     
     def collect_market_snapshot(self) -> Dict[str, Any]:
         """Collect complete market snapshot for AI assessment.
