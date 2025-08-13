@@ -314,7 +314,7 @@ const ConsolidatedSPYApp: React.FC = () => {
       const response = await apiService.createOptionsTicket({
         symbol: 'SPY',
         strategy_type: strategyName,
-        contracts: contracts,
+        contracts: contracts || 1, // Default to 1 if contracts is undefined
         pricing: pricing,
         legs: legs,
         notes: `Executed from strategy analyzer on ${new Date().toLocaleString()}`
