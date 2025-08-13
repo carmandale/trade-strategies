@@ -3,9 +3,11 @@ import { render, screen, waitFor, act } from '@testing-library/react'
 import '@testing-library/jest-dom'
 import { StrategyDashboard } from '@/components/StrategyDashboard'
 import { StrategyApiService } from '@/services/strategyApi'
+import MarketApiService from '@/services/marketApi'
 
-// Mock the API service
+// Mock the API services
 vi.mock('@/services/strategyApi')
+vi.mock('@/services/marketApi')
 
 describe('Strategy Display Integration Tests', () => {
 	const mockPerformanceData = {
@@ -100,6 +102,15 @@ describe('Strategy Display Integration Tests', () => {
 
 	beforeEach(() => {
 		vi.clearAllMocks()
+		
+		// Mock MarketApiService.getCurrentPrice to return a fixed price
+		vi.mocked(MarketApiService.getCurrentPrice).mockResolvedValue({
+			symbol: 'SPY',
+			price: 430.50,
+			timestamp: new Date().toISOString(),
+			change: 1.25,
+			change_percent: 0.29
+		})
 	})
 
 	afterEach(() => {
@@ -433,11 +444,10 @@ describe('Strategy Display Integration Tests', () => {
 				const container = screen.getByTestId('strategy-dashboard')
 				expect(container).toHaveClass('flex-col') // Vertical layout on mobile
 				
-				// Cards should stack vertically
-				const cards = screen.getAllByTestId(/strategy-card-/)
-				expect(cards[0].getBoundingClientRect().top).toBeLessThan(
-					cards[1].getBoundingClientRect().top
-				)
+				// Instead of comparing bounding rectangles (which can be unreliable in test environment),
+				// check that the grid has the correct mobile class
+				const strategyList = screen.getByTestId('strategy-list')
+				expect(strategyList).toHaveClass('grid-cols-1') // Single column on mobile
 			})
 		})
 

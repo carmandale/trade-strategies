@@ -6,6 +6,20 @@ import { EquityCurveChart } from '../EquityCurveChart'
 import { PLHistogramChart } from '../PLHistogramChart'
 import { PerformanceMetrics } from '../PerformanceMetrics'
 import { StrategyVisualization } from '../StrategyVisualization'
+import MarketApiService from '@/services/marketApi'
+
+// Mock the MarketApiService
+vi.mock('@/services/marketApi', () => ({
+  default: {
+    getCurrentPrice: vi.fn().mockResolvedValue({
+      symbol: 'SPY',
+      price: 430.50,
+      timestamp: new Date().toISOString(),
+      change: 1.25,
+      change_percent: 0.29
+    })
+  }
+}))
 
 // Mock chart data based on the Python backtesting results
 const mockEquityData = [
