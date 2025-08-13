@@ -235,7 +235,7 @@ class AIAssessmentService:
                 )
                 
                 db.commit()
-                return assessment_data
+                return saved.to_dict()
                 
             except Exception as e:
                 logger.error(f"AI assessment failed: {str(e)}")
