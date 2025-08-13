@@ -24,15 +24,15 @@ describe('IBSettings', () => {
 			connected: false
 		});
 		
-		// Mock default settings
-		vi.mocked(ibConnectionApi.getSettings).mockResolvedValue({
+		// Mock default settings - use mockImplementation to ensure it resolves immediately in tests
+		vi.mocked(ibConnectionApi.getSettings).mockImplementation(() => Promise.resolve({
 			host: 'localhost',
 			port: 7497,
 			client_id: 1,
-			username: '',
-			account_id: '',
+			username: 'testuser',
+			account_id: 'DU123456',
 			auto_connect: false
-		});
+		}));
 	});
 
 	describe('Initial Load', () => {
