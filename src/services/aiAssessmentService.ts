@@ -33,6 +33,9 @@ export interface MarketData {
   spx_price: number
   spx_change: number
   spx_change_percent: number
+  spy_price?: number
+  spy_change?: number
+  spy_change_percent?: number
   vix_level: number
   vix_change: number
   volume: number
