@@ -18,6 +18,21 @@ vi.mock('../../api/ib-connection', () => ({
 describe('IBSettings', () => {
 	beforeEach(() => {
 		vi.clearAllMocks();
+		
+		// Mock default connection status to avoid undefined errors
+		vi.mocked(ibConnectionApi.getConnectionStatus).mockResolvedValue({
+			connected: false
+		});
+		
+		// Mock default settings
+		vi.mocked(ibConnectionApi.getSettings).mockResolvedValue({
+			host: 'localhost',
+			port: 7497,
+			client_id: 1,
+			username: '',
+			account_id: '',
+			auto_connect: false
+		});
 	});
 
 	describe('Initial Load', () => {
