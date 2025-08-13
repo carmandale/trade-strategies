@@ -43,7 +43,7 @@ export class MarketApiService {
 	): Promise<{ date: string; price: number }[]> {
 		try {
 			const response = await fetch(
-				`${API_BASE_URL}/api/market/history/${symbol}?days=${days}`
+				`${API_BASE_URL}/historical_data/${symbol}?period=${days}d&interval=1d`
 			)
 			
 			if (!response.ok) {
