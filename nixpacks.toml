@@ -3,8 +3,8 @@
 python = "3.11"
 
 [build]
-# Use the minimal requirements file for deployment
-install_cmd = "pip install -r railway_requirements.txt"
+# Install full dependencies for all features (AI, IB, etc.)
+install_cmd = "pip install -r requirements.txt"
 
 [start]
 # Start the full API application

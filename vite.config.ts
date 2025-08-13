@@ -24,5 +24,6 @@ export default defineConfig({
     },
   },
   envPrefix: 'VITE_',
-  base: process.env.NODE_ENV === 'production' ? '/trade-strategies/' : '/',
+  // Use env to control base path in production. Default to '/'
+  base: process.env.VITE_BASE_PATH ?? '/',
 });
