@@ -529,6 +529,9 @@ Return comprehensive JSON analysis:
         
         market_conditions_clean = convert_decimals(market_conditions)
         
+        # Add market_regime from AI response to market_conditions
+        market_conditions_clean['market_regime'] = assessment_data.get('market_regime', '')
+        
         assessment = AIAssessment(
             assessment_id=f"assess_{datetime.now().strftime('%Y%m%d%H%M%S')}_{strategy_params.get('symbol', 'SPY')}",
             strategy_hash=self._calculate_strategy_hash(strategy_params),
