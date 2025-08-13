@@ -70,4 +70,10 @@ async def root():
 
 @app.get("/health")
 async def health_check():
-    return {"status": "healthy"}
+    """Health check endpoint for Railway deployment monitoring."""
+    return {
+        "status": "healthy",
+        "service": "trade-strategies-api",
+        "version": "1.0.0",
+        "port": os.getenv("PORT", "8000")
+    }
