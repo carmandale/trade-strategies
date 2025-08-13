@@ -109,6 +109,7 @@ class AIAssessmentService:
                     response = self.client.chat.completions.create(**api_params)
                 except Exception as format_error:
                     if "response_format" in str(format_error):
+                        logger.warning("response_format not supported, retrying without it")
                         # Retry without response_format parameter but keep reasoning
                         fallback_params = {
                             "model": self.default_model,
@@ -126,6 +127,20 @@ class AIAssessmentService:
                         
                         response = self.client.chat.completions.create(**fallback_params)
                     else:
+                        # Log the specific error for debugging
+                        logger.error(f"OpenAI API call failed: {str(format_error)}")
+                        logger.error(f"Error type: {type(format_error)}")
+                        
+                        # Check for authentication errors
+                        if "401" in str(format_error) or "unauthorized" in str(format_error).lower():
+                            logger.error("Authentication error - check OPENAI_API_KEY")
+                        elif "402" in str(format_error) or "billing" in str(format_error).lower():
+                            logger.error("Billing/quota error - check OpenAI account")
+                        elif "403" in str(format_error):
+                            logger.error("Forbidden - API key might not have access to this model")
+                        elif "404" in str(format_error):
+                            logger.error(f"Model not found - {self.default_model} might not be available")
+                        
                         raise format_error
                 
                 processing_time_ms = int((time.time() - start_time) * 1000)
