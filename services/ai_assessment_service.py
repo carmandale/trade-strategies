@@ -347,7 +347,7 @@ Think step-by-step through this strategy analysis. Consider multiple perspective
 
 STRATEGY DETAILS:
 - Strategy Type: {strategy_params.get('strategy_type', 'unknown').replace('_', ' ').title()}
-- Underlying: {symbol} (Current: ${spy_price:.2f}, {spy_change:+.2f} / {spy_change_percent:+.2f}% today)
+- Underlying: {symbol} (Current: ${current_price:.2f}, {price_change:+.2f} / {change_percent:+.2f}% today)
 - Strike Analysis: {json.dumps(strike_analysis)}
 - Expiration: {expiration_date} ({days_to_exp} days remaining)
 - Time Decay Urgency: {time_decay_urgency}
