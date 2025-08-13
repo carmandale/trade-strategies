@@ -367,7 +367,7 @@ Use your advanced reasoning to provide comprehensive analysis. Think through eac
 
 1. STRATEGY MECHANICS REASONING: Analyze the mathematical structure of this strategy. Consider profit zones, loss zones, and break-even points. Reason through why this strategy exists and when traders typically deploy it.
 
-2. CURRENT MARKET CONDITIONS ASSESSMENT: Evaluate TODAY's specific conditions step-by-step. Consider SPY's recent momentum, implied volatility levels, and how these factors interact with the strategy's success probability.
+2. CURRENT MARKET CONDITIONS ASSESSMENT: Evaluate TODAY's specific conditions step-by-step. Consider {symbol}'s recent momentum, implied volatility levels, and how these factors interact with the strategy's success probability.
 
 3. GREEKS IMPACT ANALYSIS: Reason through how each Greek (Delta, Gamma, Theta, Vega) will affect this position over time. Consider how Greeks change as price moves and time passes. Calculate the net Greek exposure.
 
