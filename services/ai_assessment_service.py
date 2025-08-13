@@ -357,7 +357,7 @@ STRATEGY DETAILS:
 - Risk/Reward Ratio: 1:{(max_profit / max_loss if max_loss > 0 else 0):,.2f}
 
 CURRENT MARKET ENVIRONMENT:
-- {symbol} Momentum: {spy_change_percent:+.2f}% today, ${spy_change:+.2f} move
+- {symbol} Momentum: {change_percent:+.2f}% today, ${price_change:+.2f} move
 - Volatility Environment: VIX at {vix_level:.1f} ({vix_change:+.1f} change) - {"Low" if vix_level < 15 else "Moderate" if vix_level < 25 else "High"} volatility regime
 - Volume Activity: {volume_vs_avg:.0%} of average daily volume - {"Heavy" if volume_vs_avg > 1.5 else "Above Average" if volume_vs_avg > 1.1 else "Normal" if volume_vs_avg > 0.9 else "Light"} trading
 - Technical Context: {json.dumps(market_data.get('technical_indicators', {}))}
