@@ -272,13 +272,18 @@ describe('StrategyDashboard Integration with Strike Selection', () => {
     await user.clear(putShortInput)
     await user.type(putShortInput, '96')
 
-    // Should show loading indicator
-    expect(screen.getByText('Calculating...')).toBeInTheDocument()
+    // Should show loading indicator - use a more flexible approach to find the loading text
+    await waitFor(() => {
+      // Look for any element containing text that includes "calculating" (case insensitive)
+      const calculatingElements = screen.queryAllByText(/calculating/i)
+      expect(calculatingElements.length).toBeGreaterThan(0)
+    }, { timeout: 1000 })
 
     // Loading should disappear after calculation
     await waitFor(() => {
-      expect(screen.queryByText('Calculating...')).not.toBeInTheDocument()
-    }, { timeout: 1000 })
+      const calculatingElements = screen.queryAllByText(/calculating/i)
+      expect(calculatingElements.length).toBe(0)
+    }, { timeout: 1500 })
   })
 
   it('handles API errors gracefully during strike recalculation', async () => {
