@@ -112,10 +112,16 @@ describe('IBSettings', () => {
 			// Mock connection status
 			vi.mocked(ibConnectionApi.getConnectionStatus).mockResolvedValue({
 				connected: false,
-				message: 'Not connected'
+				message: 'Not connected',
+				account_info: null
 			});
 			
 			render(<IBSettings />);
+			
+			// Wait for loading to complete
+			await waitFor(() => {
+				expect(screen.queryByText('Loading settings...')).not.toBeInTheDocument();
+			});
 			
 			const hostInput = screen.getByLabelText(/Host/i);
 			await userEvent.clear(hostInput);
@@ -130,10 +136,16 @@ describe('IBSettings', () => {
 			// Mock connection status
 			vi.mocked(ibConnectionApi.getConnectionStatus).mockResolvedValue({
 				connected: false,
-				message: 'Not connected'
+				message: 'Not connected',
+				account_info: null
 			});
 			
 			render(<IBSettings />);
+			
+			// Wait for loading to complete
+			await waitFor(() => {
+				expect(screen.queryByText('Loading settings...')).not.toBeInTheDocument();
+			});
 			
 			const portInput = screen.getByLabelText(/Port/i);
 			await userEvent.clear(portInput);
@@ -149,10 +161,16 @@ describe('IBSettings', () => {
 			// Mock connection status
 			vi.mocked(ibConnectionApi.getConnectionStatus).mockResolvedValue({
 				connected: false,
-				message: 'Not connected'
+				message: 'Not connected',
+				account_info: null
 			});
 			
 			render(<IBSettings />);
+			
+			// Wait for loading to complete
+			await waitFor(() => {
+				expect(screen.queryByText('Loading settings...')).not.toBeInTheDocument();
+			});
 			
 			const clientIdInput = screen.getByLabelText(/Client ID/i);
 			await userEvent.clear(clientIdInput);
@@ -170,7 +188,8 @@ describe('IBSettings', () => {
 			// Mock connection status
 			vi.mocked(ibConnectionApi.getConnectionStatus).mockResolvedValue({
 				connected: false,
-				message: 'Not connected'
+				message: 'Not connected',
+				account_info: null
 			});
 			
 			const mockSettings = {
@@ -189,6 +208,11 @@ describe('IBSettings', () => {
 			});
 
 			render(<IBSettings />);
+
+			// Wait for loading to complete
+			await waitFor(() => {
+				expect(screen.queryByText('Loading settings...')).not.toBeInTheDocument();
+			});
 
 			// Fill in the form
 			await userEvent.type(screen.getByLabelText(/Host/i), mockSettings.host);
@@ -223,7 +247,8 @@ describe('IBSettings', () => {
 			// Mock connection status
 			vi.mocked(ibConnectionApi.getConnectionStatus).mockResolvedValue({
 				connected: false,
-				message: 'Not connected'
+				message: 'Not connected',
+				account_info: null
 			});
 			
 			vi.mocked(ibConnectionApi.updateSettings).mockRejectedValueOnce(
@@ -231,6 +256,11 @@ describe('IBSettings', () => {
 			);
 
 			render(<IBSettings />);
+
+			// Wait for loading to complete
+			await waitFor(() => {
+				expect(screen.queryByText('Loading settings...')).not.toBeInTheDocument();
+			});
 
 			const saveButton = screen.getByRole('button', { name: /Save Settings/i });
 			await userEvent.click(saveButton);
@@ -240,14 +270,20 @@ describe('IBSettings', () => {
 			});
 		});
 
-		it('should mask password input', () => {
+		it('should mask password input', async () => {
 			// Mock connection status
 			vi.mocked(ibConnectionApi.getConnectionStatus).mockResolvedValue({
 				connected: false,
-				message: 'Not connected'
+				message: 'Not connected',
+				account_info: null
 			});
 			
 			render(<IBSettings />);
+			
+			// Wait for loading to complete
+			await waitFor(() => {
+				expect(screen.queryByText('Loading settings...')).not.toBeInTheDocument();
+			});
 			
 			const passwordInput = screen.getByLabelText(/Password/i) as HTMLInputElement;
 			expect(passwordInput.type).toBe('password');
@@ -257,10 +293,16 @@ describe('IBSettings', () => {
 			// Mock connection status
 			vi.mocked(ibConnectionApi.getConnectionStatus).mockResolvedValue({
 				connected: false,
-				message: 'Not connected'
+				message: 'Not connected',
+				account_info: null
 			});
 			
 			render(<IBSettings />);
+			
+			// Wait for loading to complete
+			await waitFor(() => {
+				expect(screen.queryByText('Loading settings...')).not.toBeInTheDocument();
+			});
 			
 			const passwordInput = screen.getByLabelText(/Password/i) as HTMLInputElement;
 			const toggleButton = screen.getByRole('button', { name: /Show password/i });
@@ -298,7 +340,9 @@ describe('IBSettings', () => {
 
 		it('should handle connect button click', async () => {
 			vi.mocked(ibConnectionApi.getConnectionStatus).mockResolvedValueOnce({
-				connected: false
+				connected: false,
+				message: 'Not connected',
+				account_info: null
 			});
 
 			vi.mocked(ibConnectionApi.connect).mockResolvedValueOnce({
@@ -325,7 +369,11 @@ describe('IBSettings', () => {
 			vi.mocked(ibConnectionApi.getConnectionStatus).mockResolvedValueOnce({
 				connected: true,
 				host: '127.0.0.1',
-				port: 7497
+				port: 7497,
+				account_info: {
+					account_id: 'DU123456',
+					account_type: 'DEMO'
+				}
 			});
 
 			vi.mocked(ibConnectionApi.disconnect).mockResolvedValueOnce({
@@ -350,7 +398,9 @@ describe('IBSettings', () => {
 
 		it('should handle connection errors', async () => {
 			vi.mocked(ibConnectionApi.getConnectionStatus).mockResolvedValueOnce({
-				connected: false
+				connected: false,
+				message: 'Not connected',
+				account_info: null
 			});
 
 			vi.mocked(ibConnectionApi.connect).mockRejectedValueOnce(
@@ -375,7 +425,11 @@ describe('IBSettings', () => {
 			vi.mocked(ibConnectionApi.getConnectionStatus).mockResolvedValueOnce({
 				connected: true,
 				host: '127.0.0.1',
-				port: 7497
+				port: 7497,
+				account_info: {
+					account_id: 'DU123456',
+					account_type: 'DEMO'
+				}
 			});
 
 			render(<IBSettings />);
@@ -389,7 +443,9 @@ describe('IBSettings', () => {
 
 		it('should enable form inputs when disconnected', async () => {
 			vi.mocked(ibConnectionApi.getConnectionStatus).mockResolvedValueOnce({
-				connected: false
+				connected: false,
+				message: 'Not connected',
+				account_info: null
 			});
 
 			render(<IBSettings />);
@@ -404,7 +460,19 @@ describe('IBSettings', () => {
 
 	describe('Auto-connect Feature', () => {
 		it('should toggle auto-connect setting', async () => {
+			// Mock connection status
+			vi.mocked(ibConnectionApi.getConnectionStatus).mockResolvedValue({
+				connected: false,
+				message: 'Not connected',
+				account_info: null
+			});
+			
 			render(<IBSettings />);
+
+			// Wait for loading to complete
+			await waitFor(() => {
+				expect(screen.queryByText('Loading settings...')).not.toBeInTheDocument();
+			});
 
 			const autoConnectCheckbox = screen.getByRole('checkbox', { name: /Auto-connect on startup/i });
 			
@@ -418,12 +486,24 @@ describe('IBSettings', () => {
 		});
 
 		it('should save auto-connect preference', async () => {
+			// Mock connection status
+			vi.mocked(ibConnectionApi.getConnectionStatus).mockResolvedValue({
+				connected: false,
+				message: 'Not connected',
+				account_info: null
+			});
+			
 			vi.mocked(ibConnectionApi.updateSettings).mockResolvedValueOnce({
 				success: true,
 				message: 'Settings updated'
 			});
 
 			render(<IBSettings />);
+
+			// Wait for loading to complete
+			await waitFor(() => {
+				expect(screen.queryByText('Loading settings...')).not.toBeInTheDocument();
+			});
 
 			const autoConnectCheckbox = screen.getByRole('checkbox', { name: /Auto-connect on startup/i });
 			await userEvent.click(autoConnectCheckbox);
@@ -443,7 +523,19 @@ describe('IBSettings', () => {
 
 	describe('Environment Indicators', () => {
 		it('should show production warning for port 7496', async () => {
+			// Mock connection status
+			vi.mocked(ibConnectionApi.getConnectionStatus).mockResolvedValue({
+				connected: false,
+				message: 'Not connected',
+				account_info: null
+			});
+			
 			render(<IBSettings />);
+
+			// Wait for loading to complete
+			await waitFor(() => {
+				expect(screen.queryByText('Loading settings...')).not.toBeInTheDocument();
+			});
 
 			const portInput = screen.getByLabelText(/Port/i);
 			await userEvent.clear(portInput);
@@ -453,7 +545,19 @@ describe('IBSettings', () => {
 		});
 
 		it('should show paper trading indicator for port 7497', async () => {
+			// Mock connection status
+			vi.mocked(ibConnectionApi.getConnectionStatus).mockResolvedValue({
+				connected: false,
+				message: 'Not connected',
+				account_info: null
+			});
+			
 			render(<IBSettings />);
+
+			// Wait for loading to complete
+			await waitFor(() => {
+				expect(screen.queryByText('Loading settings...')).not.toBeInTheDocument();
+			});
 
 			const portInput = screen.getByLabelText(/Port/i);
 			await userEvent.clear(portInput);
@@ -463,3 +567,4 @@ describe('IBSettings', () => {
 		});
 	});
 });
+
