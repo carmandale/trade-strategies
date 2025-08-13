@@ -27,8 +27,31 @@ vi.mock('../../api/ib-connection', () => ({
 }));
 
 describe('IBSettings', () => {
+	// Helper function to wait for loading state to complete
+	const waitForLoadingToComplete = async () => {
+		await waitFor(() => {
+			expect(screen.queryByText('Loading settings...')).not.toBeInTheDocument();
+		});
+	};
+	
 	beforeEach(() => {
 		vi.clearAllMocks();
+		
+		// Mock default connection status to avoid undefined errors
+		vi.mocked(ibConnectionApi.getConnectionStatus).mockResolvedValue({
+			connected: false
+		});
+		
+		// Mock default settings - use mockImplementation to ensure it resolves immediately in tests
+		// Return a resolved promise synchronously to avoid loading state
+		vi.mocked(ibConnectionApi.getSettings).mockReturnValue(Promise.resolve({
+			host: 'localhost',
+			port: 7497,
+			client_id: 1,
+			username: 'testuser',
+			account_id: 'DU123456',
+			auto_connect: false
+		}));
 	});
 
 	describe('Initial Load', () => {
@@ -61,7 +84,7 @@ describe('IBSettings', () => {
 				port: 7497,
 				client_id: 1,
 				username: 'testuser',
-				account_id: 'DU123456',
+				account: 'DU123456',
 				auto_connect: true
 			};
 
@@ -119,9 +142,7 @@ describe('IBSettings', () => {
 			render(<IBSettings />);
 			
 			// Wait for loading to complete
-			await waitFor(() => {
-				expect(screen.queryByText('Loading settings...')).not.toBeInTheDocument();
-			});
+			await waitForLoadingToComplete();
 			
 			const hostInput = screen.getByLabelText(/Host/i);
 			await userEvent.clear(hostInput);
@@ -143,9 +164,7 @@ describe('IBSettings', () => {
 			render(<IBSettings />);
 			
 			// Wait for loading to complete
-			await waitFor(() => {
-				expect(screen.queryByText('Loading settings...')).not.toBeInTheDocument();
-			});
+			await waitForLoadingToComplete();
 			
 			const portInput = screen.getByLabelText(/Port/i);
 			await userEvent.clear(portInput);
@@ -168,9 +187,7 @@ describe('IBSettings', () => {
 			render(<IBSettings />);
 			
 			// Wait for loading to complete
-			await waitFor(() => {
-				expect(screen.queryByText('Loading settings...')).not.toBeInTheDocument();
-			});
+			await waitForLoadingToComplete();
 			
 			const clientIdInput = screen.getByLabelText(/Client ID/i);
 			await userEvent.clear(clientIdInput);
@@ -208,6 +225,9 @@ describe('IBSettings', () => {
 			});
 
 			render(<IBSettings />);
+			
+			// Wait for loading to complete
+			await waitForLoadingToComplete();
 
 			// Wait for loading to complete
 			await waitFor(() => {
@@ -220,7 +240,7 @@ describe('IBSettings', () => {
 			await userEvent.type(screen.getByLabelText(/Client ID/i), mockSettings.client_id.toString());
 			await userEvent.type(screen.getByLabelText(/Username/i), mockSettings.username);
 			await userEvent.type(screen.getByLabelText(/Password/i), mockSettings.password);
-			await userEvent.type(screen.getByLabelText(/Account ID/i), mockSettings.account_id);
+			await userEvent.type(screen.getByLabelText(/Account ID/i), mockSettings.account);
 
 			// Submit the form
 			const saveButton = screen.getByRole('button', { name: /Save Settings/i });
@@ -256,6 +276,9 @@ describe('IBSettings', () => {
 			);
 
 			render(<IBSettings />);
+			
+			// Wait for loading to complete
+			await waitForLoadingToComplete();
 
 			// Wait for loading to complete
 			await waitFor(() => {
@@ -271,19 +294,10 @@ describe('IBSettings', () => {
 		});
 
 		it('should mask password input', async () => {
-			// Mock connection status
-			vi.mocked(ibConnectionApi.getConnectionStatus).mockResolvedValue({
-				connected: false,
-				message: 'Not connected',
-				account_info: null
-			});
-			
 			render(<IBSettings />);
 			
 			// Wait for loading to complete
-			await waitFor(() => {
-				expect(screen.queryByText('Loading settings...')).not.toBeInTheDocument();
-			});
+			await waitForLoadingToComplete();
 			
 			const passwordInput = screen.getByLabelText(/Password/i) as HTMLInputElement;
 			expect(passwordInput.type).toBe('password');
@@ -300,9 +314,7 @@ describe('IBSettings', () => {
 			render(<IBSettings />);
 			
 			// Wait for loading to complete
-			await waitFor(() => {
-				expect(screen.queryByText('Loading settings...')).not.toBeInTheDocument();
-			});
+			await waitForLoadingToComplete();
 			
 			const passwordInput = screen.getByLabelText(/Password/i) as HTMLInputElement;
 			const toggleButton = screen.getByRole('button', { name: /Show password/i });
@@ -468,6 +480,9 @@ describe('IBSettings', () => {
 			});
 			
 			render(<IBSettings />);
+			
+			// Wait for loading to complete
+			await waitForLoadingToComplete();
 
 			// Wait for loading to complete
 			await waitFor(() => {
@@ -499,6 +514,9 @@ describe('IBSettings', () => {
 			});
 
 			render(<IBSettings />);
+			
+			// Wait for loading to complete
+			await waitForLoadingToComplete();
 
 			// Wait for loading to complete
 			await waitFor(() => {
@@ -531,6 +549,9 @@ describe('IBSettings', () => {
 			});
 			
 			render(<IBSettings />);
+			
+			// Wait for loading to complete
+			await waitForLoadingToComplete();
 
 			// Wait for loading to complete
 			await waitFor(() => {
@@ -553,6 +574,9 @@ describe('IBSettings', () => {
 			});
 			
 			render(<IBSettings />);
+			
+			// Wait for loading to complete
+			await waitForLoadingToComplete();
 
 			// Wait for loading to complete
 			await waitFor(() => {
@@ -567,4 +591,3 @@ describe('IBSettings', () => {
 		});
 	});
 });
-

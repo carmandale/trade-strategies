@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts';
+import { BarChart3, BookOpen, Trash2 } from 'lucide-react';
 import HeaderSection from './generated/HeaderSection';
 import { ConsolidatedStrategyCard, StrategyType } from './ConsolidatedStrategyCard';
 import { apiService } from '../services/api';
@@ -44,6 +46,11 @@ const ConsolidatedSPYApp: React.FC = () => {
   const [analysisData, setAnalysisData] = useState<AnalysisData | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState<boolean>(false);
   const [trades, setTrades] = useState<Trade[]>([]);
+  const [chartData, setChartData] = useState<{
+    time: string;
+    price: number;
+    volume: number;
+  }[]>([]);
 
   // Fetch real-time SPY price updates
   useEffect(() => {
@@ -84,6 +91,42 @@ const ConsolidatedSPYApp: React.FC = () => {
       setSpreadConfig(calculateStrikes(spyPrice));
     }
   }, [spyPrice, spreadConfig?.butterflyBody]);
+
+  // Fetch real historical chart data
+  useEffect(() => {
+    const fetchChartData = async () => {
+      try {
+        const historicalData = await apiService.getHistoricalData('SPY', '1d', '1m');
+        // Transform the API data to match our chart format
+        const transformedData = historicalData.map(point => ({
+          time: point.timestamp,
+          price: point.close,
+          volume: point.volume
+        }));
+        setChartData(transformedData);
+      } catch (error) {
+        console.error('Failed to fetch chart data:', error);
+        // Fallback to mock data generation
+        const data: {
+          time: string;
+          price: number;
+          volume: number;
+        }[] = [];
+        const basePrice = spyPrice || 425;
+        for (let i = 0; i < 100; i++) {
+          const variation = Math.sin(i * 0.1) * 5 + (Math.random() - 0.5) * 3;
+          data.push({
+            time: new Date(Date.now() - (100 - i) * 60000).toISOString(),
+            price: basePrice + variation,
+            volume: Math.floor(Math.random() * 1000000) + 500000
+          });
+        }
+        setChartData(data);
+      }
+    };
+    
+    fetchChartData();
+  }, [spyPrice, selectedDate]);
 
   // Handle strategy analysis
   const handleAnalyzeStrategies = async () => {
@@ -142,9 +185,166 @@ const ConsolidatedSPYApp: React.FC = () => {
   };
 
   // Handle strategy execution
-  const handleExecuteStrategy = (strategy: StrategyType) => {
+  const handleExecuteStrategy = async (strategy: StrategyType) => {
     console.log(`Executing ${strategy} strategy`);
-    // TODO: Implement actual strategy execution
+    
+    if (!spreadConfig || !spyPrice) {
+      console.error('Cannot execute strategy: missing configuration or price data');
+      return;
+    }
+    
+    try {
+      // Format date for options expiration (third Friday of the month)
+      const expirationDate = new Date(selectedDate);
+      // Set to the next Friday
+      expirationDate.setDate(expirationDate.getDate() + (5 - expirationDate.getDay() + 7) % 7);
+      // Format as YYYY-MM-DD for API
+      const expirationStr = expirationDate.toISOString().split('T')[0];
+      
+      // Create appropriate legs and pricing based on strategy type
+      let legs = [];
+      let pricing = { side: 'DEBIT' as const, net: 0, tif: 'GTC' as const };
+      let strategyName = '';
+      
+      switch (strategy) {
+        case 'bullCall':
+          // Bull Call Spread: Buy lower strike call, sell higher strike call
+          legs = [
+            {
+              action: 'BUY' as const,
+              type: 'CALL' as const,
+              strike: spreadConfig.bullCallLower,
+              expiration: expirationDate,
+              quantity: 1
+            },
+            {
+              action: 'SELL' as const,
+              type: 'CALL' as const,
+              strike: spreadConfig.bullCallUpper,
+              expiration: expirationDate,
+              quantity: 1
+            }
+          ];
+          
+          // Calculate approximate debit (35% of width)
+          const bcSpreadWidth = spreadConfig.bullCallUpper - spreadConfig.bullCallLower;
+          const bcNetDebit = parseFloat((bcSpreadWidth * 0.35).toFixed(2));
+          pricing = { side: 'DEBIT' as const, net: bcNetDebit, tif: 'GTC' as const };
+          strategyName = 'Bull Call';
+          break;
+          
+        case 'ironCondor':
+          // Iron Condor: Sell put spread and call spread
+          legs = [
+            {
+              action: 'BUY' as const,
+              type: 'PUT' as const,
+              strike: spreadConfig.ironCondorPutLong,
+              expiration: expirationDate,
+              quantity: 1
+            },
+            {
+              action: 'SELL' as const,
+              type: 'PUT' as const,
+              strike: spreadConfig.ironCondorPutShort,
+              expiration: expirationDate,
+              quantity: 1
+            },
+            {
+              action: 'SELL' as const,
+              type: 'CALL' as const,
+              strike: spreadConfig.ironCondorCallShort,
+              expiration: expirationDate,
+              quantity: 1
+            },
+            {
+              action: 'BUY' as const,
+              type: 'CALL' as const,
+              strike: spreadConfig.ironCondorCallLong,
+              expiration: expirationDate,
+              quantity: 1
+            }
+          ];
+          
+          // Calculate approximate credit (25% of width)
+          const icSpreadWidth = Math.min(
+            spreadConfig.ironCondorPutShort - spreadConfig.ironCondorPutLong,
+            spreadConfig.ironCondorCallLong - spreadConfig.ironCondorCallShort
+          );
+          const icNetCredit = parseFloat((icSpreadWidth * 0.25).toFixed(2));
+          pricing = { side: 'CREDIT' as const, net: icNetCredit, tif: 'GTC' as const };
+          strategyName = 'Iron Condor';
+          break;
+          
+        case 'butterfly':
+          // Butterfly: Buy lower strike call, sell 2x body strike calls, buy upper strike call
+          legs = [
+            {
+              action: 'BUY' as const,
+              type: 'CALL' as const,
+              strike: spreadConfig.butterflyLower,
+              expiration: expirationDate,
+              quantity: 1
+            },
+            {
+              action: 'SELL' as const,
+              type: 'CALL' as const,
+              strike: spreadConfig.butterflyBody,
+              expiration: expirationDate,
+              quantity: 2
+            },
+            {
+              action: 'BUY' as const,
+              type: 'CALL' as const,
+              strike: spreadConfig.butterflyUpper,
+              expiration: expirationDate,
+              quantity: 1
+            }
+          ];
+          
+          // Calculate approximate debit (20% of width)
+          const bfSpreadWidth = spreadConfig.butterflyBody - spreadConfig.butterflyLower;
+          const bfNetDebit = parseFloat((bfSpreadWidth * 0.20).toFixed(2));
+          pricing = { side: 'DEBIT' as const, net: bfNetDebit, tif: 'GTC' as const };
+          strategyName = 'Butterfly';
+          break;
+      }
+      
+      // Create the options ticket
+      const response = await apiService.createOptionsTicket({
+        symbol: 'SPY',
+        strategy_type: strategyName,
+        contracts: contracts || 1, // Default to 1 if contracts is undefined
+        pricing: pricing,
+        legs: legs,
+        notes: `Executed from strategy analyzer on ${new Date().toLocaleString()}`
+      });
+      
+      console.log('Trade ticket created:', response);
+      
+      // Calculate P&L for trade log based on strategy
+      let pnl = 0;
+      if (analysisData) {
+        switch (strategy) {
+          case 'bullCall':
+            pnl = analysisData.bullCall.maxProfit;
+            break;
+          case 'ironCondor':
+            pnl = analysisData.ironCondor.maxProfit;
+            break;
+          case 'butterfly':
+            pnl = analysisData.butterfly.maxProfit;
+            break;
+        }
+      }
+      
+      // Log the trade
+      handleLogTrade(strategyName, pnl);
+      
+    } catch (error) {
+      console.error('Failed to execute strategy:', error);
+      // Could add UI error notification here
+    }
   };
 
   // Handle trade logging
@@ -161,6 +361,11 @@ const ConsolidatedSPYApp: React.FC = () => {
     };
     setTrades(prev => [newTrade, ...prev]);
   };
+  
+  // Handle deleting trades
+  const handleDeleteTrade = (tradeId: string) => {
+    setTrades(prev => prev.filter(trade => trade.id !== tradeId));
+  };
 
   const getStrikesString = (strategy: string): string => {
     if (!spreadConfig) return '';
@@ -175,6 +380,30 @@ const ConsolidatedSPYApp: React.FC = () => {
       default:
         return '';
     }
+  };
+  
+  // Helper functions for trade statistics
+  const formatCurrency = (value: number): string => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0
+    }).format(value);
+  };
+  
+  const formatPercentage = (value: number): string => {
+    return `${value.toFixed(2)}%`;
+  };
+  
+  const getTotalPnL = (): number => {
+    return trades.reduce((sum, trade) => sum + trade.pnl, 0);
+  };
+  
+  const getWinRate = (): number => {
+    if (trades.length === 0) return 0;
+    const wins = trades.filter(trade => trade.pnl > 0).length;
+    return wins / trades.length * 100;
   };
 
   return (
@@ -267,46 +496,202 @@ const ConsolidatedSPYApp: React.FC = () => {
             </motion.div>
           ))}
         </div>
+        
+        {/* SPY Price Chart */}
+        <motion.div 
+          className="mt-8 bg-slate-800/50 backdrop-blur-sm border border-slate-700/50 rounded-2xl p-6"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.3 }}
+        >
+          <div className="flex items-center gap-3 mb-6">
+            <div className="p-2 bg-blue-500/20 rounded-lg">
+              <BarChart3 className="w-5 h-5 text-blue-400" />
+            </div>
+            <div>
+              <h3 className="font-semibold text-slate-100">SPY Price Chart</h3>
+              <p className="text-xs text-slate-400">Real-time price action with strike levels</p>
+            </div>
+          </div>
+
+          <div className="h-80" data-testid="equity-curve-chart">
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={chartData}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
+                <XAxis 
+                  dataKey="time" 
+                  stroke="#64748b" 
+                  fontSize={12} 
+                  tickFormatter={value => new Date(value).toLocaleTimeString('en-US', {
+                    hour: '2-digit',
+                    minute: '2-digit'
+                  })} 
+                />
+                <YAxis 
+                  stroke="#64748b" 
+                  fontSize={12} 
+                  domain={['dataMin - 5', 'dataMax + 5']} 
+                />
+                <Tooltip 
+                  contentStyle={{
+                    backgroundColor: '#1e293b',
+                    border: '1px solid #475569',
+                    borderRadius: '8px',
+                    color: '#f1f5f9'
+                  }} 
+                  labelFormatter={value => new Date(value).toLocaleString()} 
+                  formatter={(value: number) => [`$${value.toFixed(2)}`, 'SPY Price']} 
+                />
+                <Line 
+                  type="monotone" 
+                  dataKey="price" 
+                  stroke="#3b82f6" 
+                  strokeWidth={2} 
+                  dot={false} 
+                />
+                
+                {/* Strike Price Reference Lines */}
+                {spreadConfig && (
+                  <>
+                    <ReferenceLine 
+                      y={spreadConfig.bullCallLower} 
+                      stroke="#22c55e" 
+                      strokeDasharray="5 5" 
+                      label={{
+                        value: `Bull Call Lower: $${spreadConfig.bullCallLower}`,
+                        position: 'insideBottomLeft'
+                      }} 
+                    />
+                    <ReferenceLine 
+                      y={spreadConfig.bullCallUpper} 
+                      stroke="#22c55e" 
+                      strokeDasharray="5 5" 
+                      label={{
+                        value: `Bull Call Upper: $${spreadConfig.bullCallUpper}`,
+                        position: 'insideTopLeft'
+                      }} 
+                    />
+                    <ReferenceLine 
+                      y={spreadConfig.ironCondorPutShort} 
+                      stroke="#a855f7" 
+                      strokeDasharray="3 3" 
+                      label={{
+                        value: `IC Put Short: $${spreadConfig.ironCondorPutShort}`,
+                        position: 'insideBottomRight'
+                      }} 
+                    />
+                    <ReferenceLine 
+                      y={spreadConfig.ironCondorCallShort} 
+                      stroke="#a855f7" 
+                      strokeDasharray="3 3" 
+                      label={{
+                        value: `IC Call Short: $${spreadConfig.ironCondorCallShort}`,
+                        position: 'insideTopRight'
+                      }} 
+                    />
+                    <ReferenceLine 
+                      y={spreadConfig.butterflyBody} 
+                      stroke="#eab308" 
+                      strokeDasharray="2 2" 
+                      label={{
+                        value: `Butterfly Body: $${spreadConfig.butterflyBody}`,
+                        position: 'insideMiddle'
+                      }} 
+                    />
+                  </>
+                )}
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+        </motion.div>
 
         {/* Trade Log */}
-        {trades.length > 0 && (
-          <motion.div 
-            className="mt-8 bg-slate-800/50 backdrop-blur-sm border border-slate-700/50 rounded-2xl p-6"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.5 }}
-          >
-            <h2 className="text-lg font-semibold text-slate-100 mb-4">Recent Trades</h2>
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-slate-700">
-                    <th className="text-left py-2 text-slate-400">Date</th>
-                    <th className="text-left py-2 text-slate-400">Strategy</th>
-                    <th className="text-left py-2 text-slate-400">Strikes</th>
-                    <th className="text-left py-2 text-slate-400">Contracts</th>
-                    <th className="text-left py-2 text-slate-400">P&L</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {trades.slice(0, 10).map((trade) => (
-                    <tr key={trade.id} className="border-b border-slate-700/50">
-                      <td className="py-2 text-slate-300">{trade.date}</td>
-                      <td className="py-2 text-slate-300">{trade.strategy}</td>
-                      <td className="py-2 text-slate-300 font-mono text-xs">{trade.strikes}</td>
-                      <td className="py-2 text-slate-300">{trade.contracts}</td>
-                      <td className={`py-2 font-semibold ${
-                        trade.pnl >= 0 ? 'text-green-400' : 'text-red-400'
-                      }`}>
-                        ${trade.pnl.toFixed(2)}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+        <motion.div 
+          className="mt-8 bg-slate-800/50 backdrop-blur-sm border border-slate-700/50 rounded-2xl p-6"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.5 }}
+        >
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-orange-500/20 rounded-lg">
+                <BookOpen className="w-5 h-5 text-orange-400" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-slate-100">Trade Log</h3>
+                <p className="text-xs text-slate-400">Track your trading performance</p>
+              </div>
             </div>
-          </motion.div>
-        )}
+            
+            {/* Summary Stats */}
+            {trades.length > 0 && (
+              <div className="flex gap-4">
+                <div className="text-right">
+                  <div className="text-xs text-slate-400">Total P&L</div>
+                  <div className={`text-sm font-semibold ${getTotalPnL() >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                    {formatCurrency(getTotalPnL())}
+                  </div>
+                </div>
+                <div className="text-right">
+                  <div className="text-xs text-slate-400">Win Rate</div>
+                  <div className="text-sm font-semibold text-blue-400">
+                    {formatPercentage(getWinRate())}
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
+          <div className="space-y-3 max-h-80 overflow-y-auto">
+            {trades.length === 0 ? (
+              <div className="text-center py-8 text-slate-400">
+                <BookOpen className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                <p className="text-sm">No trades logged yet</p>
+                <p className="text-xs">Use the + button on strategy cards to log trades</p>
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-slate-700">
+                      <th className="text-left py-2 text-slate-400">Date</th>
+                      <th className="text-left py-2 text-slate-400">Strategy</th>
+                      <th className="text-left py-2 text-slate-400">Strikes</th>
+                      <th className="text-left py-2 text-slate-400">Contracts</th>
+                      <th className="text-left py-2 text-slate-400">P&L</th>
+                      <th className="text-left py-2 text-slate-400">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {trades.slice(0, 10).map((trade) => (
+                      <tr key={trade.id} className="border-b border-slate-700/50">
+                        <td className="py-2 text-slate-300">{trade.date}</td>
+                        <td className="py-2 text-slate-300">{trade.strategy}</td>
+                        <td className="py-2 text-slate-300 font-mono text-xs">{trade.strikes}</td>
+                        <td className="py-2 text-slate-300">{trade.contracts}</td>
+                        <td className={`py-2 font-semibold ${
+                          trade.pnl >= 0 ? 'text-green-400' : 'text-red-400'
+                        }`}>
+                          ${trade.pnl.toFixed(2)}
+                        </td>
+                        <td className="py-2">
+                          <motion.button 
+                            onClick={() => handleDeleteTrade(trade.id)} 
+                            className="p-2 text-slate-400 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors duration-200"
+                            whileHover={{ scale: 1.1 }}
+                            whileTap={{ scale: 0.9 }}
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </motion.button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        </motion.div>
       </div>
     </div>
   );

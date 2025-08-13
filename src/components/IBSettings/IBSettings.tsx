@@ -9,7 +9,7 @@ export const IBSettings: React.FC = () => {
 		client_id: 1,
 		username: '',
 		password: '',
-		account_id: '',
+		account: '',
 		auto_connect: false
 	});
 
@@ -319,14 +319,14 @@ export const IBSettings: React.FC = () => {
 
 					{/* Account ID */}
 					<div>
-						<label htmlFor="account_id" className="block text-sm font-medium mb-1">
+						<label htmlFor="account" className="block text-sm font-medium mb-1">
 							Account ID (Optional)
 						</label>
 						<input
-							id="account_id"
+							id="account"
 							type="text"
-							value={settings.account_id || ''}
-							onChange={(e) => handleInputChange('account_id', e.target.value)}
+							value={settings.account || ''}
+							onChange={(e) => handleInputChange('account', e.target.value)}
 							placeholder="e.g., DU123456"
 							className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700"
 						/>
@@ -388,4 +388,3 @@ export const IBSettings: React.FC = () => {
 		</div>
 	);
 };
-
