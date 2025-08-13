@@ -7,11 +7,21 @@ import { ibConnectionApi } from '../../api/ib-connection';
 // Mock the API module
 vi.mock('../../api/ib-connection', () => ({
 	ibConnectionApi: {
-		getSettings: vi.fn(),
+		getSettings: vi.fn().mockResolvedValue({
+			host: '127.0.0.1',
+			port: 7497,
+			client_id: 1,
+			username: 'testuser',
+			account_id: 'DU123456',
+			auto_connect: false
+		}),
 		updateSettings: vi.fn(),
 		connect: vi.fn(),
 		disconnect: vi.fn(),
-		getConnectionStatus: vi.fn(),
+		getConnectionStatus: vi.fn().mockResolvedValue({
+			connected: false,
+			message: 'Not connected'
+		}),
 	}
 }));
 
