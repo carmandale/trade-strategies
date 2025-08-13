@@ -107,7 +107,8 @@ describe('StrategyCard Component', () => {
 		
 		render(<StrategyCard strategy={mockStrategyData} onClick={onClickMock} />)
 		
-		const card = screen.getByRole('button')
+		// Get the card by its data-testid instead of role since there are multiple buttons now
+		const card = screen.getByTestId('strategy-card-daily')
 		await user.click(card)
 		
 		expect(onClickMock).toHaveBeenCalledTimes(1)
@@ -119,7 +120,8 @@ describe('StrategyCard Component', () => {
 		
 		render(<StrategyCard strategy={mockStrategyData} onClick={onClickMock} />)
 		
-		const card = screen.getByRole('button')
+		// Get the card by its data-testid instead of role since there are multiple buttons now
+		const card = screen.getByTestId('strategy-card-daily')
 		card.focus()
 		await user.keyboard('{Enter}')
 		
@@ -132,7 +134,8 @@ describe('StrategyCard Component', () => {
 		
 		render(<StrategyCard strategy={mockStrategyData} onClick={onClickMock} />)
 		
-		const card = screen.getByRole('button')
+		// Get the card by its data-testid instead of role since there are multiple buttons now
+		const card = screen.getByTestId('strategy-card-daily')
 		card.focus()
 		await user.keyboard(' ')
 		
@@ -305,12 +308,12 @@ describe('Component Integration Tests', () => {
 		render(<StrategyList strategies={mockStrategies} onStrategySelect={vi.fn()} />)
 		
 		// Check that clickable cards have proper roles
-		const buttons = screen.getAllByRole('button')
-		expect(buttons.length).toBe(2) // Two strategy cards
+		const cards = screen.getAllByTestId(/strategy-card-/)
+		expect(cards.length).toBe(2) // Two strategy cards
 		
 		// Check tabIndex is set for keyboard navigation
-		buttons.forEach(button => {
-			expect(button).toHaveAttribute('tabIndex', '0')
+		cards.forEach(card => {
+			expect(card).toHaveAttribute('tabIndex', '0')
 		})
 	})
 

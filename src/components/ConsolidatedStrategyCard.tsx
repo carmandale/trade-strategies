@@ -9,7 +9,8 @@ import {
   AlertTriangle,
   Activity,
   Play,
-  BarChart3
+  BarChart3,
+  Brain
 } from 'lucide-react';
 import { 
   ComposedChart, 
@@ -24,6 +25,9 @@ import {
 } from 'recharts';
 import { SpreadConfig, AnalysisData } from './generated/SPYSpreadStrategiesApp';
 import { calculateDelta, findStrikeForDelta, DELTA_STRATEGIES } from '../utils/optionsCalculations';
+import { AIAssessmentButton } from './AIAssessmentButton';
+import { AIAssessmentResult } from './AIAssessmentResult';
+import { StrategyParams, AIAssessment } from '../services/aiAssessmentService';
 
 export type StrategyType = 'bullCall' | 'ironCondor' | 'butterfly';
 
@@ -268,9 +272,87 @@ export const ConsolidatedStrategyCard: React.FC<ConsolidatedStrategyCardProps> =
   isAnalyzing,
   className = ''
 }) => {
+  // State for AI assessment
+  const [aiAssessment, setAiAssessment] = useState<AIAssessment | null>(null);
+  const [showAiAssessmentPage, setShowAiAssessmentPage] = useState<boolean>(false);
   const [isExpanded, setIsExpanded] = useState(false);
   const meta = STRATEGY_META[strategy];
   const IconComponent = meta.icon;
+  
+  // Convert strategy type to backend format
+  const convertToAIStrategyParams = (): StrategyParams => {
+    if (!spreadConfig || !currentPrice) {
+      throw new Error('Cannot create AI strategy params: missing spreadConfig or currentPrice');
+    }
+
+    // Map frontend StrategyType to backend strategy_type
+    const strategyTypeMap: Record<StrategyType, string> = {
+      bullCall: 'bull_call',
+      ironCondor: 'iron_condor',
+      butterfly: 'butterfly'
+    };
+
+    // Generate strikes based on strategy type
+    const strikes = (() => {
+      switch (strategy) {
+        case 'bullCall':
+          return {
+            long_strike: spreadConfig.bullCallLower,
+            short_strike: spreadConfig.bullCallUpper
+          };
+        case 'ironCondor':
+          return {
+            put_long: spreadConfig.ironCondorPutLong,
+            put_short: spreadConfig.ironCondorPutShort,
+            call_short: spreadConfig.ironCondorCallShort,
+            call_long: spreadConfig.ironCondorCallLong
+          };
+        case 'butterfly':
+          return {
+            lower_wing: spreadConfig.butterflyLower,
+            body: spreadConfig.butterflyBody,
+            upper_wing: spreadConfig.butterflyUpper
+          };
+      }
+    })();
+
+    // Generate expiration date based on selected date
+    const expiration = selectedDate.toISOString().split('T')[0];
+
+    // Create breakeven points if analysis data exists
+    const breakeven = (() => {
+      if (!analysisData) return undefined;
+      
+      switch (strategy) {
+        case 'bullCall':
+          return [analysisData.bullCall.breakeven];
+        case 'ironCondor':
+          return [analysisData.ironCondor.lowerBreakeven, analysisData.ironCondor.upperBreakeven];
+        case 'butterfly':
+          return [analysisData.butterfly.breakeven1, analysisData.butterfly.breakeven2];
+        default:
+          return undefined;
+      }
+    })();
+
+    // Build the complete params object
+    return {
+      strategy_type: strategyTypeMap[strategy],
+      symbol: 'SPY',
+      strikes,
+      expiration,
+      quantity: contracts,
+      max_profit: analysisData ? 
+        (strategy === 'bullCall' ? analysisData.bullCall.maxProfit : 
+         strategy === 'ironCondor' ? analysisData.ironCondor.maxProfit : 
+         analysisData.butterfly.maxProfit) : undefined,
+      max_loss: analysisData ? 
+        (strategy === 'bullCall' ? analysisData.bullCall.maxLoss : 
+         strategy === 'ironCondor' ? analysisData.ironCondor.maxLoss : 
+         analysisData.butterfly.maxLoss) : undefined,
+      breakeven
+    };
+  };
   
   // Get analysis data for this strategy
   const strategyAnalysis = analysisData?.[strategy];
@@ -631,11 +713,153 @@ export const ConsolidatedStrategyCard: React.FC<ConsolidatedStrategyCardProps> =
                   <Play className="w-4 h-4" />
                   Execute
                 </button>
+
+                <button
+                  onClick={() => setShowAiAssessmentPage(true)}
+                  className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-lg font-medium transition-colors flex items-center justify-center gap-2"
+                  data-testid="ai-analyze-button"
+                >
+                  <Brain className="w-4 h-4" />
+                  Analyze with AI
+                </button>
               </div>
             </div>
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* AI Assessment Page */}
+      {showAiAssessmentPage && (
+        <div className="fixed inset-0 bg-slate-900/90 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto">
+          <div className="bg-slate-800 border border-slate-700 rounded-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+            <div className="p-6 border-b border-slate-700 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className={`p-2 rounded-lg bg-${meta.color}-500/20`}>
+                  <IconComponent className={`w-5 h-5 text-${meta.color}-400`} />
+                </div>
+                <div>
+                  <h2 className="text-xl font-semibold text-slate-100">AI Assessment: {meta.name}</h2>
+                  <p className="text-sm text-slate-400">
+                    {spreadConfig ? getChartTitle(strategy, spreadConfig, currentPrice || 0) : meta.description}
+                  </p>
+                </div>
+              </div>
+              <button 
+                onClick={() => setShowAiAssessmentPage(false)}
+                className="text-slate-400 hover:text-slate-200 p-2 rounded-lg hover:bg-slate-700/50 transition-colors"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            
+            <div className="p-6">
+              {/* AI Assessment Button */}
+              <div className="mb-8">
+                {!aiAssessment ? (
+                  <div className="flex flex-col items-center justify-center p-8 bg-slate-900/50 rounded-xl border border-slate-700/50">
+                    <p className="text-slate-300 mb-6 text-center">
+                      Get an AI-powered assessment of this {meta.name} strategy based on current market conditions and historical performance.
+                    </p>
+                    <AIAssessmentButton
+                      strategy={convertToAIStrategyParams()}
+                      onAssessmentComplete={setAiAssessment}
+                      size="lg"
+                      variant="primary"
+                      className="w-auto"
+                    />
+                  </div>
+                ) : (
+                  <div className="mb-8">
+                    <AIAssessmentResult
+                      assessment={aiAssessment}
+                      className="bg-slate-900/50 border-slate-700/50"
+                    />
+                    <div className="mt-4 flex justify-end">
+                      <button
+                        onClick={() => setAiAssessment(null)}
+                        className="text-sm text-slate-400 hover:text-slate-300 flex items-center gap-1"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                        </svg>
+                        Get new assessment
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+              
+              {/* Strategy Details */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Strategy Parameters */}
+                <div className="bg-slate-900/50 rounded-xl border border-slate-700/50 p-6">
+                  <h3 className="text-lg font-medium text-slate-100 mb-4">Strategy Parameters</h3>
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
+                      {getChartInfo(strategy, spreadConfig || calculateStrikes(currentPrice || 450), currentPrice || 450).map((info, index) => (
+                        <div key={index} className="bg-slate-800/50 rounded-lg p-3">
+                          <div className="text-slate-400 text-xs uppercase tracking-wider mb-1">{info.label}</div>
+                          <div className="text-slate-100 font-medium">{info.value}</div>
+                        </div>
+                      ))}
+                    </div>
+                    
+                    <div>
+                      <div className="text-slate-400 text-xs uppercase tracking-wider mb-2">Contracts</div>
+                      <div className="text-slate-100 font-medium">{contracts}</div>
+                    </div>
+                    
+                    <div>
+                      <div className="text-slate-400 text-xs uppercase tracking-wider mb-2">Expiration</div>
+                      <div className="text-slate-100 font-medium">{selectedDate.toLocaleDateString()}</div>
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Analysis Results */}
+                {strategyAnalysis && (
+                  <div className="bg-slate-900/50 rounded-xl border border-slate-700/50 p-6">
+                    <h3 className="text-lg font-medium text-slate-100 mb-4">Analysis Results</h3>
+                    <div className="space-y-4">
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="bg-slate-800/50 rounded-lg p-3">
+                          <div className="text-slate-400 text-xs uppercase tracking-wider mb-1">Max Profit</div>
+                          <div className="text-green-400 font-bold">{formatCurrency(strategyAnalysis.maxProfit)}</div>
+                        </div>
+                        <div className="bg-slate-800/50 rounded-lg p-3">
+                          <div className="text-slate-400 text-xs uppercase tracking-wider mb-1">Max Loss</div>
+                          <div className="text-red-400 font-bold">{formatCurrency(strategyAnalysis.maxLoss)}</div>
+                        </div>
+                      </div>
+                      
+                      <div className="bg-slate-800/50 rounded-lg p-3">
+                        <div className="text-slate-400 text-xs uppercase tracking-wider mb-1">Breakeven</div>
+                        <div className="text-slate-100 font-medium">
+                          {'breakeven' in strategyAnalysis 
+                            ? formatPrice((strategyAnalysis as any).breakeven)
+                            : 'breakeven1' in strategyAnalysis 
+                              ? `${formatPrice((strategyAnalysis as any).breakeven1)} / ${formatPrice((strategyAnalysis as any).breakeven2)}`
+                              : `${formatPrice((strategyAnalysis as any).lowerBreakeven)} / ${formatPrice((strategyAnalysis as any).upperBreakeven)}`
+                          }
+                        </div>
+                      </div>
+                      
+                      {'riskReward' in strategyAnalysis && (
+                        <div className="bg-slate-800/50 rounded-lg p-3">
+                          <div className="text-slate-400 text-xs uppercase tracking-wider mb-1">Risk/Reward Ratio</div>
+                          <div className="text-slate-100 font-medium">1:{(strategyAnalysis as any).riskReward.toFixed(2)}</div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </motion.div>
   );
 };

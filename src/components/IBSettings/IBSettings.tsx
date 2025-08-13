@@ -14,7 +14,9 @@ export const IBSettings: React.FC = () => {
 	});
 
 	const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>({
-		connected: false
+		connected: false,
+		message: 'Not connected',
+		account_info: null
 	});
 
 	const [loading, setLoading] = useState(false);
@@ -53,7 +55,11 @@ export const IBSettings: React.FC = () => {
 			setConnectionStatus(status);
 		} catch (error) {
 			console.error('Failed to check connection status:', error);
-			setConnectionStatus({ connected: false });
+			setConnectionStatus({ 
+				connected: false,
+				message: 'Not connected',
+				account_info: null
+			});
 		}
 	};
 
