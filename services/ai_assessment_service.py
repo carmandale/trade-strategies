@@ -198,10 +198,19 @@ class AIAssessmentService:
                     logger.error("Failed to parse OpenAI response")
                     return None
                 
+                # Debug usage information
+                if hasattr(response, 'usage') and response.usage:
+                    logger.info(f"Usage object: {response.usage}")
+                    logger.info(f"Prompt tokens: {response.usage.prompt_tokens}")
+                    logger.info(f"Completion tokens: {response.usage.completion_tokens}")
+                    logger.info(f"Total tokens: {response.usage.total_tokens}")
+                else:
+                    logger.error("Response has no usage information")
+                
                 # Calculate cost
-                tokens_input = response.usage.prompt_tokens
-                tokens_output = response.usage.completion_tokens
-                tokens_total = response.usage.total_tokens
+                tokens_input = response.usage.prompt_tokens if response.usage else 0
+                tokens_output = response.usage.completion_tokens if response.usage else 0
+                tokens_total = response.usage.total_tokens if response.usage else 0
                 cost_usd = self._calculate_cost(self.default_model, tokens_input, tokens_output)
                 
                 # Save assessment
