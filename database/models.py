@@ -52,6 +52,7 @@ class ReasoningEffort(str, enum.Enum):
     LOW = "low"
     MEDIUM = "medium"
     HIGH = "high"
+    # Values are lowercase in the enum but uppercase in the server_default
 
 # User model removed for Phase 1 - single user application
 # Will be added in Phase 2 for multi-user support
