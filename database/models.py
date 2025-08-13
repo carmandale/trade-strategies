@@ -587,6 +587,9 @@ class MarketDataSnapshot(Base):
     spx_price = Column(DECIMAL(10, 2), nullable=False)
     spx_change = Column(DECIMAL(10, 2), nullable=False)
     spx_change_percent = Column(DECIMAL(5, 2), nullable=False)
+    spy_price = Column(DECIMAL(10, 2), nullable=True)  # Allow null for existing records
+    spy_change = Column(DECIMAL(10, 2), nullable=True)  # Allow null for existing records
+    spy_change_percent = Column(DECIMAL(5, 2), nullable=True)  # Allow null for existing records
     vix_level = Column(DECIMAL(10, 2), nullable=False)
     vix_change = Column(DECIMAL(10, 2), nullable=False)
     volume = Column(Integer, nullable=False)
