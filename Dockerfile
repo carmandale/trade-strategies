@@ -4,37 +4,29 @@ FROM python:3.11-slim
 # Set working directory
 WORKDIR /app
 
-# Install system dependencies
+# Install system dependencies and Python packages in one layer
 RUN apt-get update && apt-get install -y \
     gcc \
-    && rm -rf /var/lib/apt/lists/*
+    curl \
+    && rm -rf /var/lib/apt/lists/* \
+    && pip install fastapi uvicorn[standard]
 
-# Install uv
-RUN pip install uv
-
-# Copy requirements first for better caching
+# Copy only essential files first
 COPY requirements.txt .
 
-# Install Python dependencies
-RUN uv pip install --system -r requirements.txt
+# Install remaining dependencies
+RUN pip install -r requirements.txt
 
-# Copy all application code
-COPY api/ ./api/
-COPY database/ ./database/
-COPY services/ ./services/
-COPY scripts/ ./scripts/
-COPY alembic/ ./alembic/
-COPY alembic.ini ./
-COPY *.py ./
+# Copy the entire application
+COPY . .
 
-# Debug: List files to verify copy worked
-RUN echo "=== Files copied to container ===" && find . -type f -name "*.py" | head -20
-
-# Debug: Verify main module exists
-RUN echo "=== Testing import ===" && python -c "import api.main; print('✅ api.main imported successfully')"
-
-# Create a default PORT if Railway doesn't set it
+# Set environment variables
+ENV PYTHONPATH=/app
 ENV PORT=8000
 
-# Run the application (Railway sets PORT env var)
-CMD ["sh", "-c", "echo 'Starting with PORT=' && echo $PORT && python -m uvicorn api.main:app --host 0.0.0.0 --port $PORT"]
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost:$PORT/health || exit 1
+
+# Start command - simple and direct
+CMD uvicorn api.main:app --host 0.0.0.0 --port $PORT
