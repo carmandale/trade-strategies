@@ -285,11 +285,25 @@ class AIAssessmentService:
         vix_change = to_float(market_data.get('vix_change', 0))
         volume_vs_avg = to_float(market_data.get('volume_vs_avg', 1))
         
-        # Use SPY data consistently
+        # Get correct symbol and price data
         symbol = strategy_params.get('symbol', 'SPY')
-        spy_price = spx_price  # Market data service provides SPY price as 'spx_price'
-        spy_change = spx_change
-        spy_change_percent = spx_change_percent
+        
+        # Use the correct price data based on symbol
+        if symbol.upper() == 'SPY':
+            # Use SPY data if available, fallback to SPX data
+            current_price = to_float(market_data.get('spy_price', spx_price))
+            price_change = to_float(market_data.get('spy_change', spx_change))
+            change_percent = to_float(market_data.get('spy_change_percent', spx_change_percent))
+        elif symbol.upper() == 'SPX':
+            # Use SPX data
+            current_price = spx_price
+            price_change = spx_change
+            change_percent = spx_change_percent
+        else:
+            # Default to SPX data for other symbols
+            current_price = spx_price
+            price_change = spx_change
+            change_percent = spx_change_percent
         
         # Calculate key metrics for analysis
         strikes = strategy_params.get('strikes', {})
