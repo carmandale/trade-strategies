@@ -99,3 +99,4 @@ spy_plot_*.png
 # Test files and screenshots
 test-app-loading.html
 *.png
+.vercel
