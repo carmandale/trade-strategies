@@ -212,16 +212,22 @@ class MarketDataCollector:
             # Calculate Bollinger Bands
             bb_period = 20
             bb_std = 2
-            sma_value = close_prices.tail(bb_period).mean()
-            std_value = close_prices.tail(bb_period).std()
             
-            # Handle NaN values in SMA and STD calculations
-            if pd.isna(sma_value) or pd.isna(std_value):
-                sma = ma_20  # Use MA20 as fallback
-                std = 0.0
-            else:
+            try:
+                sma_value = close_prices.tail(bb_period).mean()
+                std_value = close_prices.tail(bb_period).std()
+                
+                # Convert to float first to avoid Series ambiguity
                 sma = float(sma_value)
                 std = float(std_value)
+                
+                # Handle NaN values after float conversion
+                if pd.isna(sma) or pd.isna(std) or np.isnan(sma) or np.isnan(std):
+                    sma = ma_20  # Use MA20 as fallback
+                    std = 0.0
+            except (ValueError, TypeError, IndexError):
+                sma = ma_20  # Use MA20 as fallback
+                std = 0.0
             
             bollinger_upper = sma + (bb_std * std)
             bollinger_lower = sma - (bb_std * std)
