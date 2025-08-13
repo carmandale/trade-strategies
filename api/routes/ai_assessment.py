@@ -46,6 +46,9 @@ class MarketDataResponse(BaseModel):
     spx_price: float
     spx_change: float
     spx_change_percent: float
+    spy_price: Optional[float] = None
+    spy_change: Optional[float] = None
+    spy_change_percent: Optional[float] = None
     vix_level: float
     vix_change: float
     volume: int
