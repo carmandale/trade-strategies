@@ -22,6 +22,12 @@ describe('IBSettings', () => {
 
 	describe('Initial Load', () => {
 		it('should render the settings form', () => {
+			// Mock connection status
+			vi.mocked(ibConnectionApi.getConnectionStatus).mockResolvedValue({
+				connected: false,
+				message: 'Not connected'
+			});
+			
 			render(<IBSettings />);
 			
 			expect(screen.getByText('Interactive Brokers Settings')).toBeInTheDocument();
@@ -42,6 +48,12 @@ describe('IBSettings', () => {
 				auto_connect: true
 			};
 
+			// Mock connection status
+			vi.mocked(ibConnectionApi.getConnectionStatus).mockResolvedValue({
+				connected: false,
+				message: 'Not connected'
+			});
+
 			vi.mocked(ibConnectionApi.getSettings).mockResolvedValueOnce(mockSettings);
 
 			render(<IBSettings />);
@@ -58,6 +70,12 @@ describe('IBSettings', () => {
 			vi.mocked(ibConnectionApi.getSettings).mockImplementationOnce(
 				() => new Promise(() => {}) // Never resolves
 			);
+			
+			// Mock connection status
+			vi.mocked(ibConnectionApi.getConnectionStatus).mockResolvedValue({
+				connected: false,
+				message: 'Not connected'
+			});
 
 			render(<IBSettings />);
 			
@@ -67,6 +85,12 @@ describe('IBSettings', () => {
 
 	describe('Form Validation', () => {
 		it('should require host field', async () => {
+			// Mock connection status
+			vi.mocked(ibConnectionApi.getConnectionStatus).mockResolvedValue({
+				connected: false,
+				message: 'Not connected'
+			});
+			
 			render(<IBSettings />);
 			
 			const hostInput = screen.getByLabelText(/Host/i);
@@ -79,6 +103,12 @@ describe('IBSettings', () => {
 		});
 
 		it('should validate port range', async () => {
+			// Mock connection status
+			vi.mocked(ibConnectionApi.getConnectionStatus).mockResolvedValue({
+				connected: false,
+				message: 'Not connected'
+			});
+			
 			render(<IBSettings />);
 			
 			const portInput = screen.getByLabelText(/Port/i);
@@ -92,6 +122,12 @@ describe('IBSettings', () => {
 		});
 
 		it('should validate client ID is a positive number', async () => {
+			// Mock connection status
+			vi.mocked(ibConnectionApi.getConnectionStatus).mockResolvedValue({
+				connected: false,
+				message: 'Not connected'
+			});
+			
 			render(<IBSettings />);
 			
 			const clientIdInput = screen.getByLabelText(/Client ID/i);
@@ -107,6 +143,12 @@ describe('IBSettings', () => {
 
 	describe('Settings Management', () => {
 		it('should save settings when form is submitted', async () => {
+			// Mock connection status
+			vi.mocked(ibConnectionApi.getConnectionStatus).mockResolvedValue({
+				connected: false,
+				message: 'Not connected'
+			});
+			
 			const mockSettings = {
 				host: '127.0.0.1',
 				port: 7497,
@@ -154,6 +196,12 @@ describe('IBSettings', () => {
 		});
 
 		it('should handle save errors gracefully', async () => {
+			// Mock connection status
+			vi.mocked(ibConnectionApi.getConnectionStatus).mockResolvedValue({
+				connected: false,
+				message: 'Not connected'
+			});
+			
 			vi.mocked(ibConnectionApi.updateSettings).mockRejectedValueOnce(
 				new Error('Failed to save settings')
 			);
@@ -169,6 +217,12 @@ describe('IBSettings', () => {
 		});
 
 		it('should mask password input', () => {
+			// Mock connection status
+			vi.mocked(ibConnectionApi.getConnectionStatus).mockResolvedValue({
+				connected: false,
+				message: 'Not connected'
+			});
+			
 			render(<IBSettings />);
 			
 			const passwordInput = screen.getByLabelText(/Password/i) as HTMLInputElement;
@@ -176,6 +230,12 @@ describe('IBSettings', () => {
 		});
 
 		it('should toggle password visibility', async () => {
+			// Mock connection status
+			vi.mocked(ibConnectionApi.getConnectionStatus).mockResolvedValue({
+				connected: false,
+				message: 'Not connected'
+			});
+			
 			render(<IBSettings />);
 			
 			const passwordInput = screen.getByLabelText(/Password/i) as HTMLInputElement;

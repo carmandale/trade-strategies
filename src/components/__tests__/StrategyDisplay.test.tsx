@@ -108,7 +108,7 @@ describe('StrategyCard Component', () => {
 		render(<StrategyCard strategy={mockStrategyData} onClick={onClickMock} />)
 		
 		// Get the card by its data-testid instead of role since there are multiple buttons now
-		const card = screen.getByTestId('strategy-card-1')
+		const card = screen.getByTestId('strategy-card-daily')
 		await user.click(card)
 		
 		expect(onClickMock).toHaveBeenCalledTimes(1)
@@ -121,7 +121,7 @@ describe('StrategyCard Component', () => {
 		render(<StrategyCard strategy={mockStrategyData} onClick={onClickMock} />)
 		
 		// Get the card by its data-testid instead of role since there are multiple buttons now
-		const card = screen.getByTestId('strategy-card-1')
+		const card = screen.getByTestId('strategy-card-daily')
 		card.focus()
 		await user.keyboard('{Enter}')
 		
@@ -135,7 +135,7 @@ describe('StrategyCard Component', () => {
 		render(<StrategyCard strategy={mockStrategyData} onClick={onClickMock} />)
 		
 		// Get the card by its data-testid instead of role since there are multiple buttons now
-		const card = screen.getByTestId('strategy-card-1')
+		const card = screen.getByTestId('strategy-card-daily')
 		card.focus()
 		await user.keyboard(' ')
 		
