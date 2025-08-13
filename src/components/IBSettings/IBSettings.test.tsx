@@ -32,14 +32,20 @@ describe('IBSettings', () => {
 	});
 
 	describe('Initial Load', () => {
-		it('should render the settings form', () => {
+		it('should render the settings form', async () => {
 			// Mock connection status
 			vi.mocked(ibConnectionApi.getConnectionStatus).mockResolvedValue({
 				connected: false,
-				message: 'Not connected'
+				message: 'Not connected',
+				account_info: null
 			});
 			
 			render(<IBSettings />);
+			
+			// Wait for loading to complete
+			await waitFor(() => {
+				expect(screen.queryByText('Loading settings...')).not.toBeInTheDocument();
+			});
 			
 			expect(screen.getByText('Interactive Brokers Settings')).toBeInTheDocument();
 			expect(screen.getByLabelText(/Host/i)).toBeInTheDocument();
