@@ -61,7 +61,7 @@ describe('IBSettings', () => {
 				port: 7497,
 				client_id: 1,
 				username: 'testuser',
-				account_id: 'DU123456',
+				account: 'DU123456',
 				auto_connect: true
 			};
 
@@ -165,7 +165,7 @@ describe('IBSettings', () => {
 			await userEvent.type(screen.getByLabelText(/Client ID/i), mockSettings.client_id.toString());
 			await userEvent.type(screen.getByLabelText(/Username/i), mockSettings.username);
 			await userEvent.type(screen.getByLabelText(/Password/i), mockSettings.password);
-			await userEvent.type(screen.getByLabelText(/Account ID/i), mockSettings.account_id);
+			await userEvent.type(screen.getByLabelText(/Account ID/i), mockSettings.account);
 
 			// Submit the form
 			const saveButton = screen.getByRole('button', { name: /Save Settings/i });

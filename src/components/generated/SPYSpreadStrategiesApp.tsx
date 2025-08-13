@@ -32,6 +32,8 @@ export interface AnalysisData {
     maxLoss: number;
     breakeven: number;
     riskReward: number;
+    probabilityOfProfit?: number;
+    sharpeRatio?: number;
   };
   ironCondor: {
     maxProfit: number;
@@ -39,6 +41,8 @@ export interface AnalysisData {
     upperBreakeven: number;
     lowerBreakeven: number;
     riskReward: number;
+    probabilityOfProfit?: number;
+    sharpeRatio?: number;
   };
   butterfly: {
     maxProfit: number;
@@ -46,6 +50,8 @@ export interface AnalysisData {
     breakeven1: number;
     breakeven2: number;
     riskReward: number;
+    probabilityOfProfit?: number;
+    sharpeRatio?: number;
   };
 }
 // Function to round price to nearest $5 for options strikes
