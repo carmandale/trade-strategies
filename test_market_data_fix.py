@@ -109,12 +109,27 @@ def test_ai_assessment_prompt():
             print(f"\n📝 AI Prompt Price Line:")
             print(f"   {price_line}")
             
-            if 'SPY' in price_line and '$6' in price_line:
-                print("❌ STILL BROKEN: SPY showing SPX-like price")
-            elif 'SPY' in price_line and ('$6' not in price_line):
-                print("✅ FIXED: SPY showing reasonable price")
+            # Extract price from line - look for $X pattern
+            import re
+            price_match = re.search(r'\$(\d+(?:,\d{3})*(?:\.\d{2})?)', price_line)
+            if price_match:
+                price_str = price_match.group(1).replace(',', '')
+                price_value = float(price_str)
+                
+                if 'SPY' in price_line:
+                    if price_value > 1000:  # SPX-like price
+                        print("❌ STILL BROKEN: SPY showing SPX-like price")
+                    elif 500 <= price_value <= 800:  # Reasonable SPY price range
+                        print("✅ FIXED: SPY showing correct price")
+                    else:
+                        print(f"⚠️  SPY price ${price_value:.2f} outside expected range")
+                elif 'SPX' in price_line:
+                    if price_value > 5000:  # Expected SPX price range
+                        print("✅ SPX price looks correct")
+                    else:
+                        print(f"⚠️  SPX price ${price_value:.2f} seems low")
             else:
-                print("ℹ️  Price line format different than expected")
+                print("ℹ️  Could not extract price from line")
         
     else:
         print("❌ No market data available")
