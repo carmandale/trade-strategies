@@ -1,0 +1,11 @@
+# Nixpacks configuration for Railway deployment
+[providers]
+python = "3.11"
+
+[build]
+# Use the minimal requirements file for deployment
+install_cmd = "pip install -r railway_requirements.txt"
+
+[start]
+# Start the minimal app instead of the complex one
+cmd = "python -m uvicorn main_minimal:app --host 0.0.0.0 --port $PORT"
