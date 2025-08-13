@@ -594,6 +594,59 @@ class OptionsPricingService:
         else:
             raise ValueError(f"Unsupported spread type: {spread_type}")
     
+    def calculate_risk_reward_ratio(
+        self,
+        spread_type: Literal['bull_call', 'bear_call', 'bull_put', 'bear_put', 'iron_condor', 'butterfly'],
+        underlying_price: float,
+        strikes: list,
+        days_to_expiration: float,
+        volatility: Union[float, list],
+        dividend_yield: float = 0.0
+    ) -> float:
+        """
+        Calculate the risk-reward ratio for a spread strategy.
+        
+        Args:
+            spread_type: Type of spread strategy
+            underlying_price: Current price of the underlying asset
+            strikes: List of strike prices for the spread
+            days_to_expiration: Number of days until expiration
+            volatility: Either a single volatility value or a list of volatilities for each option
+            dividend_yield: Annual dividend yield as a decimal (default: 0)
+            
+        Returns:
+            Risk-reward ratio as a decimal (risk / reward)
+        """
+        # Calculate spread prices
+        spread_prices = self.calculate_spread_prices(
+            spread_type, underlying_price, strikes, days_to_expiration, volatility, dividend_yield
+        )
+        
+        # Calculate risk-reward ratio based on spread type
+        if spread_type in ['bull_call', 'bear_put']:
+            # For debit spreads, risk is the net debit and reward is max profit
+            if 'net_debit' in spread_prices and 'max_profit' in spread_prices:
+                if spread_prices['max_profit'] == 0:
+                    return float('inf')  # Avoid division by zero
+                return spread_prices['net_debit'] / spread_prices['max_profit']
+        
+        elif spread_type in ['bear_call', 'bull_put', 'iron_condor']:
+            # For credit spreads, risk is max loss and reward is the net credit
+            if 'max_loss' in spread_prices and 'net_credit' in spread_prices:
+                if spread_prices['net_credit'] == 0:
+                    return float('inf')  # Avoid division by zero
+                return spread_prices['max_loss'] / spread_prices['net_credit']
+        
+        elif spread_type == 'butterfly':
+            # For butterfly, risk is the net debit and reward is max profit
+            if 'net_debit' in spread_prices and 'max_profit' in spread_prices:
+                if spread_prices['max_profit'] == 0:
+                    return float('inf')  # Avoid division by zero
+                return spread_prices['net_debit'] / spread_prices['max_profit']
+        
+        # Default case if we can't calculate
+        return float('nan')
+    
     def _calculate_d1_d2(
         self,
         underlying_price: float,
@@ -631,4 +684,3 @@ class OptionsPricingService:
         d2 = d1 - volatility * math.sqrt(time_to_expiration)
         
         return d1, d2
-
