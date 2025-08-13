@@ -290,10 +290,30 @@ class AIAssessmentService:
         
         # Use the correct price data based on symbol
         if symbol.upper() == 'SPY':
-            # Use SPY data if available, fallback to SPX data
-            current_price = to_float(market_data.get('spy_price', spx_price))
-            price_change = to_float(market_data.get('spy_change', spx_change))
-            change_percent = to_float(market_data.get('spy_change_percent', spx_change_percent))
+            # Use SPY data if available, fallback to collecting fresh SPY data, then SPX data
+            spy_price_from_db = market_data.get('spy_price')
+            if spy_price_from_db is not None:
+                current_price = to_float(spy_price_from_db)
+                price_change = to_float(market_data.get('spy_change', 0))
+                change_percent = to_float(market_data.get('spy_change_percent', 0))
+            else:
+                # Fallback: get fresh SPY data directly
+                try:
+                    fresh_spy_data = self.market_data_collector.get_current_price('SPY')
+                    if fresh_spy_data:
+                        current_price = to_float(fresh_spy_data['price'])
+                        price_change = to_float(fresh_spy_data['change'])
+                        change_percent = to_float(fresh_spy_data['change_percent'])
+                    else:
+                        # Final fallback to SPX data
+                        current_price = spx_price
+                        price_change = spx_change
+                        change_percent = spx_change_percent
+                except Exception as e:
+                    logger.warning(f"Failed to get fresh SPY data: {e}")
+                    current_price = spx_price
+                    price_change = spx_change
+                    change_percent = spx_change_percent
         elif symbol.upper() == 'SPX':
             # Use SPX data
             current_price = spx_price
