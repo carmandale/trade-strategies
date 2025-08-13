@@ -190,12 +190,22 @@ class MarketDataCollector:
             rsi_14 = self._calculate_rsi(close_prices, 14)
             
             # Calculate moving averages
-            ma_20_value = close_prices.tail(20).mean()
-            ma_20 = float(ma_20_value) if not pd.isna(ma_20_value) else float(close_prices.iloc[-1])
+            try:
+                ma_20_value = close_prices.tail(20).mean()
+                ma_20 = float(ma_20_value)
+                if pd.isna(ma_20) or np.isnan(ma_20):
+                    ma_20 = float(close_prices.iloc[-1])
+            except (ValueError, TypeError, IndexError):
+                ma_20 = float(close_prices.iloc[-1])
             
             if len(close_prices) >= 50:
-                ma_50_value = close_prices.tail(50).mean()
-                ma_50 = float(ma_50_value) if not pd.isna(ma_50_value) else ma_20
+                try:
+                    ma_50_value = close_prices.tail(50).mean()
+                    ma_50 = float(ma_50_value)
+                    if pd.isna(ma_50) or np.isnan(ma_50):
+                        ma_50 = ma_20
+                except (ValueError, TypeError, IndexError):
+                    ma_50 = ma_20
             else:
                 ma_50 = ma_20
             
