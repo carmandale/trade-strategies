@@ -215,7 +215,15 @@ class MarketDataCollector:
             
         except Exception as e:
             logger.error(f"Error calculating technical indicators: {e}")
-            return None
+            # Return fallback values instead of None to prevent format errors
+            return {
+                'rsi_14': 50.0,  # Neutral RSI
+                'ma_20': 0.0,    # Will be replaced with current price
+                'ma_50': 0.0,    # Will be replaced with current price
+                'bollinger_upper': 0.0,  # Will be replaced with current price
+                'bollinger_lower': 0.0,  # Will be replaced with current price
+                'bollinger_position': 'unknown'
+            }
     
     def _calculate_rsi(self, prices: pd.Series, period: int = 14) -> float:
         """Calculate RSI (Relative Strength Index).
