@@ -27,8 +27,14 @@ COPY alembic/ ./alembic/
 COPY alembic.ini ./
 COPY *.py ./
 
-# Expose port (Railway will set the PORT environment variable)
-EXPOSE $PORT
+# Debug: List files to verify copy worked
+RUN echo "=== Files copied to container ===" && find . -type f -name "*.py" | head -20
+
+# Debug: Verify main module exists
+RUN echo "=== Testing import ===" && python -c "import api.main; print('✅ api.main imported successfully')"
+
+# Create a default PORT if Railway doesn't set it
+ENV PORT=8000
 
 # Run the application (Railway sets PORT env var)
-CMD ["sh", "-c", "python -m uvicorn api.main:app --host 0.0.0.0 --port $PORT"]
+CMD ["sh", "-c", "echo 'Starting with PORT=' && echo $PORT && python -m uvicorn api.main:app --host 0.0.0.0 --port $PORT"]
