@@ -18,9 +18,17 @@ COPY requirements.txt .
 # Install Python dependencies
 RUN uv pip install --system -r requirements.txt
 
-# Copy application code
+# Copy all application code
 COPY api/ ./api/
+COPY database/ ./database/
+COPY services/ ./services/
+COPY scripts/ ./scripts/
+COPY alembic/ ./alembic/
+COPY alembic.ini ./
 COPY *.py ./
 
+# Expose port (Railway will set the PORT environment variable)
+EXPOSE $PORT
+
 # Run the application (Railway sets PORT env var)
-CMD python -m uvicorn api.main:app --host 0.0.0.0 --port ${PORT:-8000}
+CMD ["sh", "-c", "python -m uvicorn api.main:app --host 0.0.0.0 --port $PORT"]
