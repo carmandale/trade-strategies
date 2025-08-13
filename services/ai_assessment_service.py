@@ -128,12 +128,12 @@ class AIAssessmentService:
                                 {"role": "system", "content": "You are an expert options trader providing strategy analysis. Always respond with valid JSON."},
                                 {"role": "user", "content": prompt}
                             ],
-                            
+                            "temperature": self.default_temperature,
                             "max_completion_tokens": self.default_max_tokens
                         }
                         
-                        # Add reasoning effort for GPT-5 models
-                        if self.default_model.startswith('gpt-5'):
+                        # Add reasoning effort only for reasoning models (GPT-o1, GPT-5)
+                        if self.default_model.startswith('gpt-5') or self.default_model.startswith('o1'):
                             fallback_params["reasoning_effort"] = self.default_reasoning_effort
                         
                         response = self.client.chat.completions.create(**fallback_params)
