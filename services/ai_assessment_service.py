@@ -156,8 +156,38 @@ class AIAssessmentService:
                 
                 processing_time_ms = int((time.time() - start_time) * 1000)
                 
+                # Debug the full response structure
+                logger.info(f"OpenAI response object type: {type(response)}")
+                logger.info(f"Response has {len(response.choices)} choices")
+                
+                if response.choices:
+                    choice = response.choices[0]
+                    logger.info(f"Choice object type: {type(choice)}")
+                    logger.info(f"Choice has message: {hasattr(choice, 'message')}")
+                    
+                    if hasattr(choice, 'message'):
+                        message = choice.message
+                        logger.info(f"Message object type: {type(message)}")
+                        logger.info(f"Message has content: {hasattr(message, 'content')}")
+                        
+                        if hasattr(message, 'content'):
+                            content = message.content
+                            logger.info(f"Content type: {type(content)}")
+                            logger.info(f"Content value: {repr(content)}")
+                            logger.info(f"Content is None: {content is None}")
+                            logger.info(f"Content length: {len(content) if content else 0}")
+                        else:
+                            logger.error("Message object has no 'content' attribute")
+                            # Try to see what attributes it has
+                            logger.info(f"Message attributes: {dir(message)}")
+                    else:
+                        logger.error("Choice object has no 'message' attribute")
+                        logger.info(f"Choice attributes: {dir(choice)}")
+                else:
+                    logger.error("Response has no choices")
+                
                 # Log the raw response for debugging
-                response_content = response.choices[0].message.content
+                response_content = response.choices[0].message.content if response.choices else None
                 logger.info(f"Raw OpenAI response content (first 200 chars): {response_content[:200] if response_content else 'None'}...")
                 logger.info(f"Response content type: {type(response_content)}")
                 logger.info(f"Response content length: {len(response_content) if response_content else 0}")
