@@ -186,8 +186,8 @@ class MarketDataCollector:
             # Calculate Bollinger Bands
             bb_period = 20
             bb_std = 2
-            sma = close_prices.tail(bb_period).mean()
-            std = close_prices.tail(bb_period).std()
+            sma = float(close_prices.tail(bb_period).mean())
+            std = float(close_prices.tail(bb_period).std())
             
             bollinger_upper = sma + (bb_std * std)
             bollinger_lower = sma - (bb_std * std)
