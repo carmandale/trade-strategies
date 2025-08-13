@@ -52,12 +52,12 @@ class AIAssessmentService:
         self._rate_limit_max = 10  # 10 requests per minute
         
         # Default settings
-        self.default_model = os.getenv('OPENAI_MODEL', 'gpt-5')
+        self.default_model = os.getenv('OPENAI_MODEL', 'gpt-4o')
         self.default_temperature = float(os.getenv('OPENAI_TEMPERATURE', '0.3'))
-        self.default_max_tokens = int(os.getenv('OPENAI_MAX_COMPLETION_TOKENS', '2000'))  # Increased for reasoning
-        self.default_reasoning_effort = os.getenv('OPENAI_REASONING_EFFORT', 'high')
+        self.default_max_tokens = int(os.getenv('OPENAI_MAX_COMPLETION_TOKENS', '2000'))
+        self.default_reasoning_effort = os.getenv('OPENAI_REASONING_EFFORT', 'high')  # Only for reasoning models
         self.cache_ttl = int(os.getenv('AI_ASSESSMENT_CACHE_TTL', '300'))  # 5 minutes
-        self.timeout = int(os.getenv('AI_ASSESSMENT_TIMEOUT', '30'))  # Increased for reasoning
+        self.timeout = int(os.getenv('AI_ASSESSMENT_TIMEOUT', '30'))
     
     def assess_strategy(self, strategy_params: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         """
