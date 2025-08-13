@@ -20,15 +20,22 @@ class MarketDataCollector:
         """Initialize market data collector."""
         self.cache_ttl_minutes = 30  # Cache market data for 30 minutes
         
-    def get_current_spx(self) -> Optional[Dict[str, Any]]:
-        """Get current SPX price and movement.
+    def get_current_price(self, symbol: str) -> Optional[Dict[str, Any]]:
+        """Get current price and movement for a symbol.
+        
+        Args:
+            symbol: Ticker symbol (e.g., 'SPY', '^GSPC')
         
         Returns:
             Dictionary with price, change, change_percent, and symbol
         """
         try:
-            # SPX index ticker in yfinance is "^GSPC"
-            ticker = yf.Ticker("^GSPC")
+            # Get ticker - handle special cases
+            ticker_symbol = symbol
+            if symbol.upper() == 'SPX':
+                ticker_symbol = '^GSPC'  # SPX index in yfinance
+            
+            ticker = yf.Ticker(ticker_symbol)
             info = ticker.info
             
             # Get current and previous close
@@ -50,14 +57,14 @@ class MarketDataCollector:
                     'price': Decimal(str(round(current_price, 2))),
                     'change': Decimal(str(round(change, 2))),
                     'change_percent': Decimal(str(round(change_percent, 2))),
-                    'symbol': 'SPX'
+                    'symbol': symbol.upper()
                 }
             
-            logger.warning("Unable to fetch complete SPX data")
+            logger.warning(f"Unable to fetch complete {symbol} data")
             return None
             
         except Exception as e:
-            logger.error(f"Error fetching SPX data: {e}")
+            logger.error(f"Error fetching {symbol} data: {e}")
             return None
     
     def get_vix_level(self) -> Optional[Dict[str, Any]]:
@@ -320,12 +327,12 @@ class MarketDataCollector:
         """Collect complete market snapshot for AI assessment.
         
         Returns:
-            Dictionary with all market data
+            Dictionary with all market data including both SPX and SPY
         """
         snapshot = {}
         
         # Get SPX data
-        spx_data = self.get_current_spx()
+        spx_data = self.get_current_price('SPX')
         if spx_data:
             snapshot['spx_price'] = spx_data['price']
             snapshot['spx_change'] = spx_data['change']
@@ -335,6 +342,18 @@ class MarketDataCollector:
             snapshot['spx_price'] = Decimal('5600.00')
             snapshot['spx_change'] = Decimal('0.00')
             snapshot['spx_change_percent'] = Decimal('0.00')
+        
+        # Get SPY data separately
+        spy_data = self.get_current_price('SPY')
+        if spy_data:
+            snapshot['spy_price'] = spy_data['price']
+            snapshot['spy_change'] = spy_data['change']
+            snapshot['spy_change_percent'] = spy_data['change_percent']
+        else:
+            # Use fallback values if data unavailable
+            snapshot['spy_price'] = Decimal('560.00')  # ~1/10th of SPX
+            snapshot['spy_change'] = Decimal('0.00')
+            snapshot['spy_change_percent'] = Decimal('0.00')
         
         # Get VIX data
         vix_data = self.get_vix_level()
@@ -387,6 +406,9 @@ class MarketDataCollector:
             spx_price=snapshot_data['spx_price'],
             spx_change=snapshot_data['spx_change'],
             spx_change_percent=snapshot_data['spx_change_percent'],
+            spy_price=snapshot_data.get('spy_price', snapshot_data['spx_price']),
+            spy_change=snapshot_data.get('spy_change', snapshot_data['spx_change']),
+            spy_change_percent=snapshot_data.get('spy_change_percent', snapshot_data['spx_change_percent']),
             vix_level=snapshot_data['vix_level'],
             vix_change=snapshot_data['vix_change'],
             volume=snapshot_data['volume'],
