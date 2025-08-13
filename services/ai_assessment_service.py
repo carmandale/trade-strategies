@@ -28,7 +28,18 @@ class AIAssessmentService:
         """Initialize AI assessment service."""
         self.api_key = os.getenv('OPENAI_API_KEY')
         if self.api_key and self.api_key != 'sk-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx':
-            self.client = OpenAI(api_key=self.api_key)
+            # Log API key format for debugging (safely)
+            if self.api_key.startswith('sk-'):
+                logger.info(f"OpenAI API key found - format looks correct (sk-****...{self.api_key[-4:]})")
+            else:
+                logger.warning(f"OpenAI API key found but format looks incorrect - should start with 'sk-'")
+            
+            try:
+                self.client = OpenAI(api_key=self.api_key)
+                logger.info("OpenAI client initialized successfully")
+            except Exception as e:
+                logger.error(f"Failed to initialize OpenAI client: {str(e)}")
+                self.client = None
         else:
             self.client = None
             logger.warning("OpenAI API key not configured - AI assessments unavailable")
