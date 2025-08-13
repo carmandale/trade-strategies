@@ -20,7 +20,8 @@ vi.mock('../../api/ib-connection', () => ({
 		disconnect: vi.fn(),
 		getConnectionStatus: vi.fn().mockResolvedValue({
 			connected: false,
-			message: 'Not connected'
+			message: 'Not connected',
+			account_info: null
 		}),
 	}
 }));
