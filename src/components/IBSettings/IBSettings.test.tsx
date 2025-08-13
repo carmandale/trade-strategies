@@ -68,12 +68,18 @@ describe('IBSettings', () => {
 			// Mock connection status
 			vi.mocked(ibConnectionApi.getConnectionStatus).mockResolvedValue({
 				connected: false,
-				message: 'Not connected'
+				message: 'Not connected',
+				account_info: null
 			});
 
 			vi.mocked(ibConnectionApi.getSettings).mockResolvedValueOnce(mockSettings);
 
 			render(<IBSettings />);
+
+			// Wait for loading to complete
+			await waitFor(() => {
+				expect(screen.queryByText('Loading settings...')).not.toBeInTheDocument();
+			});
 
 			await waitFor(() => {
 				expect(screen.getByDisplayValue('127.0.0.1')).toBeInTheDocument();
