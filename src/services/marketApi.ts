@@ -13,7 +13,7 @@ export class MarketApiService {
 	// Get current market price for a symbol
 	static async getCurrentPrice(symbol: string): Promise<MarketPrice> {
 		try {
-			const response = await fetch(`${API_BASE_URL}/api/market/price/${symbol}`)
+			const response = await fetch(`${API_BASE_URL}/current_price/${symbol}`)
 			
 			if (!response.ok) {
 				throw new Error(`HTTP error! status: ${response.status}`)
