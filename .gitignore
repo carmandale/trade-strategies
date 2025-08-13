@@ -100,3 +100,4 @@ spy_plot_*.png
 test-app-loading.html
 *.png
 .vercel
+test_fixes.py
