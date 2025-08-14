@@ -18,15 +18,47 @@ try:  # pragma: no cover - optional dependency in CI
 except Exception:  # pragma: no cover
     PsycoJson = None  # type: ignore
 
-# Load environment variables
+def _load_render_secrets() -> None:
+    """Best-effort load of secrets from Render's /etc/secrets mount.
+
+    Supports two patterns:
+    - .env-style file (e.g., /etc/secrets/.env) parsed via python-dotenv
+    - Key-named files (e.g., /etc/secrets/DATABASE_URL) whose contents are the value
+    """
+    secrets_dir = "/etc/secrets"
+    try:  # pragma: no cover
+        if not os.path.isdir(secrets_dir):
+            return
+
+        # First, load any .env file present
+        env_path = os.path.join(secrets_dir, ".env")
+        if os.path.exists(env_path):
+            load_dotenv(env_path, override=True)
+
+        # Then, for key-named files, read and export
+        for name in os.listdir(secrets_dir):
+            full = os.path.join(secrets_dir, name)
+            if os.path.isdir(full):
+                continue
+            # Skip the .env we already loaded
+            if name == ".env":
+                continue
+            # Only accept reasonable key names
+            if all(c.isupper() or c.isdigit() or c == '_' for c in name):
+                try:
+                    with open(full, "r", encoding="utf-8") as fh:
+                        value = fh.read().strip()
+                    if value:
+                        os.environ.setdefault(name, value)
+                except Exception:
+                    continue
+    except Exception:
+        # Non-fatal; env can still be provided by standard mechanisms
+        pass
+
+# Load environment variables from standard .env and Render Secret Files
 load_dotenv()
-# Also load from Render Secret Files if present (mounted at /etc/secrets)
-_render_secret_env = "/etc/secrets/.env"
-try:  # pragma: no cover
-    if os.path.exists(_render_secret_env):
-        load_dotenv(_render_secret_env, override=True)
-except Exception:
-    pass
+_load_render_secrets()
 
 
 # Allow tests to predefine a mock `get_database_url` before this module executes
