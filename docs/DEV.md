@@ -1,6 +1,6 @@
 # Developer Quick Start
 
-Last Updated: 2025-08-09
+Last Updated: 2025-08-14
 
 This project is uv-only (Python) and PostgreSQL-only (database).
 
@@ -92,5 +92,9 @@ pkill -f vite || true
 
 - Tech stack and commands: `.agent-os/product/tech-stack.md`
 - Roadmap and decisions: `.agent-os/product/roadmap.md`, `.agent-os/product/decisions.md`
+
+## Deployment
+
+See `docs/DEPLOYMENT.md` for step-by-step instructions (Render backend, Vercel frontend), required env vars, and verification.
 
 
