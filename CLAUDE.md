@@ -73,3 +73,7 @@ Reference-only utilities are kept for exploration. Use `api/main.py` as the cano
 # Example legacy backtester (reference only)
 python backtest_strategies.py --timeframe daily --plot --export
 ```
+
+## Deployment Pointer
+
+For deployment (Render backend + Vercel frontend), see `docs/DEPLOYMENT.md`.
