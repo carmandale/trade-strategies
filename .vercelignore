@@ -1,0 +1,38 @@
+# Keep Vercel deploy purely static (Vite). Exclude backend and infra files.
+
+# Python backend and infra
+api/
+database/
+alembic/
+services/
+weekly/
+monthly/
+daily/
+scripts/
+start.sh
+Dockerfile
+render.yaml
+railway.toml
+nixpacks.toml
+requirements.txt
+railway_requirements.txt
+
+# Tests, docs, misc
+playwright*/
+vitest.config.ts
+pytest.ini
+docs/
+*.md
+
+# Node artifacts handled by Vercel
+node_modules/
+
+# Ensure frontend is included
+!package.json
+!package-lock.json
+!vite.config.ts
+!tsconfig*.json
+!vercel.json
+!index.html
+!public/
+!src/
