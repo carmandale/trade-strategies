@@ -20,6 +20,13 @@ except Exception:  # pragma: no cover
 
 # Load environment variables
 load_dotenv()
+# Also load from Render Secret Files if present (mounted at /etc/secrets)
+_render_secret_env = "/etc/secrets/.env"
+try:  # pragma: no cover
+    if os.path.exists(_render_secret_env):
+        load_dotenv(_render_secret_env, override=True)
+except Exception:
+    pass
 
 
 # Allow tests to predefine a mock `get_database_url` before this module executes
