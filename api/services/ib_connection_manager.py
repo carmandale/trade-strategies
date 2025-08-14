@@ -4,8 +4,7 @@ import asyncio
 from typing import Optional, Dict, Any, List
 from datetime import datetime, timedelta
 from sqlalchemy.orm import Session
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
+from database.config import SessionLocal  # reuse unified engine/session config
 from api.models.ib_models import IBSettings, IBConnectionLog
 import os
 from contextlib import contextmanager
@@ -21,10 +20,7 @@ except ImportError:
 
 logger = logging.getLogger(__name__)
 
-# Database connection
-DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://postgres:password@localhost:5432/trade_strategies")
-engine = create_engine(DATABASE_URL)
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+# Database connection is provided by `database.config` to ensure consistent driver/env
 
 
 class IBConnectionManager:
