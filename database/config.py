@@ -36,7 +36,9 @@ except NameError:  # pragma: no cover
 
 
 # Database configuration (Postgres only)
-DATABASE_URL = os.getenv("DATABASE_URL", get_database_url())
+# Prefer managed connection strings if present (Render exposes DATABASE_URL or DATABASE_INTERNAL_URL)
+_managed_db_url = os.getenv("DATABASE_URL") or os.getenv("DATABASE_INTERNAL_URL")
+DATABASE_URL = _managed_db_url if _managed_db_url else get_database_url()
 engine = create_engine(
     DATABASE_URL,
     pool_pre_ping=True,
