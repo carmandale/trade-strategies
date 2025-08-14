@@ -78,7 +78,15 @@ except NameError:  # pragma: no cover
 # Database configuration (Postgres only)
 # Prefer managed connection strings if present (Render exposes DATABASE_URL or DATABASE_INTERNAL_URL)
 _managed_db_url = os.getenv("DATABASE_URL") or os.getenv("DATABASE_INTERNAL_URL")
-DATABASE_URL = _managed_db_url if _managed_db_url else get_database_url()
+raw_db_url = _managed_db_url if _managed_db_url else get_database_url()
+
+# Ensure SQLAlchemy uses psycopg (v3) driver when URL omits the driver
+if raw_db_url.startswith("postgres://"):
+    raw_db_url = "postgresql+psycopg://" + raw_db_url.split("postgres://", 1)[1]
+elif raw_db_url.startswith("postgresql://") and "+" not in raw_db_url.split("://",1)[0]:
+    raw_db_url = "postgresql+psycopg://" + raw_db_url.split("postgresql://", 1)[1]
+
+DATABASE_URL = raw_db_url
 
 # Emit minimal diagnostics about the DB target without leaking credentials
 try:  # pragma: no cover
