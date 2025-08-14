@@ -2,6 +2,7 @@
 import os
 import json
 import sqlalchemy as sa
+from urllib.parse import urlparse
 from sqlalchemy import MetaData, event, text as sa_text
 # Preserve patched symbol if tests patch before reload
 try:
@@ -39,6 +40,15 @@ except NameError:  # pragma: no cover
 # Prefer managed connection strings if present (Render exposes DATABASE_URL or DATABASE_INTERNAL_URL)
 _managed_db_url = os.getenv("DATABASE_URL") or os.getenv("DATABASE_INTERNAL_URL")
 DATABASE_URL = _managed_db_url if _managed_db_url else get_database_url()
+
+# Emit minimal diagnostics about the DB target without leaking credentials
+try:  # pragma: no cover
+    parsed = urlparse(DATABASE_URL)
+    db_host = parsed.hostname or "<none>"
+    db_name = (parsed.path or "/").lstrip("/") or "<none>"
+    print(f"[database.config] Using DATABASE_URL host={db_host} db={db_name}")
+except Exception:
+    pass
 engine = create_engine(
     DATABASE_URL,
     pool_pre_ping=True,
