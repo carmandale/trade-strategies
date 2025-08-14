@@ -38,9 +38,8 @@ pydantic==2.10.6
 # Upgrade SQLAlchemy for Python 3.13 compatibility
 sqlalchemy==2.0.37
 alembic==1.13.1
-# psycopg2-binary currently fails to build on Python 3.13.
-# Keep it for older Python versions and skip on 3.13+.
-psycopg2-binary==2.9.9; python_version < "3.13"
+# Use psycopg[binary] which provides prebuilt wheels for recent Python versions
+psycopg[binary]==3.2.3
 python-dotenv==1.0.0
 # Needed for FastAPI TestClient via Starlette
 httpx==0.27.2
