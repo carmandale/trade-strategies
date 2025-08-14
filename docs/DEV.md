@@ -53,6 +53,47 @@ The script will:
 
 Ports are chosen dynamically starting from `API_PORT` (backend) and `PORT` (frontend).
 
+## Local dev parity & safety
+
+- Use the same env names as production; create `.env` (backend) and `.env.local` (frontend).
+- For DB, run a local Postgres container with the same database name:
+```
+docker run --name ts-pg -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=trade_strategies -p 5432:5432 -d postgres:16
+```
+- Apply migrations locally:
+```
+alembic -c alembic.ini upgrade head
+```
+- Smoke tests mirroring prod endpoints:
+```
+curl -s http://127.0.0.1:8000/health
+curl -s http://127.0.0.1:8000/api/ai/market-data
+```
+
+## Production push checklist
+
+1) Backend (Render)
+- Commit and push to `main`.
+- Ensure Render service runtime is Python, not Docker.
+- Env set: `DATABASE_URL`, `OPENAI_API_KEY`, `FRONTEND_URL`, `AUTO_CREATE_TABLES=false`.
+- One-off job (if needed):
+```
+render jobs create <SERVICE_ID> --start-command "alembic -c alembic.ini upgrade head" --confirm -o text
+```
+- Health check:
+```
+curl -s https://<service>.onrender.com/health
+```
+
+2) Frontend (Vercel)
+- Deploy with env:
+```
+vercel --yes --prod -e VITE_API_URL=https://<service>.onrender.com -e VITE_BASE_PATH=/
+```
+- Verify:
+  - Site loads.
+  - Network calls to `/api/*` return 200.
+
 ## Testing
 
 Backend (Postgres only):

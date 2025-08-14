@@ -83,6 +83,33 @@ vercel --yes --prod \
   -e VITE_BASE_PATH=/
 ```
 
+Make deployments deterministic and fast:
+- Add a `.vercelignore` to exclude Python backend and infra so Vercel ships only the Vite app.
+- Example `.vercelignore` contents:
+```
+api/
+database/
+alembic/
+services/
+weekly/
+monthly/
+daily/
+scripts/
+start.sh
+Dockerfile
+render.yaml
+railway.toml
+nixpacks.toml
+requirements.txt
+railway_requirements.txt
+playwright*/
+vitest.config.ts
+pytest.ini
+docs/
+*.md
+node_modules/
+```
+
 Verify after deploy:
 ```bash
 curl -sI https://YOUR_VERCEL_APP.vercel.app | head -20
