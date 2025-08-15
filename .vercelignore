@@ -1,21 +1,21 @@
 # Keep Vercel deploy purely static (Vite). Exclude backend and infra files.
 
-# Python backend and infra
-api/
-database/
-alembic/
-services/
-weekly/
-monthly/
-daily/
-scripts/
-start.sh
-Dockerfile
-render.yaml
-railway.toml
-nixpacks.toml
-requirements.txt
-railway_requirements.txt
+# Python backend and infra (anchor to repo root so we don't exclude src/services)
+/api/
+/database/
+/alembic/
+/services/
+/weekly/
+/monthly/
+/daily/
+/scripts/
+/start.sh
+/Dockerfile
+/render.yaml
+/railway.toml
+/nixpacks.toml
+/requirements.txt
+/railway_requirements.txt
 
 # Tests, docs, misc
 playwright*/
