@@ -107,16 +107,29 @@ class AIAssessmentService:
                         "messages": [
                             {"role": "system", "content": "You are an expert options trader providing strategy analysis. Always respond with valid JSON."},
                             {"role": "user", "content": prompt}
-                        ],
-                        "temperature": self.default_temperature,
-                        "max_completion_tokens": self.default_max_tokens,
-                        "response_format": {"type": "json_object"}
+                        ]
                     }
                     
-                    # Add reasoning effort only for reasoning models (GPT-o1, GPT-5)
-                    if self.default_model.startswith('gpt-5') or self.default_model.startswith('o1'):
+                    # GPT-5 needs higher token limit because it uses tokens for reasoning
+                    if self.default_model.startswith('gpt-5'):
+                        api_params["max_completion_tokens"] = 8000  # Allow plenty for reasoning + output
+                    else:
+                        api_params["max_completion_tokens"] = self.default_max_tokens
+                    
+                    # Add response_format only for non-GPT-5 models (GPT-5 might not support it yet)
+                    if not self.default_model.startswith('gpt-5'):
+                        api_params["response_format"] = {"type": "json_object"}
+                    
+                    # Add temperature only for non-GPT-5 models (GPT-5 only supports default temperature)
+                    if not self.default_model.startswith('gpt-5'):
+                        api_params["temperature"] = self.default_temperature
+                    
+                    # Add reasoning effort only for o1 models (GPT-5 might not support it yet)
+                    if self.default_model.startswith('o1'):
                         api_params["reasoning_effort"] = self.default_reasoning_effort
                     
+                    logger.info(f"Calling OpenAI with model: {api_params['model']}")
+                    logger.info(f"API params: {list(api_params.keys())}")
                     response = self.client.chat.completions.create(**api_params)
                 except Exception as format_error:
                     if "response_format" in str(format_error):
@@ -127,13 +140,21 @@ class AIAssessmentService:
                             "messages": [
                                 {"role": "system", "content": "You are an expert options trader providing strategy analysis. Always respond with valid JSON."},
                                 {"role": "user", "content": prompt}
-                            ],
-                            "temperature": self.default_temperature,
-                            "max_completion_tokens": self.default_max_tokens
+                            ]
                         }
                         
-                        # Add reasoning effort only for reasoning models (GPT-o1, GPT-5)
-                        if self.default_model.startswith('gpt-5') or self.default_model.startswith('o1'):
+                        # GPT-5 needs higher token limit
+                        if self.default_model.startswith('gpt-5'):
+                            fallback_params["max_completion_tokens"] = 8000
+                        else:
+                            fallback_params["max_completion_tokens"] = self.default_max_tokens
+                        
+                        # Add temperature only for non-GPT-5 models
+                        if not self.default_model.startswith('gpt-5'):
+                            fallback_params["temperature"] = self.default_temperature
+                        
+                        # Add reasoning effort only for o1 models
+                        if self.default_model.startswith('o1'):
                             fallback_params["reasoning_effort"] = self.default_reasoning_effort
                         
                         response = self.client.chat.completions.create(**fallback_params)
@@ -176,6 +197,15 @@ class AIAssessmentService:
                             logger.info(f"Content value: {repr(content)}")
                             logger.info(f"Content is None: {content is None}")
                             logger.info(f"Content length: {len(content) if content else 0}")
+                            
+                            # Check if GPT-5 uses a different attribute
+                            if not content and self.default_model.startswith('gpt-5'):
+                                logger.info(f"GPT-5 detected with empty content. Checking all message attributes...")
+                                for attr in dir(message):
+                                    if not attr.startswith('_'):
+                                        attr_value = getattr(message, attr, None)
+                                        if attr_value and not callable(attr_value):
+                                            logger.info(f"  {attr}: {repr(attr_value)[:200]}")
                         else:
                             logger.error("Message object has no 'content' attribute")
                             # Try to see what attributes it has
