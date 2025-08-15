@@ -74,6 +74,24 @@ Reference-only utilities are kept for exploration. Use `api/main.py` as the cano
 python backtest_strategies.py --timeframe daily --plot --export
 ```
 
+## AI Assessment Configuration
+
+The system supports advanced AI models for strategy assessment:
+
+### GPT-5 Configuration
+- **Model**: GPT-5 (gpt-5-2025-08-07) 
+- **Token Allocation**: 8000 max tokens (accommodates both reasoning and output)
+- **Special Handling**: 
+  - No custom temperature (uses default only)
+  - No response_format parameter
+  - Increased token limit for reasoning models
+- **Environment**: Set `OPENAI_MODEL=gpt-5` in `.env`
+
+### GPT-4o Configuration  
+- **Model**: GPT-4o (default fallback)
+- **Standard Parameters**: Supports temperature, response_format
+- **Token Limit**: 2000 (standard)
+
 ## Deployment Pointer
 
 For deployment (Render backend + Vercel frontend), see `docs/DEPLOYMENT.md`.
