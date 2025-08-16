@@ -48,12 +48,16 @@ jobs:
           uv pip install psycopg2-binary
       - name: Run pytest
         env:
+          CI: "true"
+          DATABASE_URL: "postgresql://postgres:@127.0.0.1:5432/trade_strategies_test"
           DB_USER: postgres
           DB_PASSWORD: ""
           DB_HOST: 127.0.0.1
           DB_PORT: "5432"
           DB_NAME: trade_strategies_test
           AUTO_CREATE_TABLES: "true"
+          OPENAI_API_KEY: "test-key-12345"
+          OPENAI_MODEL: "gpt-4"
         run: |
           . .venv/bin/activate
           pytest -q

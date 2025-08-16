@@ -2,43 +2,101 @@
 import os
 import pytest
 import tempfile
+import subprocess
+import time
 from unittest.mock import patch, MagicMock
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker
-from sqlalchemy.pool import StaticPool
+from sqlalchemy.pool import NullPool
 
 
 @pytest.fixture(scope="session", autouse=True)
 def configure_test_environment():
-    """Configure test environment with in-memory SQLite database."""
-    # Set environment variables for testing
-    test_env = {
-        'DATABASE_URL': 'sqlite:///:memory:',
-        'DB_NAME': 'test_db',
-        'DATABASE_ECHO': 'false',
-        'AUTO_CREATE_TABLES': 'true',
-        'OPENAI_API_KEY': 'test-key-12345',  # Provide test API key
-        'OPENAI_MODEL': 'gpt-4'
-    }
-    
-    with patch.dict(os.environ, test_env):
+    """Configure test environment with PostgreSQL database."""
+    # Check if we're in CI environment (DATABASE_URL already set)
+    if 'DATABASE_URL' in os.environ and 'CI' in os.environ:
+        # CI environment - use existing DATABASE_URL
         yield
+    else:
+        # Local environment - use Docker PostgreSQL for tests
+        test_env = {
+            'DATABASE_URL': 'postgresql://testuser:testpass@localhost:5433/test_trade_strategies',
+            'DB_NAME': 'test_trade_strategies',
+            'DATABASE_ECHO': 'false',
+            'AUTO_CREATE_TABLES': 'true',
+            'OPENAI_API_KEY': 'test-key-12345',  # Provide test API key
+            'OPENAI_MODEL': 'gpt-4'
+        }
+        
+        with patch.dict(os.environ, test_env):
+            yield
+
+
+@pytest.fixture(scope="session")
+def ensure_test_db_running():
+    """Ensure PostgreSQL test database is running via Docker."""
+    # Skip in CI environment
+    if 'CI' in os.environ:
+        return
+    
+    # Check if test database is already running
+    try:
+        test_engine = create_engine(
+            'postgresql://testuser:testpass@localhost:5433/test_trade_strategies',
+            poolclass=NullPool
+        )
+        with test_engine.connect() as conn:
+            conn.execute(text("SELECT 1"))
+        test_engine.dispose()
+        return  # Database already running
+    except:
+        pass  # Database not running, start it
+    
+    # Start PostgreSQL test database
+    print("Starting PostgreSQL test database...")
+    subprocess.run(
+        ["docker-compose", "-f", "docker-compose.test.yml", "up", "-d"],
+        check=True,
+        capture_output=True
+    )
+    
+    # Wait for database to be ready
+    max_retries = 30
+    for i in range(max_retries):
+        try:
+            test_engine = create_engine(
+                'postgresql://testuser:testpass@localhost:5433/test_trade_strategies',
+                poolclass=NullPool
+            )
+            with test_engine.connect() as conn:
+                conn.execute(text("SELECT 1"))
+            test_engine.dispose()
+            print("PostgreSQL test database ready!")
+            break
+        except:
+            if i == max_retries - 1:
+                raise RuntimeError("PostgreSQL test database failed to start")
+            time.sleep(1)
 
 
 @pytest.fixture(scope="function")
-def test_db_engine():
-    """Create a test database engine using SQLite."""
-    # Create in-memory SQLite database for each test
+def test_db_engine(ensure_test_db_running):
+    """Create a test database engine using PostgreSQL."""
+    # Get DATABASE_URL from environment
+    database_url = os.environ.get('DATABASE_URL', 'postgresql://testuser:testpass@localhost:5433/test_trade_strategies')
+    
+    # Create PostgreSQL test database connection
     engine = create_engine(
-        "sqlite:///:memory:",
-        poolclass=StaticPool,
-        connect_args={"check_same_thread": False},
+        database_url,
+        poolclass=NullPool,
         echo=False
     )
     
     # Import models to create tables
     try:
         from database.models import Base
+        # Drop all tables first to ensure clean state
+        Base.metadata.drop_all(bind=engine)
         Base.metadata.create_all(bind=engine)
     except ImportError:
         # If models don't exist yet, that's okay
