@@ -4,8 +4,11 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 import { BarChart3, BookOpen, Trash2 } from 'lucide-react';
 import HeaderSection from './generated/HeaderSection';
 import { ConsolidatedStrategyCard, StrategyType } from './ConsolidatedStrategyCard';
+import { StrikeSelector } from './StrikeSelector';
+import { StrikeVisualization } from './StrikeVisualization';
 import { apiService } from '../services/api';
 import { SpreadConfig, AnalysisData, Trade } from './generated/SPYSpreadStrategiesApp';
+import { StrikeConfig } from '../types/strategy';
 import TradeStorageApiService, { StoredTrade as ApiStoredTrade, TradeCreateRequest } from '../services/tradeStorageApi';
 import { TradeManagement } from './TradeManagement';
 
@@ -15,8 +18,28 @@ const roundToNearestFive = (price: number): number => {
 };
 
 // Calculate strikes based on current SPY price using common options strategies
-const calculateStrikes = (currentPrice: number): SpreadConfig => {
+const calculateStrikes = (currentPrice: number, customStrikeConfig?: StrikeConfig): SpreadConfig => {
   const rounded = roundToNearestFive(currentPrice);
+  
+  if (customStrikeConfig) {
+    // Use custom strike percentages if provided
+    return {
+      // Bull Call Spread: Use custom percentages (will add later)
+      bullCallLower: rounded,
+      bullCallUpper: rounded + 5,
+      
+      // Iron Condor: Use custom percentages
+      ironCondorPutLong: roundToNearestFive(currentPrice * (customStrikeConfig.put_long_pct / 100)),
+      ironCondorPutShort: roundToNearestFive(currentPrice * (customStrikeConfig.put_short_pct / 100)),
+      ironCondorCallShort: roundToNearestFive(currentPrice * (customStrikeConfig.call_short_pct / 100)),
+      ironCondorCallLong: roundToNearestFive(currentPrice * (customStrikeConfig.call_long_pct / 100)),
+      
+      // Butterfly: ATM with $10 wings (standard butterfly)
+      butterflyLower: rounded - 10,
+      butterflyBody: rounded,
+      butterflyUpper: rounded + 10
+    };
+  }
   
   return {
     // Bull Call Spread: ATM and 1 strike OTM (conservative, high probability)
@@ -24,15 +47,25 @@ const calculateStrikes = (currentPrice: number): SpreadConfig => {
     bullCallUpper: rounded + 5,
     
     // Iron Condor: ~5% OTM on each side (targeting 16-delta strikes)
-    ironCondorPutShort: roundToNearestFive(currentPrice * 0.95),  // 5% below
-    ironCondorPutLong: roundToNearestFive(currentPrice * 0.93),   // 7% below  
-    ironCondorCallShort: roundToNearestFive(currentPrice * 1.05), // 5% above
-    ironCondorCallLong: roundToNearestFive(currentPrice * 1.07),  // 7% above
+    ironCondorPutShort: roundToNearestFive(currentPrice * 0.975),  // 2.5% below
+    ironCondorPutLong: roundToNearestFive(currentPrice * 0.97),   // 3% below  
+    ironCondorCallShort: roundToNearestFive(currentPrice * 1.025), // 2.5% above
+    ironCondorCallLong: roundToNearestFive(currentPrice * 1.03),  // 3% above
     
     // Butterfly: ATM with $10 wings (standard butterfly)
     butterflyLower: rounded - 10,
     butterflyBody: rounded,
     butterflyUpper: rounded + 10
+  };
+};
+
+// Convert SpreadConfig to StrikeConfig (prices to percentages)
+const spreadConfigToStrikeConfig = (spreadConfig: SpreadConfig, currentPrice: number): StrikeConfig => {
+  return {
+    put_long_pct: (spreadConfig.ironCondorPutLong / currentPrice) * 100,
+    put_short_pct: (spreadConfig.ironCondorPutShort / currentPrice) * 100,
+    call_short_pct: (spreadConfig.ironCondorCallShort / currentPrice) * 100,
+    call_long_pct: (spreadConfig.ironCondorCallLong / currentPrice) * 100,
   };
 };
 
@@ -53,6 +86,15 @@ const ConsolidatedSPYApp: React.FC = () => {
     price: number;
     volume: number;
   }[]>([]);
+  
+  // Strike configuration state
+  const [strikeConfig, setStrikeConfig] = useState<StrikeConfig>({
+    put_long_pct: 97.0,
+    put_short_pct: 97.5,
+    call_short_pct: 102.5,
+    call_long_pct: 103.0,
+  });
+  const [isCalculating, setIsCalculating] = useState<boolean>(false);
   
   // Load trades from database on component mount
   useEffect(() => {
@@ -113,7 +155,7 @@ const ConsolidatedSPYApp: React.FC = () => {
         setConnectionError(null);
         // Calculate strikes if not already set
         if (!spreadConfig && marketData.current_price) {
-          setSpreadConfig(calculateStrikes(marketData.current_price));
+          setSpreadConfig(calculateStrikes(marketData.current_price, strikeConfig));
         }
       } catch (error) {
         console.error('Failed to fetch SPY price:', error);
@@ -127,7 +169,7 @@ const ConsolidatedSPYApp: React.FC = () => {
     // Update every 30 seconds
     const interval = setInterval(fetchSpyPrice, 30000);
     return () => clearInterval(interval);
-  }, [spreadConfig]);
+  }, [spreadConfig, strikeConfig]);
 
   // Update strikes when SPY price changes significantly
   useEffect(() => {
@@ -139,9 +181,9 @@ const ConsolidatedSPYApp: React.FC = () => {
     // Only update if price moved to a different $5 strike level
     if (Math.abs(currentRounded - configRounded) >= 5) {
       console.log(`SPY moved to new strike level: ${configRounded} → ${currentRounded}, updating strikes`);
-      setSpreadConfig(calculateStrikes(spyPrice));
+      setSpreadConfig(calculateStrikes(spyPrice, strikeConfig));
     }
-  }, [spyPrice, spreadConfig?.butterflyBody]);
+  }, [spyPrice, spreadConfig?.butterflyBody, strikeConfig]);
 
   // Fetch real historical chart data
   useEffect(() => {
@@ -232,6 +274,72 @@ const ConsolidatedSPYApp: React.FC = () => {
   const handleUpdateConfig = (updates: Partial<SpreadConfig>) => {
     if (spreadConfig) {
       setSpreadConfig({ ...spreadConfig, ...updates });
+    }
+  };
+
+  // Handle strike configuration changes
+  const handleStrikeConfigChange = async (newStrikeConfig: StrikeConfig) => {
+    if (!spyPrice) return;
+
+    setStrikeConfig(newStrikeConfig);
+    setIsCalculating(true);
+
+    try {
+      // Call the new /api/strategies/calculate endpoint
+      const response = await fetch('/api/strategies/calculate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          symbol: 'SPY',
+          strategy_type: 'iron_condor',
+          timeframe: 'daily',
+          current_price: spyPrice,
+          strike_percentages: {
+            put_long_pct: newStrikeConfig.put_long_pct,
+            put_short_pct: newStrikeConfig.put_short_pct,
+            call_short_pct: newStrikeConfig.call_short_pct,
+            call_long_pct: newStrikeConfig.call_long_pct,
+          },
+          contracts: contracts,
+        }),
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        
+        // Update the spread configuration with new strikes
+        const newSpreadConfig = calculateStrikes(spyPrice, newStrikeConfig);
+        setSpreadConfig(newSpreadConfig);
+
+        // Update analysis data with calculated metrics
+        if (analysisData) {
+          const updatedAnalysis = {
+            ...analysisData,
+            ironCondor: {
+              maxProfit: result.max_profit,
+              maxLoss: Math.abs(result.max_loss),
+              upperBreakeven: result.breakeven_points[1] || 0,
+              lowerBreakeven: result.breakeven_points[0] || 0,
+              riskReward: result.risk_reward_ratio,
+            },
+          };
+          setAnalysisData(updatedAnalysis);
+        }
+      } else {
+        console.error('Failed to calculate strategy metrics:', response.statusText);
+        // Fallback to local calculation
+        const newSpreadConfig = calculateStrikes(spyPrice, newStrikeConfig);
+        setSpreadConfig(newSpreadConfig);
+      }
+    } catch (error) {
+      console.error('Error calling calculate API:', error);
+      // Fallback to local calculation
+      const newSpreadConfig = calculateStrikes(spyPrice, newStrikeConfig);
+      setSpreadConfig(newSpreadConfig);
+    } finally {
+      setIsCalculating(false);
     }
   };
 
@@ -575,6 +683,41 @@ const ConsolidatedSPYApp: React.FC = () => {
             </div>
           </div>
         </motion.div>
+
+        {/* Strike Configuration Panel */}
+        {spyPrice && (
+          <motion.div 
+            className="mt-8 bg-slate-800/50 backdrop-blur-sm border border-slate-700/50 rounded-2xl p-6"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.15 }}
+          >
+            <h2 className="text-lg font-semibold text-slate-100 mb-6">Strike Configuration</h2>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <div>
+                <StrikeSelector
+                  strikes={strikeConfig}
+                  currentPrice={spyPrice}
+                  onStrikesChange={handleStrikeConfigChange}
+                  loading={isCalculating}
+                />
+              </div>
+              <div>
+                {spreadConfig && (
+                  <StrikeVisualization
+                    strikes={strikeConfig}
+                    currentPrice={spyPrice}
+                    credit={25}
+                    contracts={contracts}
+                    loading={isCalculating}
+                    height={400}
+                    showPercentages={true}
+                  />
+                )}
+              </div>
+            </div>
+          </motion.div>
+        )}
 
         {/* Consolidated Strategy Cards */}
         <div className="mt-8 space-y-6">
