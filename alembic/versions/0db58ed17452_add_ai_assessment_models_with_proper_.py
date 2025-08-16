@@ -23,6 +23,10 @@ def upgrade() -> None:
     # Drop enum types if they exist (in case of previous failed migrations)
     op.execute("DROP TYPE IF EXISTS airecommendation CASCADE")
     op.execute("DROP TYPE IF EXISTS reasoningeffort CASCADE")
+    
+    # Create enum types explicitly
+    op.execute("CREATE TYPE airecommendation AS ENUM ('GO', 'CAUTION', 'NO_GO')")
+    op.execute("CREATE TYPE reasoningeffort AS ENUM ('low', 'medium', 'high')")
     op.create_table('ai_assessments',
     sa.Column('id', sa.UUID(), server_default=sa.text('gen_random_uuid()'), nullable=False),
     sa.Column('assessment_id', sa.String(length=100), nullable=False),
@@ -53,7 +57,7 @@ def upgrade() -> None:
     sa.Column('temperature', sa.DECIMAL(precision=3, scale=2), server_default='0.30', nullable=True),
     sa.Column('max_tokens', sa.Integer(), server_default='800', nullable=True),
     sa.Column('cache_ttl', sa.Integer(), server_default='300', nullable=True),
-    sa.Column('reasoning_effort', sa.Enum('low', 'medium', 'high', name='reasoningeffort'), server_default=sa.text("'medium'"), nullable=True),
+    sa.Column('reasoning_effort', sa.Enum('low', 'medium', 'high', name='reasoningeffort'), server_default='medium', nullable=True),
     sa.Column('auto_assess', sa.Boolean(), server_default='false', nullable=True),
     sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=True),
     sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=True),
@@ -110,4 +114,8 @@ def downgrade() -> None:
     op.drop_index('idx_ai_assessments_strategy_hash', table_name='ai_assessments')
     op.drop_index('idx_ai_assessments_expires', table_name='ai_assessments')
     op.drop_table('ai_assessments')
+    
+    # Drop enum types
+    op.execute("DROP TYPE IF EXISTS airecommendation CASCADE")
+    op.execute("DROP TYPE IF EXISTS reasoningeffort CASCADE")
     # ### end Alembic commands ###
