@@ -244,7 +244,7 @@ describe('IBSettings', () => {
 			await userEvent.type(screen.getByLabelText(/Client ID/i), mockSettings.client_id.toString());
 			await userEvent.type(screen.getByLabelText(/Username/i), mockSettings.username);
 			await userEvent.type(screen.getByLabelText(/Password \(Optional\)/i), mockSettings.password);
-			await userEvent.type(screen.getByLabelText(/Account ID \(Optional\)/i), mockSettings.account);
+			await userEvent.type(screen.getByLabelText(/Account ID \(Optional\)/i), mockSettings.account_id);
 
 			// Submit the form
 			const saveButton = screen.getByRole('button', { name: /Save Settings/i });
