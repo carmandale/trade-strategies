@@ -74,7 +74,7 @@ export const IBSettings: React.FC = () => {
 			newErrors.port = 'Port must be between 1 and 65535';
 		}
 
-		if (settings.client_id < 0) {
+		if (settings.client_id <= 0) {
 			newErrors.client_id = 'Client ID must be a positive number';
 		}
 

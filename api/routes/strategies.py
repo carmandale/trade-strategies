@@ -85,6 +85,36 @@ class BacktestResult(BaseModel):
     volatility_used: float = 0.0
     strategy_details: Dict[str, Any] = {}
 
+class CalculateRequest(BaseModel):
+    """Request model for real-time strategy calculations with custom strikes."""
+    symbol: str = "SPY"
+    strategy_type: StrategyType
+    timeframe: TimeFrame
+    current_price: float
+    strike_percentages: Dict[str, float] = Field(
+        description="Strike percentages as decimals. For iron_condor: put_long_pct, put_short_pct, call_short_pct, call_long_pct"
+    )
+    volatility: Optional[float] = None
+    risk_free_rate: Optional[float] = None
+    dividend_yield: Optional[float] = None
+    contracts: Optional[int] = 1
+
+class CalculateResult(BaseModel):
+    """Response model for real-time strategy calculations."""
+    symbol: str
+    strategy_type: str
+    timeframe: str
+    current_price: float
+    strikes: Dict[str, float]
+    max_profit: float
+    max_loss: float
+    breakeven_points: List[float]
+    probability_of_profit: float
+    risk_reward_ratio: float
+    greeks: Optional[Dict[str, float]] = None
+    entry_cost: float
+    volatility_used: float
+
 @router.post("/backtest", response_model=BacktestResult)
 async def backtest_strategy(request: BacktestRequest):
     """Run backtest for specified strategy and timeframe using Black-Scholes options pricing."""
@@ -155,6 +185,189 @@ async def backtest_strategy(request: BacktestRequest):
         
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/calculate", response_model=CalculateResult)
+async def calculate_strategy(request: CalculateRequest):
+    """Calculate strategy metrics in real-time with custom strike percentages."""
+    try:
+        # Initialize options pricing service
+        options_pricing = OptionsPricingService(
+            risk_free_rate=request.risk_free_rate if request.risk_free_rate is not None else 0.05
+        )
+        
+        # Get volatility if not provided
+        volatility = request.volatility
+        if volatility is None:
+            # Get historical volatility for the symbol
+            try:
+                ticker = yf.Ticker(request.symbol)
+                hist_data = ticker.history(period="30d")
+                if not hist_data.empty:
+                    returns = np.log(hist_data['Close'] / hist_data['Close'].shift(1)).dropna()
+                    volatility = float(returns.std() * np.sqrt(252))  # Annualized volatility
+                else:
+                    volatility = 0.2  # Default 20% volatility
+            except:
+                volatility = 0.2  # Default 20% volatility
+        
+        # Get dividend yield if not provided
+        dividend_yield = request.dividend_yield
+        if dividend_yield is None:
+            try:
+                ticker = yf.Ticker(request.symbol)
+                dividend_yield = ticker.info.get('dividendYield', 0.0)
+                if dividend_yield is None:
+                    dividend_yield = 0.0
+            except:
+                dividend_yield = 0.0
+        
+        # Calculate days to expiration
+        days_to_expiration = _calculate_days_to_expiration(request.timeframe)
+        
+        # Calculate strikes from percentages
+        current_price = request.current_price
+        
+        if request.strategy_type == StrategyType.IRON_CONDOR:
+            # Validate required strike percentages for iron condor
+            required_strikes = ['put_long_pct', 'put_short_pct', 'call_short_pct', 'call_long_pct']
+            for strike_key in required_strikes:
+                if strike_key not in request.strike_percentages:
+                    raise HTTPException(
+                        status_code=400, 
+                        detail=f"Missing required strike percentage: {strike_key}"
+                    )
+            
+            # Calculate strike prices
+            put_long = round(current_price * (request.strike_percentages['put_long_pct'] / 100), 2)
+            put_short = round(current_price * (request.strike_percentages['put_short_pct'] / 100), 2)
+            call_short = round(current_price * (request.strike_percentages['call_short_pct'] / 100), 2)
+            call_long = round(current_price * (request.strike_percentages['call_long_pct'] / 100), 2)
+            
+            strikes = [put_long, put_short, call_short, call_long]
+            
+            # Validate strike order
+            if not (put_long < put_short < call_short < call_long):
+                raise HTTPException(
+                    status_code=400,
+                    detail="Invalid strike order. Must be: put_long < put_short < call_short < call_long"
+                )
+            
+            # Calculate spread prices
+            spread_prices = options_pricing.calculate_spread_prices(
+                spread_type='iron_condor',
+                underlying_price=current_price,
+                strikes=strikes,
+                days_to_expiration=days_to_expiration,
+                volatility=volatility,
+                dividend_yield=dividend_yield
+            )
+            
+            # Calculate metrics
+            entry_credit = spread_prices['net_credit']
+            max_profit = entry_credit * 100 * request.contracts
+            
+            # Calculate max loss (width of the wider spread minus credit)
+            put_width = put_short - put_long
+            call_width = call_long - call_short
+            max_loss = (max(put_width, call_width) - entry_credit) * 100 * request.contracts
+            
+            # Calculate breakeven points
+            lower_breakeven = put_short - entry_credit
+            upper_breakeven = call_short + entry_credit
+            breakeven_points = [round(lower_breakeven, 2), round(upper_breakeven, 2)]
+            
+            # Return strikes dict
+            strikes_dict = {
+                'put_long': put_long,
+                'put_short': put_short,
+                'call_short': call_short,
+                'call_long': call_long
+            }
+            
+            entry_cost = entry_credit * 100 * request.contracts  # Credit is positive
+            
+        else:  # Bull Call
+            # Validate required strike percentages for bull call
+            required_strikes = ['lower_pct', 'upper_pct']
+            for strike_key in required_strikes:
+                if strike_key not in request.strike_percentages:
+                    raise HTTPException(
+                        status_code=400,
+                        detail=f"Missing required strike percentage: {strike_key}"
+                    )
+            
+            # Calculate strike prices
+            lower_strike = round(current_price * (request.strike_percentages['lower_pct'] / 100), 2)
+            upper_strike = round(current_price * (request.strike_percentages['upper_pct'] / 100), 2)
+            
+            strikes = [lower_strike, upper_strike]
+            
+            # Validate strike order
+            if lower_strike >= upper_strike:
+                raise HTTPException(
+                    status_code=400,
+                    detail="Invalid strike order. Lower strike must be less than upper strike"
+                )
+            
+            # Calculate spread prices
+            spread_prices = options_pricing.calculate_spread_prices(
+                spread_type='bull_call',
+                underlying_price=current_price,
+                strikes=strikes,
+                days_to_expiration=days_to_expiration,
+                volatility=volatility,
+                dividend_yield=dividend_yield
+            )
+            
+            # Calculate metrics
+            entry_debit = spread_prices['net_debit']
+            max_loss = entry_debit * 100 * request.contracts
+            max_profit = (upper_strike - lower_strike - entry_debit) * 100 * request.contracts
+            
+            # Calculate breakeven point
+            breakeven = lower_strike + entry_debit
+            breakeven_points = [round(breakeven, 2)]
+            
+            # Return strikes dict
+            strikes_dict = {
+                'lower_strike': lower_strike,
+                'upper_strike': upper_strike
+            }
+            
+            entry_cost = entry_debit * 100 * request.contracts  # Debit is negative (cost)
+        
+        # Calculate probability of profit
+        probability_of_profit = options_pricing.calculate_probability_of_profit(
+            spread_type=request.strategy_type.value,
+            underlying_price=current_price,
+            strikes=strikes,
+            days_to_expiration=days_to_expiration,
+            volatility=volatility,
+            dividend_yield=dividend_yield
+        )
+        
+        # Calculate risk-reward ratio
+        risk_reward_ratio = abs(max_profit) / abs(max_loss) if max_loss != 0 else 0
+        
+        return CalculateResult(
+            symbol=request.symbol,
+            strategy_type=request.strategy_type.value,
+            timeframe=request.timeframe.value,
+            current_price=current_price,
+            strikes=strikes_dict,
+            max_profit=round(max_profit, 2),
+            max_loss=round(max_loss, 2),
+            breakeven_points=breakeven_points,
+            probability_of_profit=round(probability_of_profit * 100, 2),
+            risk_reward_ratio=round(risk_reward_ratio, 2),
+            entry_cost=round(entry_cost, 2),
+            volatility_used=round(volatility, 4)
+        )
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error calculating strategy: {str(e)}")
 
 # Database-backed strategy endpoints
 @router.post("/", response_model=StrategyResponse, status_code=201)
