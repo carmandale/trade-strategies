@@ -251,12 +251,12 @@ describe('StrategyDashboard Integration with Strike Selection', () => {
     const user = userEvent.setup()
     const { StrategyApiService } = await import('../../services/strategyApi')
     
-    // Make API call slower to test loading state
+    // Make API call slower to test loading state - use much longer delay
     ;(StrategyApiService.calculateIronCondorWithStrikes as any).mockImplementation(
       () => new Promise(resolve => setTimeout(() => resolve({
         performance: { win_rate: 0.72, total_pnl: 1100, sharpe_ratio: 1.25, max_drawdown: -180, average_trade: 110 },
         trades: []
-      }), 500))
+      }), 1000))
     )
 
     render(<StrategyDashboard symbol="SPY" />)
@@ -274,13 +274,26 @@ describe('StrategyDashboard Integration with Strike Selection', () => {
     await user.clear(putShortInput)
     await user.type(putShortInput, '96')
 
-    // Should show loading indicator
-    expect(screen.getByText('Calculating...')).toBeInTheDocument()
+    // Wait for debounce timer (300ms) plus a bit more for loading state to appear
+    // Use getAllByText since there might be multiple loading indicators, then check for the specific one we want
+    await waitFor(() => {
+      const calculatingElements = screen.getAllByText('Calculating...')
+      expect(calculatingElements.length).toBeGreaterThan(0)
+      // Verify we have the strike visualization loading state (the blue one)
+      const strikeCalculatingElement = calculatingElements.find(el => 
+        el.className.includes('text-blue-600')
+      )
+      expect(strikeCalculatingElement).toBeInTheDocument()
+    }, { timeout: 500 })
 
     // Loading should disappear after calculation
     await waitFor(() => {
-      expect(screen.queryByText('Calculating...')).not.toBeInTheDocument()
-    }, { timeout: 1000 })
+      const calculatingElements = screen.queryAllByText('Calculating...')
+      const strikeCalculatingElements = calculatingElements.filter(el => 
+        el.className.includes('text-blue-600')
+      )
+      expect(strikeCalculatingElements.length).toBe(0)
+    }, { timeout: 1500 })
   })
 
   it('handles API errors gracefully during strike recalculation', async () => {

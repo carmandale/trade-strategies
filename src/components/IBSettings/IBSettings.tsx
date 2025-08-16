@@ -9,7 +9,7 @@ export const IBSettings: React.FC = () => {
 		client_id: 1,
 		username: '',
 		password: '',
-		account: '',
+		account_id: '',
 		auto_connect: false
 	});
 
@@ -268,7 +268,10 @@ export const IBSettings: React.FC = () => {
 							id="client_id"
 							type="number"
 							value={settings.client_id}
-							onChange={(e) => handleInputChange('client_id', parseInt(e.target.value) || 0)}
+							onChange={(e) => {
+								const value = parseInt(e.target.value);
+								handleInputChange('client_id', isNaN(value) ? 0 : value);
+							}}
 							disabled={connectionStatus.connected}
 							className={`w-full px-3 py-2 border rounded-md ${
 								errors.client_id ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
@@ -325,8 +328,8 @@ export const IBSettings: React.FC = () => {
 						<input
 							id="account"
 							type="text"
-							value={settings.account || ''}
-							onChange={(e) => handleInputChange('account', e.target.value)}
+							value={settings.account_id || ''}
+							onChange={(e) => handleInputChange('account_id', e.target.value)}
 							placeholder="e.g., DU123456"
 							className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700"
 						/>

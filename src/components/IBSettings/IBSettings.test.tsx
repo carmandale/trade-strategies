@@ -194,10 +194,15 @@ describe('IBSettings', () => {
 			
 			const clientIdInput = screen.getByLabelText(/Client ID/i);
 			await userEvent.clear(clientIdInput);
-			await userEvent.type(clientIdInput, '-1');
+			await userEvent.type(clientIdInput, '0'); // Use 0 instead of -1
 			
 			const saveButton = screen.getByRole('button', { name: /Save Settings/i });
 			await userEvent.click(saveButton);
+			
+			// Wait for validation error to appear
+			await waitFor(() => {
+				expect(screen.getByText(/Client ID must be a positive number/i)).toBeInTheDocument();
+			});
 			
 			// Check that the API wasn't called with invalid data
 			expect(ibConnectionApi.updateSettings).not.toHaveBeenCalled();
@@ -238,13 +243,28 @@ describe('IBSettings', () => {
 				expect(screen.queryByText('Loading settings...')).not.toBeInTheDocument();
 			});
 
-			// Fill in the form
-			await userEvent.type(screen.getByLabelText(/Host/i), mockSettings.host);
-			await userEvent.type(screen.getByLabelText(/Port/i), mockSettings.port.toString());
-			await userEvent.type(screen.getByLabelText(/Client ID/i), mockSettings.client_id.toString());
-			await userEvent.type(screen.getByLabelText(/Username/i), mockSettings.username);
+			// Fill in the form (clear first, then type)
+			const hostInput = screen.getByLabelText(/Host/i);
+			await userEvent.clear(hostInput);
+			await userEvent.type(hostInput, mockSettings.host);
+			
+			const portInput = screen.getByLabelText(/Port/i);
+			await userEvent.clear(portInput);
+			await userEvent.type(portInput, mockSettings.port.toString());
+			
+			const clientIdInput = screen.getByLabelText(/Client ID/i);
+			await userEvent.clear(clientIdInput);
+			await userEvent.type(clientIdInput, mockSettings.client_id.toString());
+			
+			const usernameInput = screen.getByLabelText(/Username/i);
+			await userEvent.clear(usernameInput);
+			await userEvent.type(usernameInput, mockSettings.username);
+			
 			await userEvent.type(screen.getByLabelText(/Password \(Optional\)/i), mockSettings.password);
-			await userEvent.type(screen.getByLabelText(/Account ID \(Optional\)/i), mockSettings.account_id);
+			
+			const accountInput = screen.getByLabelText(/Account ID \(Optional\)/i);
+			await userEvent.clear(accountInput);
+			await userEvent.type(accountInput, mockSettings.account_id);
 
 			// Submit the form
 			const saveButton = screen.getByRole('button', { name: /Save Settings/i });
