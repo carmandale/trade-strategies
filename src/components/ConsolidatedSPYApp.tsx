@@ -6,6 +6,8 @@ import HeaderSection from './generated/HeaderSection';
 import { ConsolidatedStrategyCard, StrategyType } from './ConsolidatedStrategyCard';
 import { apiService } from '../services/api';
 import { SpreadConfig, AnalysisData, Trade } from './generated/SPYSpreadStrategiesApp';
+import TradeStorageApiService, { StoredTrade as ApiStoredTrade, TradeCreateRequest } from '../services/tradeStorageApi';
+import { TradeManagement } from './TradeManagement';
 
 // Function to round price to nearest $5 for options strikes
 const roundToNearestFive = (price: number): number => {
@@ -51,6 +53,55 @@ const ConsolidatedSPYApp: React.FC = () => {
     price: number;
     volume: number;
   }[]>([]);
+  
+  // Load trades from database on component mount
+  useEffect(() => {
+    const loadStoredTrades = async () => {
+      try {
+        // First, sync any local trades to database
+        const syncedCount = await TradeStorageApiService.syncLocalToDatabase();
+        if (syncedCount > 0) {
+          console.log(`Synced ${syncedCount} local trades to database`);
+        }
+        
+        // Then load all trades from database
+        const storedTrades = await TradeStorageApiService.getAllTrades();
+        
+        // Convert stored trades to the component's Trade format
+        const convertedTrades: Trade[] = storedTrades.map(st => ({
+          id: st.id,
+          date: new Date(st.trade_date).toLocaleDateString(),
+          strategy: formatStrategyName(st.strategy_type),
+          strikes: st.strikes.join('/'),
+          contracts: st.contracts,
+          pnl: st.realized_pnl || 0,
+          notes: st.notes || '',
+          timestamp: new Date(st.created_at).getTime()
+        }));
+        setTrades(convertedTrades);
+      } catch (error) {
+        console.error('Error loading trades:', error);
+      }
+    };
+    
+    loadStoredTrades();
+  }, []);
+  
+  // Helper function to format strategy name
+  const formatStrategyName = (strategyType: string): string => {
+    switch(strategyType.toLowerCase()) {
+      case 'bull_call':
+      case 'bullcall':
+        return 'Bull Call';
+      case 'iron_condor':
+      case 'ironcondor':
+        return 'Iron Condor';
+      case 'butterfly':
+        return 'Butterfly';
+      default:
+        return strategyType;
+    }
+  };
 
   // Fetch real-time SPY price updates
   useEffect(() => {
@@ -348,23 +399,76 @@ const ConsolidatedSPYApp: React.FC = () => {
   };
 
   // Handle trade logging
-  const handleLogTrade = (strategy: string, pnl: number) => {
-    const newTrade: Trade = {
-      id: Date.now().toString(),
-      date: selectedDate.toLocaleDateString(),
-      strategy,
-      strikes: getStrikesString(strategy),
-      contracts,
-      pnl,
-      notes: `${entryTime} - ${exitTime}`,
-      timestamp: Date.now()
-    };
-    setTrades(prev => [newTrade, ...prev]);
+  const handleLogTrade = async (strategy: string, pnl: number) => {
+    // Prepare strikes array based on strategy
+    let strikesArray: number[] = [];
+    if (spreadConfig) {
+      if (strategy === 'Bull Call') {
+        strikesArray = [spreadConfig.bullCallLower, spreadConfig.bullCallUpper];
+      } else if (strategy === 'Iron Condor') {
+        strikesArray = [
+          spreadConfig.ironCondorPutLong,
+          spreadConfig.ironCondorPutShort,
+          spreadConfig.ironCondorCallShort,
+          spreadConfig.ironCondorCallLong
+        ];
+      } else if (strategy === 'Butterfly') {
+        strikesArray = [
+          spreadConfig.butterflyLower,
+          spreadConfig.butterflyBody,
+          spreadConfig.butterflyUpper
+        ];
+      }
+    }
+    
+    try {
+      // Save to database using API
+      const tradeRequest: TradeCreateRequest = {
+        trade_date: selectedDate.toISOString().split('T')[0], // YYYY-MM-DD format
+        entry_time: entryTime,
+        symbol: 'SPY',
+        strategy_type: strategy.toLowerCase().replace(' ', '_'), // e.g., "Bull Call" -> "bull_call"
+        strikes: strikesArray,
+        contracts: contracts,
+        entry_price: spyPrice || 0,
+        credit_debit: pnl > 0 ? pnl : -pnl, // Positive for credit, negative for debit
+        status: 'open',
+        notes: `${entryTime} - ${exitTime}`,
+        realized_pnl: undefined // Will be set when trade is closed
+      };
+      
+      const storedTrade = await TradeStorageApiService.saveTrade(tradeRequest);
+      
+      // Add to component state for immediate UI update
+      const newTrade: Trade = {
+        id: storedTrade.id,
+        date: selectedDate.toLocaleDateString(),
+        strategy,
+        strikes: strikesArray.join('/'),
+        contracts,
+        pnl: 0, // P&L is 0 until trade is closed
+        notes: `${entryTime} - ${exitTime}`,
+        timestamp: Date.now()
+      };
+      setTrades(prev => [newTrade, ...prev]);
+    } catch (error) {
+      console.error('Failed to save trade:', error);
+      // Show error notification to user
+    }
   };
   
   // Handle deleting trades
-  const handleDeleteTrade = (tradeId: string) => {
-    setTrades(prev => prev.filter(trade => trade.id !== tradeId));
+  const handleDeleteTrade = async (tradeId: string) => {
+    try {
+      // Delete from database
+      const success = await TradeStorageApiService.deleteTrade(tradeId);
+      if (success) {
+        // Update component state
+        setTrades(prev => prev.filter(trade => trade.id !== tradeId));
+      }
+    } catch (error) {
+      console.error('Failed to delete trade:', error);
+    }
   };
 
   const getStrikesString = (strategy: string): string => {
@@ -605,92 +709,74 @@ const ConsolidatedSPYApp: React.FC = () => {
           </div>
         </motion.div>
 
-        {/* Trade Log */}
+        {/* Trade Management */}
         <motion.div 
-          className="mt-8 bg-slate-800/50 backdrop-blur-sm border border-slate-700/50 rounded-2xl p-6"
+          className="mt-8"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.5 }}
         >
-          <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-orange-500/20 rounded-lg">
-                <BookOpen className="w-5 h-5 text-orange-400" />
-              </div>
-              <div>
-                <h3 className="font-semibold text-slate-100">Trade Log</h3>
-                <p className="text-xs text-slate-400">Track your trading performance</p>
-              </div>
-            </div>
-            
-            {/* Summary Stats */}
-            {trades.length > 0 && (
-              <div className="flex gap-4">
-                <div className="text-right">
-                  <div className="text-xs text-slate-400">Total P&L</div>
-                  <div className={`text-sm font-semibold ${getTotalPnL() >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-                    {formatCurrency(getTotalPnL())}
-                  </div>
-                </div>
-                <div className="text-right">
-                  <div className="text-xs text-slate-400">Win Rate</div>
-                  <div className="text-sm font-semibold text-blue-400">
-                    {formatPercentage(getWinRate())}
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-
-          <div className="space-y-3 max-h-80 overflow-y-auto">
-            {trades.length === 0 ? (
-              <div className="text-center py-8 text-slate-400">
-                <BookOpen className="w-8 h-8 mx-auto mb-2 opacity-50" />
-                <p className="text-sm">No trades logged yet</p>
-                <p className="text-xs">Use the + button on strategy cards to log trades</p>
-              </div>
-            ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b border-slate-700">
-                      <th className="text-left py-2 text-slate-400">Date</th>
-                      <th className="text-left py-2 text-slate-400">Strategy</th>
-                      <th className="text-left py-2 text-slate-400">Strikes</th>
-                      <th className="text-left py-2 text-slate-400">Contracts</th>
-                      <th className="text-left py-2 text-slate-400">P&L</th>
-                      <th className="text-left py-2 text-slate-400">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {trades.slice(0, 10).map((trade) => (
-                      <tr key={trade.id} className="border-b border-slate-700/50">
-                        <td className="py-2 text-slate-300">{trade.date}</td>
-                        <td className="py-2 text-slate-300">{trade.strategy}</td>
-                        <td className="py-2 text-slate-300 font-mono text-xs">{trade.strikes}</td>
-                        <td className="py-2 text-slate-300">{trade.contracts}</td>
-                        <td className={`py-2 font-semibold ${
-                          trade.pnl >= 0 ? 'text-green-400' : 'text-red-400'
-                        }`}>
-                          ${trade.pnl.toFixed(2)}
-                        </td>
-                        <td className="py-2">
-                          <motion.button 
-                            onClick={() => handleDeleteTrade(trade.id)} 
-                            className="p-2 text-slate-400 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors duration-200"
-                            whileHover={{ scale: 1.1 }}
-                            whileTap={{ scale: 0.9 }}
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </motion.button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </div>
+          <TradeManagement
+            trades={trades.map(t => ({
+              id: t.id,
+              trade_date: new Date(t.date).toISOString().split('T')[0],
+              entry_time: t.notes?.split(' - ')[0],
+              symbol: 'SPY',
+              strategy_type: t.strategy.toLowerCase().replace(' ', '_'),
+              strikes: t.strikes.split('/').map(Number),
+              contracts: t.contracts,
+              entry_price: spyPrice || 0,
+              credit_debit: 0,
+              status: 'open' as const,
+              notes: t.notes,
+              exit_price: undefined,
+              exit_time: undefined,
+              realized_pnl: t.pnl,
+              created_at: new Date(t.timestamp).toISOString(),
+              updated_at: new Date(t.timestamp).toISOString()
+            }))}
+            onDeleteTrade={handleDeleteTrade}
+            onCloseTrade={async (id, closePrice) => {
+              try {
+                // Close trade in database
+                await TradeStorageApiService.closeTrade(id, closePrice)
+                // Reload trades from database
+                const storedTrades = await TradeStorageApiService.getAllTrades()
+                const convertedTrades: Trade[] = storedTrades.map(st => ({
+                  id: st.id,
+                  date: new Date(st.trade_date).toLocaleDateString(),
+                  strategy: formatStrategyName(st.strategy_type),
+                  strikes: st.strikes.join('/'),
+                  contracts: st.contracts,
+                  pnl: st.realized_pnl || 0,
+                  notes: st.notes || '',
+                  timestamp: new Date(st.created_at).getTime()
+                }))
+                setTrades(convertedTrades)
+              } catch (error) {
+                console.error('Failed to close trade:', error)
+              }
+            }}
+            onRefresh={async () => {
+              try {
+                // Reload trades from database
+                const storedTrades = await TradeStorageApiService.getAllTrades()
+                const convertedTrades: Trade[] = storedTrades.map(st => ({
+                  id: st.id,
+                  date: new Date(st.trade_date).toLocaleDateString(),
+                  strategy: formatStrategyName(st.strategy_type),
+                  strikes: st.strikes.join('/'),
+                  contracts: st.contracts,
+                  pnl: st.realized_pnl || 0,
+                  notes: st.notes || '',
+                  timestamp: new Date(st.created_at).getTime()
+                }))
+                setTrades(convertedTrades)
+              } catch (error) {
+                console.error('Failed to refresh trades:', error)
+              }
+            }}
+          />
         </motion.div>
       </div>
     </div>

@@ -33,8 +33,11 @@ class TestDatabaseConnection:
     
     def test_engine_creation(self):
         """Test SQLAlchemy engine is created with correct parameters."""
+        # Test that the database URL contains expected components
+        # The config automatically adds +psycopg driver to postgresql URLs
         test_url = 'postgresql://test:test@localhost/test'
-        with patch('database.config.get_database_url', return_value=test_url):
+        expected_url = 'postgresql+psycopg://test:test@localhost/test'
+        with patch.dict(os.environ, {'DATABASE_URL': test_url}, clear=False):
             with patch('database.config.create_engine') as mock_create:
                 from database import config
                 # Force module reload to pick up patched URL
@@ -43,7 +46,7 @@ class TestDatabaseConnection:
                 
                 mock_create.assert_called_once()
                 call_args = mock_create.call_args[0]
-                assert call_args[0] == test_url
+                assert call_args[0] == expected_url
     
     def test_session_local_configuration(self):
         """Test SessionLocal is configured correctly."""

@@ -6,8 +6,25 @@ import { StrategyApiService } from '@/services/strategyApi'
 import MarketApiService from '@/services/marketApi'
 
 // Mock the API services
-vi.mock('@/services/strategyApi')
-vi.mock('@/services/marketApi')
+vi.mock('@/services/strategyApi', () => ({
+	StrategyApiService: {
+		getStrategies: vi.fn(),
+		getIronCondorAll: vi.fn(),
+		getIronCondorByTimeframe: vi.fn(),
+		getIronCondorPerformance: vi.fn(),
+		getStrategy: vi.fn(),
+		getStrategyPerformance: vi.fn(),
+		calculateIronCondorWithStrikes: vi.fn(),
+		runBacktest: vi.fn()
+	}
+}))
+vi.mock('@/services/marketApi', () => ({
+	default: {
+		getCurrentPrice: vi.fn(),
+		getHistoricalPrices: vi.fn(),
+		getMultiplePrices: vi.fn()
+	}
+}))
 
 describe('Strategy Display Integration Tests', () => {
 	const mockPerformanceData = {
@@ -104,13 +121,24 @@ describe('Strategy Display Integration Tests', () => {
 		vi.clearAllMocks()
 		
 		// Mock MarketApiService.getCurrentPrice to return a fixed price
-		vi.mocked(MarketApiService.getCurrentPrice).mockResolvedValue({
+		const mockGetCurrentPrice = MarketApiService.getCurrentPrice as ReturnType<typeof vi.fn>
+		mockGetCurrentPrice.mockResolvedValue({
 			symbol: 'SPY',
 			price: 430.50,
 			timestamp: new Date().toISOString(),
 			change: 1.25,
 			change_percent: 0.29
 		})
+		
+		// Mock StrategyApiService methods
+		const mockGetIronCondorAll = StrategyApiService.getIronCondorAll as ReturnType<typeof vi.fn>
+		mockGetIronCondorAll.mockResolvedValue(mockStrategyData)
+		
+		const mockGetIronCondorPerformance = StrategyApiService.getIronCondorPerformance as ReturnType<typeof vi.fn>
+		mockGetIronCondorPerformance.mockResolvedValue(mockPerformanceData)
+		
+		const mockGetIronCondorByTimeframe = StrategyApiService.getIronCondorByTimeframe as ReturnType<typeof vi.fn>
+		mockGetIronCondorByTimeframe.mockResolvedValue(mockStrategyData.strategies.daily)
 	})
 
 	afterEach(() => {
