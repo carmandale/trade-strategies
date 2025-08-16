@@ -57,7 +57,7 @@ def upgrade() -> None:
     sa.Column('temperature', sa.DECIMAL(precision=3, scale=2), server_default='0.30', nullable=True),
     sa.Column('max_tokens', sa.Integer(), server_default='800', nullable=True),
     sa.Column('cache_ttl', sa.Integer(), server_default='300', nullable=True),
-    sa.Column('reasoning_effort', sa.Enum('low', 'medium', 'high', name='reasoningeffort'), server_default='medium', nullable=True),
+    sa.Column('reasoning_effort', sa.Enum('low', 'medium', 'high', name='reasoningeffort'), nullable=True),
     sa.Column('auto_assess', sa.Boolean(), server_default='false', nullable=True),
     sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=True),
     sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=True),
@@ -100,6 +100,9 @@ def upgrade() -> None:
     sa.UniqueConstraint('snapshot_id')
     )
     op.create_index('idx_market_snapshots_expires', 'market_data_snapshots', ['expires_at'], unique=False)
+    
+    # Add default values for enum columns after table creation
+    op.execute("ALTER TABLE ai_settings ALTER COLUMN reasoning_effort SET DEFAULT 'medium'")
     # ### end Alembic commands ###
 
 
