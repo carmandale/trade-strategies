@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { TrendingUp, Clock, DollarSign } from 'lucide-react';
+import { getMarketStatus } from '../../utils/marketUtils';
 interface HeaderSectionProps {
   spyPrice: number | null;
   lastUpdate: Date | null;
@@ -11,6 +12,17 @@ const HeaderSection: React.FC<HeaderSectionProps> = ({
   lastUpdate,
   connectionError
 }) => {
+  const [marketStatus, setMarketStatus] = useState(getMarketStatus());
+  
+  // Update market status every minute
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setMarketStatus(getMarketStatus());
+    }, 60000); // Update every minute
+    
+    return () => clearInterval(interval);
+  }, []);
+  
   const formatTime = (date: Date | null): string => {
     if (!date) return '--:--:--';
     return date.toLocaleTimeString('en-US', {
@@ -39,6 +51,33 @@ const HeaderSection: React.FC<HeaderSectionProps> = ({
     };
   };
   const priceChange = getPriceChange();
+  
+  const getMarketStatusColor = () => {
+    switch(marketStatus.status) {
+      case 'open': return 'bg-green-400';
+      case 'pre-market': return 'bg-yellow-400';
+      case 'after-hours': return 'bg-orange-400';
+      default: return 'bg-red-400';
+    }
+  };
+  
+  const getMarketStatusText = () => {
+    switch(marketStatus.status) {
+      case 'open': return 'Open';
+      case 'pre-market': return 'Pre-Market';
+      case 'after-hours': return 'After Hours';
+      default: return 'Closed';
+    }
+  };
+  
+  const getMarketStatusTextColor = () => {
+    switch(marketStatus.status) {
+      case 'open': return 'text-green-400';
+      case 'pre-market': return 'text-yellow-400';
+      case 'after-hours': return 'text-orange-400';
+      default: return 'text-red-400';
+    }
+  };
   return <header className="bg-slate-800/50 backdrop-blur-sm border border-slate-700/50 rounded-2xl p-6">
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
         {/* Title Section */}
@@ -108,14 +147,15 @@ const HeaderSection: React.FC<HeaderSectionProps> = ({
           duration: 0.2
         }}>
             <div className="flex items-center gap-2 mb-1">
-              <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+              <div className={`w-2 h-2 ${getMarketStatusColor()} rounded-full ${marketStatus.isOpen ? 'animate-pulse' : ''}`}></div>
               <span className="text-slate-400 text-sm font-medium">Market</span>
             </div>
-            <div className="text-lg font-semibold text-green-400">
-              Open
+            <div className={`text-lg font-semibold ${getMarketStatusTextColor()}`}>
+              {getMarketStatusText()}
             </div>
             <div className="text-xs text-slate-500">
-              NYSE
+              {marketStatus.isOpen && marketStatus.timeUntilClose ? `Closes in ${marketStatus.timeUntilClose}` : 
+               marketStatus.timeUntilOpen ? `Opens in ${marketStatus.timeUntilOpen}` : 'NYSE'}
             </div>
           </motion.div>
         </div>

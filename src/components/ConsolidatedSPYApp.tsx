@@ -6,6 +6,8 @@ import HeaderSection from './generated/HeaderSection';
 import { ConsolidatedStrategyCard, StrategyType } from './ConsolidatedStrategyCard';
 import { apiService } from '../services/api';
 import { SpreadConfig, AnalysisData, Trade } from './generated/SPYSpreadStrategiesApp';
+import TradeStorageService, { StoredTrade } from '../services/tradeStorage';
+import { TradeManagement } from './TradeManagement';
 
 // Function to round price to nearest $5 for options strikes
 const roundToNearestFive = (price: number): number => {
@@ -51,6 +53,43 @@ const ConsolidatedSPYApp: React.FC = () => {
     price: number;
     volume: number;
   }[]>([]);
+  
+  // Load trades from localStorage on component mount
+  useEffect(() => {
+    const loadStoredTrades = () => {
+      const storedTrades = TradeStorageService.getAllTrades();
+      // Convert stored trades to the component's Trade format
+      const convertedTrades: Trade[] = storedTrades.map(st => ({
+        id: st.id,
+        date: new Date(st.executedAt).toLocaleDateString(),
+        strategy: st.strategy === 'bullCall' ? 'Bull Call' : 
+                  st.strategy === 'ironCondor' ? 'Iron Condor' : 'Butterfly',
+        strikes: formatStoredStrikes(st),
+        contracts: st.contracts,
+        pnl: st.pnl || st.analysis?.maxProfit || 0,
+        notes: st.notes || '',
+        timestamp: new Date(st.executedAt).getTime()
+      }));
+      setTrades(convertedTrades);
+    };
+    
+    loadStoredTrades();
+  }, []);
+  
+  // Helper function to format strikes from stored trade
+  const formatStoredStrikes = (trade: StoredTrade): string => {
+    const s = trade.strikes;
+    switch(trade.strategy) {
+      case 'bullCall':
+        return `${s.bullCallLower}/${s.bullCallUpper}`;
+      case 'ironCondor':
+        return `${s.ironCondorPutLong}/${s.ironCondorPutShort}/${s.ironCondorCallShort}/${s.ironCondorCallLong}`;
+      case 'butterfly':
+        return `${s.butterflyLower}/${s.butterflyBody}/${s.butterflyUpper}`;
+      default:
+        return '';
+    }
+  };
 
   // Fetch real-time SPY price updates
   useEffect(() => {
@@ -349,8 +388,53 @@ const ConsolidatedSPYApp: React.FC = () => {
 
   // Handle trade logging
   const handleLogTrade = (strategy: string, pnl: number) => {
+    // Prepare strikes data based on strategy
+    const strikes: StoredTrade['strikes'] = {};
+    if (spreadConfig) {
+      if (strategy === 'Bull Call') {
+        strikes.bullCallLower = spreadConfig.bullCallLower;
+        strikes.bullCallUpper = spreadConfig.bullCallUpper;
+      } else if (strategy === 'Iron Condor') {
+        strikes.ironCondorPutLong = spreadConfig.ironCondorPutLong;
+        strikes.ironCondorPutShort = spreadConfig.ironCondorPutShort;
+        strikes.ironCondorCallShort = spreadConfig.ironCondorCallShort;
+        strikes.ironCondorCallLong = spreadConfig.ironCondorCallLong;
+      } else if (strategy === 'Butterfly') {
+        strikes.butterflyLower = spreadConfig.butterflyLower;
+        strikes.butterflyBody = spreadConfig.butterflyBody;
+        strikes.butterflyUpper = spreadConfig.butterflyUpper;
+      }
+    }
+    
+    // Save to localStorage using TradeStorageService
+    const storedTrade = TradeStorageService.saveTrade({
+      strategy: strategy === 'Bull Call' ? 'bullCall' : 
+                strategy === 'Iron Condor' ? 'ironCondor' : 'butterfly',
+      symbol: 'SPY',
+      executedAt: new Date().toISOString(),
+      expirationDate: selectedDate.toISOString(),
+      contracts: contracts,
+      strikes: strikes,
+      entryPrice: spyPrice || 0,
+      analysis: analysisData ? {
+        maxProfit: pnl,
+        maxLoss: strategy === 'Bull Call' ? analysisData.bullCall.maxLoss :
+                 strategy === 'Iron Condor' ? analysisData.ironCondor.maxLoss :
+                 analysisData.butterfly.maxLoss,
+        breakeven: strategy === 'Bull Call' ? analysisData.bullCall.breakeven :
+                   strategy === 'Iron Condor' ? [analysisData.ironCondor.lowerBreakeven, analysisData.ironCondor.upperBreakeven] :
+                   [analysisData.butterfly.breakeven1, analysisData.butterfly.breakeven2],
+        riskReward: strategy === 'Bull Call' ? analysisData.bullCall.riskReward :
+                    strategy === 'Iron Condor' ? analysisData.ironCondor.riskReward :
+                    analysisData.butterfly.riskReward
+      } : undefined,
+      notes: `${entryTime} - ${exitTime}`,
+      status: 'active'
+    });
+    
+    // Also add to component state for immediate UI update
     const newTrade: Trade = {
-      id: Date.now().toString(),
+      id: storedTrade.id,
       date: selectedDate.toLocaleDateString(),
       strategy,
       strikes: getStrikesString(strategy),
@@ -364,6 +448,9 @@ const ConsolidatedSPYApp: React.FC = () => {
   
   // Handle deleting trades
   const handleDeleteTrade = (tradeId: string) => {
+    // Delete from localStorage
+    TradeStorageService.deleteTrade(tradeId);
+    // Update component state
     setTrades(prev => prev.filter(trade => trade.id !== tradeId));
   };
 
@@ -605,92 +692,51 @@ const ConsolidatedSPYApp: React.FC = () => {
           </div>
         </motion.div>
 
-        {/* Trade Log */}
+        {/* Trade Management */}
         <motion.div 
-          className="mt-8 bg-slate-800/50 backdrop-blur-sm border border-slate-700/50 rounded-2xl p-6"
+          className="mt-8"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.5 }}
         >
-          <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-orange-500/20 rounded-lg">
-                <BookOpen className="w-5 h-5 text-orange-400" />
-              </div>
-              <div>
-                <h3 className="font-semibold text-slate-100">Trade Log</h3>
-                <p className="text-xs text-slate-400">Track your trading performance</p>
-              </div>
-            </div>
-            
-            {/* Summary Stats */}
-            {trades.length > 0 && (
-              <div className="flex gap-4">
-                <div className="text-right">
-                  <div className="text-xs text-slate-400">Total P&L</div>
-                  <div className={`text-sm font-semibold ${getTotalPnL() >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-                    {formatCurrency(getTotalPnL())}
-                  </div>
-                </div>
-                <div className="text-right">
-                  <div className="text-xs text-slate-400">Win Rate</div>
-                  <div className="text-sm font-semibold text-blue-400">
-                    {formatPercentage(getWinRate())}
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-
-          <div className="space-y-3 max-h-80 overflow-y-auto">
-            {trades.length === 0 ? (
-              <div className="text-center py-8 text-slate-400">
-                <BookOpen className="w-8 h-8 mx-auto mb-2 opacity-50" />
-                <p className="text-sm">No trades logged yet</p>
-                <p className="text-xs">Use the + button on strategy cards to log trades</p>
-              </div>
-            ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b border-slate-700">
-                      <th className="text-left py-2 text-slate-400">Date</th>
-                      <th className="text-left py-2 text-slate-400">Strategy</th>
-                      <th className="text-left py-2 text-slate-400">Strikes</th>
-                      <th className="text-left py-2 text-slate-400">Contracts</th>
-                      <th className="text-left py-2 text-slate-400">P&L</th>
-                      <th className="text-left py-2 text-slate-400">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {trades.slice(0, 10).map((trade) => (
-                      <tr key={trade.id} className="border-b border-slate-700/50">
-                        <td className="py-2 text-slate-300">{trade.date}</td>
-                        <td className="py-2 text-slate-300">{trade.strategy}</td>
-                        <td className="py-2 text-slate-300 font-mono text-xs">{trade.strikes}</td>
-                        <td className="py-2 text-slate-300">{trade.contracts}</td>
-                        <td className={`py-2 font-semibold ${
-                          trade.pnl >= 0 ? 'text-green-400' : 'text-red-400'
-                        }`}>
-                          ${trade.pnl.toFixed(2)}
-                        </td>
-                        <td className="py-2">
-                          <motion.button 
-                            onClick={() => handleDeleteTrade(trade.id)} 
-                            className="p-2 text-slate-400 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors duration-200"
-                            whileHover={{ scale: 1.1 }}
-                            whileTap={{ scale: 0.9 }}
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </motion.button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </div>
+          <TradeManagement
+            trades={TradeStorageService.getAllTrades()}
+            onDeleteTrade={handleDeleteTrade}
+            onCloseTrade={(id, closePrice) => {
+              const pnl = Math.random() * 200 - 100 // Calculate actual P&L based on close price
+              TradeStorageService.closeTrade(id, closePrice, pnl)
+              // Reload trades from storage
+              const storedTrades = TradeStorageService.getAllTrades()
+              const convertedTrades: Trade[] = storedTrades.map(st => ({
+                id: st.id,
+                date: new Date(st.executedAt).toLocaleDateString(),
+                strategy: st.strategy === 'bullCall' ? 'Bull Call' : 
+                          st.strategy === 'ironCondor' ? 'Iron Condor' : 'Butterfly',
+                strikes: formatStoredStrikes(st),
+                contracts: st.contracts,
+                pnl: st.pnl || st.analysis?.maxProfit || 0,
+                notes: st.notes || '',
+                timestamp: new Date(st.executedAt).getTime()
+              }))
+              setTrades(convertedTrades)
+            }}
+            onRefresh={() => {
+              // Reload trades from storage
+              const storedTrades = TradeStorageService.getAllTrades()
+              const convertedTrades: Trade[] = storedTrades.map(st => ({
+                id: st.id,
+                date: new Date(st.executedAt).toLocaleDateString(),
+                strategy: st.strategy === 'bullCall' ? 'Bull Call' : 
+                          st.strategy === 'ironCondor' ? 'Iron Condor' : 'Butterfly',
+                strikes: formatStoredStrikes(st),
+                contracts: st.contracts,
+                pnl: st.pnl || st.analysis?.maxProfit || 0,
+                notes: st.notes || '',
+                timestamp: new Date(st.executedAt).getTime()
+              }))
+              setTrades(convertedTrades)
+            }}
+          />
         </motion.div>
       </div>
     </div>
