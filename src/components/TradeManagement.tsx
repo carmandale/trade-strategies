@@ -11,7 +11,7 @@ import {
 	Filter,
 	X
 } from 'lucide-react';
-import TradeStorageService, { StoredTrade } from '../services/tradeStorage';
+import TradeStorageApiService, { StoredTrade } from '../services/tradeStorageApi';
 
 interface TradeManagementProps {
 	trades: StoredTrade[]
@@ -32,24 +32,31 @@ export const TradeManagement: React.FC<TradeManagementProps> = ({
 	const [showImportModal, setShowImportModal] = useState(false)
 	const [importData, setImportData] = useState('')
 	
-	// Get storage stats
-	const stats = TradeStorageService.getStorageStats()
+	// Get storage stats (calculated from provided trades)
+	const stats = {
+		totalTrades: trades.length,
+		activeTrades: trades.filter(t => t.status === 'open').length,
+		closedTrades: trades.filter(t => t.status === 'closed').length,
+		expiredTrades: trades.filter(t => t.status === 'expired').length,
+		storageUsedBytes: 0,
+		storageUsedKB: '0'
+	}
 	
 	// Filter trades
 	const filteredTrades = trades.filter(trade => {
-		if (filterStrategy !== 'all' && trade.strategy !== filterStrategy) return false
+		if (filterStrategy !== 'all' && trade.strategy_type !== filterStrategy) return false
 		if (filterStatus !== 'all' && trade.status !== filterStatus) return false
 		return true
 	})
 	
 	// Calculate summary statistics
-	const totalPnL = filteredTrades.reduce((sum, trade) => sum + (trade.pnl || 0), 0)
-	const winningTrades = filteredTrades.filter(trade => (trade.pnl || 0) > 0).length
-	const losingTrades = filteredTrades.filter(trade => (trade.pnl || 0) < 0).length
+	const totalPnL = filteredTrades.reduce((sum, trade) => sum + (trade.realized_pnl || 0), 0)
+	const winningTrades = filteredTrades.filter(trade => (trade.realized_pnl || 0) > 0).length
+	const losingTrades = filteredTrades.filter(trade => (trade.realized_pnl || 0) < 0).length
 	const winRate = filteredTrades.length > 0 ? (winningTrades / filteredTrades.length) * 100 : 0
 	
 	const handleExport = () => {
-		const json = TradeStorageService.exportTrades()
+		const json = JSON.stringify(trades, null, 2)
 		const blob = new Blob([json], { type: 'application/json' })
 		const url = URL.createObjectURL(blob)
 		const a = document.createElement('a')
@@ -60,10 +67,35 @@ export const TradeManagement: React.FC<TradeManagementProps> = ({
 		setShowExportModal(false)
 	}
 	
-	const handleImport = () => {
+	const handleImport = async () => {
 		try {
-			const count = TradeStorageService.importTrades(importData, true)
-			alert(`Successfully imported ${count} trades`)
+			const tradesToImport = JSON.parse(importData) as StoredTrade[]
+			let importCount = 0
+			
+			for (const trade of tradesToImport) {
+				try {
+					await TradeStorageApiService.saveTrade({
+						trade_date: trade.trade_date || new Date().toISOString().split('T')[0],
+						entry_time: trade.entry_time,
+						symbol: trade.symbol,
+						strategy_type: trade.strategy_type,
+						strikes: trade.strikes,
+						contracts: trade.contracts,
+						entry_price: trade.entry_price,
+						credit_debit: trade.credit_debit,
+						status: trade.status,
+						notes: trade.notes,
+						exit_price: trade.exit_price,
+						exit_time: trade.exit_time,
+						realized_pnl: trade.realized_pnl
+					})
+					importCount++
+				} catch (error) {
+					console.error(`Failed to import trade:`, error)
+				}
+			}
+			
+			alert(`Successfully imported ${importCount} trades`)
 			onRefresh()
 			setShowImportModal(false)
 			setImportData('')
@@ -72,9 +104,12 @@ export const TradeManagement: React.FC<TradeManagementProps> = ({
 		}
 	}
 	
-	const handleClearAll = () => {
+	const handleClearAll = async () => {
 		if (confirm('Are you sure you want to delete ALL trades? This cannot be undone.')) {
-			TradeStorageService.clearAllTrades()
+			// Delete all trades from database
+			for (const trade of trades) {
+				await TradeStorageApiService.deleteTrade(trade.id)
+			}
 			onRefresh()
 		}
 	}
@@ -90,16 +125,24 @@ export const TradeManagement: React.FC<TradeManagementProps> = ({
 	}
 	
 	const formatStrikes = (trade: StoredTrade): string => {
-		const s = trade.strikes
-		switch(trade.strategy) {
-			case 'bullCall':
-				return `${s.bullCallLower}/${s.bullCallUpper}`
-			case 'ironCondor':
-				return `${s.ironCondorPutLong}/${s.ironCondorPutShort}/${s.ironCondorCallShort}/${s.ironCondorCallLong}`
+		if (Array.isArray(trade.strikes)) {
+			return trade.strikes.join('/')
+		}
+		return ''
+	}
+	
+	const formatStrategyName = (strategyType: string): string => {
+		switch(strategyType.toLowerCase()) {
+			case 'bull_call':
+			case 'bullcall':
+				return 'Bull Call'
+			case 'iron_condor':
+			case 'ironcondor':
+				return 'Iron Condor'
 			case 'butterfly':
-				return `${s.butterflyLower}/${s.butterflyBody}/${s.butterflyUpper}`
+				return 'Butterfly'
 			default:
-				return ''
+				return strategyType
 		}
 	}
 	
@@ -183,8 +226,8 @@ export const TradeManagement: React.FC<TradeManagementProps> = ({
 					className="bg-slate-700/50 border border-slate-600 rounded-lg px-3 py-1 text-sm text-slate-200"
 				>
 					<option value="all">All Strategies</option>
-					<option value="bullCall">Bull Call</option>
-					<option value="ironCondor">Iron Condor</option>
+					<option value="bull_call">Bull Call</option>
+					<option value="iron_condor">Iron Condor</option>
 					<option value="butterfly">Butterfly</option>
 				</select>
 				
@@ -227,8 +270,7 @@ export const TradeManagement: React.FC<TradeManagementProps> = ({
 									<div>
 										<div className="flex items-center gap-3">
 											<span className="font-semibold text-slate-100">
-												{trade.strategy === 'bullCall' ? 'Bull Call' :
-												 trade.strategy === 'ironCondor' ? 'Iron Condor' : 'Butterfly'}
+												{formatStrategyName(trade.strategy_type)}
 											</span>
 											<span className="text-slate-400 text-sm">
 												{formatStrikes(trade)}
@@ -240,7 +282,7 @@ export const TradeManagement: React.FC<TradeManagementProps> = ({
 										<div className="flex items-center gap-3 mt-1">
 											<span className="text-slate-500 text-xs flex items-center gap-1">
 												<Clock className="w-3 h-3" />
-												{formatDate(trade.executedAt)}
+												{formatDate(trade.created_at || trade.trade_date)}
 											</span>
 											{trade.notes && (
 												<span className="text-slate-500 text-xs">
@@ -254,12 +296,12 @@ export const TradeManagement: React.FC<TradeManagementProps> = ({
 								{/* Actions and P&L */}
 								<div className="flex items-center gap-4">
 									{/* P&L Display */}
-									{trade.pnl !== undefined && (
+									{trade.realized_pnl !== undefined && trade.realized_pnl !== null && (
 										<div className={`flex items-center gap-1 font-semibold ${
-											trade.pnl >= 0 ? 'text-green-400' : 'text-red-400'
+											trade.realized_pnl >= 0 ? 'text-green-400' : 'text-red-400'
 										}`}>
-											{trade.pnl >= 0 ? <TrendingUp className="w-4 h-4" /> : <TrendingDown className="w-4 h-4" />}
-											${Math.abs(trade.pnl).toFixed(2)}
+											{trade.realized_pnl >= 0 ? <TrendingUp className="w-4 h-4" /> : <TrendingDown className="w-4 h-4" />}
+											${Math.abs(trade.realized_pnl).toFixed(2)}
 										</div>
 									)}
 									

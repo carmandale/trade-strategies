@@ -6,7 +6,7 @@ import HeaderSection from './generated/HeaderSection';
 import { ConsolidatedStrategyCard, StrategyType } from './ConsolidatedStrategyCard';
 import { apiService } from '../services/api';
 import { SpreadConfig, AnalysisData, Trade } from './generated/SPYSpreadStrategiesApp';
-import TradeStorageService, { StoredTrade } from '../services/tradeStorage';
+import TradeStorageApiService, { StoredTrade as ApiStoredTrade, TradeCreateRequest } from '../services/tradeStorageApi';
 import { TradeManagement } from './TradeManagement';
 
 // Function to round price to nearest $5 for options strikes
@@ -54,40 +54,52 @@ const ConsolidatedSPYApp: React.FC = () => {
     volume: number;
   }[]>([]);
   
-  // Load trades from localStorage on component mount
+  // Load trades from database on component mount
   useEffect(() => {
-    const loadStoredTrades = () => {
-      const storedTrades = TradeStorageService.getAllTrades();
-      // Convert stored trades to the component's Trade format
-      const convertedTrades: Trade[] = storedTrades.map(st => ({
-        id: st.id,
-        date: new Date(st.executedAt).toLocaleDateString(),
-        strategy: st.strategy === 'bullCall' ? 'Bull Call' : 
-                  st.strategy === 'ironCondor' ? 'Iron Condor' : 'Butterfly',
-        strikes: formatStoredStrikes(st),
-        contracts: st.contracts,
-        pnl: st.pnl || st.analysis?.maxProfit || 0,
-        notes: st.notes || '',
-        timestamp: new Date(st.executedAt).getTime()
-      }));
-      setTrades(convertedTrades);
+    const loadStoredTrades = async () => {
+      try {
+        // First, sync any local trades to database
+        const syncedCount = await TradeStorageApiService.syncLocalToDatabase();
+        if (syncedCount > 0) {
+          console.log(`Synced ${syncedCount} local trades to database`);
+        }
+        
+        // Then load all trades from database
+        const storedTrades = await TradeStorageApiService.getAllTrades();
+        
+        // Convert stored trades to the component's Trade format
+        const convertedTrades: Trade[] = storedTrades.map(st => ({
+          id: st.id,
+          date: new Date(st.trade_date).toLocaleDateString(),
+          strategy: formatStrategyName(st.strategy_type),
+          strikes: st.strikes.join('/'),
+          contracts: st.contracts,
+          pnl: st.realized_pnl || 0,
+          notes: st.notes || '',
+          timestamp: new Date(st.created_at).getTime()
+        }));
+        setTrades(convertedTrades);
+      } catch (error) {
+        console.error('Error loading trades:', error);
+      }
     };
     
     loadStoredTrades();
   }, []);
   
-  // Helper function to format strikes from stored trade
-  const formatStoredStrikes = (trade: StoredTrade): string => {
-    const s = trade.strikes;
-    switch(trade.strategy) {
-      case 'bullCall':
-        return `${s.bullCallLower}/${s.bullCallUpper}`;
-      case 'ironCondor':
-        return `${s.ironCondorPutLong}/${s.ironCondorPutShort}/${s.ironCondorCallShort}/${s.ironCondorCallLong}`;
+  // Helper function to format strategy name
+  const formatStrategyName = (strategyType: string): string => {
+    switch(strategyType.toLowerCase()) {
+      case 'bull_call':
+      case 'bullcall':
+        return 'Bull Call';
+      case 'iron_condor':
+      case 'ironcondor':
+        return 'Iron Condor';
       case 'butterfly':
-        return `${s.butterflyLower}/${s.butterflyBody}/${s.butterflyUpper}`;
+        return 'Butterfly';
       default:
-        return '';
+        return strategyType;
     }
   };
 
@@ -387,71 +399,76 @@ const ConsolidatedSPYApp: React.FC = () => {
   };
 
   // Handle trade logging
-  const handleLogTrade = (strategy: string, pnl: number) => {
-    // Prepare strikes data based on strategy
-    const strikes: StoredTrade['strikes'] = {};
+  const handleLogTrade = async (strategy: string, pnl: number) => {
+    // Prepare strikes array based on strategy
+    let strikesArray: number[] = [];
     if (spreadConfig) {
       if (strategy === 'Bull Call') {
-        strikes.bullCallLower = spreadConfig.bullCallLower;
-        strikes.bullCallUpper = spreadConfig.bullCallUpper;
+        strikesArray = [spreadConfig.bullCallLower, spreadConfig.bullCallUpper];
       } else if (strategy === 'Iron Condor') {
-        strikes.ironCondorPutLong = spreadConfig.ironCondorPutLong;
-        strikes.ironCondorPutShort = spreadConfig.ironCondorPutShort;
-        strikes.ironCondorCallShort = spreadConfig.ironCondorCallShort;
-        strikes.ironCondorCallLong = spreadConfig.ironCondorCallLong;
+        strikesArray = [
+          spreadConfig.ironCondorPutLong,
+          spreadConfig.ironCondorPutShort,
+          spreadConfig.ironCondorCallShort,
+          spreadConfig.ironCondorCallLong
+        ];
       } else if (strategy === 'Butterfly') {
-        strikes.butterflyLower = spreadConfig.butterflyLower;
-        strikes.butterflyBody = spreadConfig.butterflyBody;
-        strikes.butterflyUpper = spreadConfig.butterflyUpper;
+        strikesArray = [
+          spreadConfig.butterflyLower,
+          spreadConfig.butterflyBody,
+          spreadConfig.butterflyUpper
+        ];
       }
     }
     
-    // Save to localStorage using TradeStorageService
-    const storedTrade = TradeStorageService.saveTrade({
-      strategy: strategy === 'Bull Call' ? 'bullCall' : 
-                strategy === 'Iron Condor' ? 'ironCondor' : 'butterfly',
-      symbol: 'SPY',
-      executedAt: new Date().toISOString(),
-      expirationDate: selectedDate.toISOString(),
-      contracts: contracts,
-      strikes: strikes,
-      entryPrice: spyPrice || 0,
-      analysis: analysisData ? {
-        maxProfit: pnl,
-        maxLoss: strategy === 'Bull Call' ? analysisData.bullCall.maxLoss :
-                 strategy === 'Iron Condor' ? analysisData.ironCondor.maxLoss :
-                 analysisData.butterfly.maxLoss,
-        breakeven: strategy === 'Bull Call' ? analysisData.bullCall.breakeven :
-                   strategy === 'Iron Condor' ? [analysisData.ironCondor.lowerBreakeven, analysisData.ironCondor.upperBreakeven] :
-                   [analysisData.butterfly.breakeven1, analysisData.butterfly.breakeven2],
-        riskReward: strategy === 'Bull Call' ? analysisData.bullCall.riskReward :
-                    strategy === 'Iron Condor' ? analysisData.ironCondor.riskReward :
-                    analysisData.butterfly.riskReward
-      } : undefined,
-      notes: `${entryTime} - ${exitTime}`,
-      status: 'active'
-    });
-    
-    // Also add to component state for immediate UI update
-    const newTrade: Trade = {
-      id: storedTrade.id,
-      date: selectedDate.toLocaleDateString(),
-      strategy,
-      strikes: getStrikesString(strategy),
-      contracts,
-      pnl,
-      notes: `${entryTime} - ${exitTime}`,
-      timestamp: Date.now()
-    };
-    setTrades(prev => [newTrade, ...prev]);
+    try {
+      // Save to database using API
+      const tradeRequest: TradeCreateRequest = {
+        trade_date: selectedDate.toISOString().split('T')[0], // YYYY-MM-DD format
+        entry_time: entryTime,
+        symbol: 'SPY',
+        strategy_type: strategy.toLowerCase().replace(' ', '_'), // e.g., "Bull Call" -> "bull_call"
+        strikes: strikesArray,
+        contracts: contracts,
+        entry_price: spyPrice || 0,
+        credit_debit: pnl > 0 ? pnl : -pnl, // Positive for credit, negative for debit
+        status: 'open',
+        notes: `${entryTime} - ${exitTime}`,
+        realized_pnl: undefined // Will be set when trade is closed
+      };
+      
+      const storedTrade = await TradeStorageApiService.saveTrade(tradeRequest);
+      
+      // Add to component state for immediate UI update
+      const newTrade: Trade = {
+        id: storedTrade.id,
+        date: selectedDate.toLocaleDateString(),
+        strategy,
+        strikes: strikesArray.join('/'),
+        contracts,
+        pnl: 0, // P&L is 0 until trade is closed
+        notes: `${entryTime} - ${exitTime}`,
+        timestamp: Date.now()
+      };
+      setTrades(prev => [newTrade, ...prev]);
+    } catch (error) {
+      console.error('Failed to save trade:', error);
+      // Show error notification to user
+    }
   };
   
   // Handle deleting trades
-  const handleDeleteTrade = (tradeId: string) => {
-    // Delete from localStorage
-    TradeStorageService.deleteTrade(tradeId);
-    // Update component state
-    setTrades(prev => prev.filter(trade => trade.id !== tradeId));
+  const handleDeleteTrade = async (tradeId: string) => {
+    try {
+      // Delete from database
+      const success = await TradeStorageApiService.deleteTrade(tradeId);
+      if (success) {
+        // Update component state
+        setTrades(prev => prev.filter(trade => trade.id !== tradeId));
+      }
+    } catch (error) {
+      console.error('Failed to delete trade:', error);
+    }
   };
 
   const getStrikesString = (strategy: string): string => {
@@ -700,41 +717,64 @@ const ConsolidatedSPYApp: React.FC = () => {
           transition={{ duration: 0.6, delay: 0.5 }}
         >
           <TradeManagement
-            trades={TradeStorageService.getAllTrades()}
+            trades={trades.map(t => ({
+              id: t.id,
+              trade_date: new Date(t.date).toISOString().split('T')[0],
+              entry_time: t.notes?.split(' - ')[0],
+              symbol: 'SPY',
+              strategy_type: t.strategy.toLowerCase().replace(' ', '_'),
+              strikes: t.strikes.split('/').map(Number),
+              contracts: t.contracts,
+              entry_price: spyPrice || 0,
+              credit_debit: 0,
+              status: 'open' as const,
+              notes: t.notes,
+              exit_price: undefined,
+              exit_time: undefined,
+              realized_pnl: t.pnl,
+              created_at: new Date(t.timestamp).toISOString(),
+              updated_at: new Date(t.timestamp).toISOString()
+            }))}
             onDeleteTrade={handleDeleteTrade}
-            onCloseTrade={(id, closePrice) => {
-              const pnl = Math.random() * 200 - 100 // Calculate actual P&L based on close price
-              TradeStorageService.closeTrade(id, closePrice, pnl)
-              // Reload trades from storage
-              const storedTrades = TradeStorageService.getAllTrades()
-              const convertedTrades: Trade[] = storedTrades.map(st => ({
-                id: st.id,
-                date: new Date(st.executedAt).toLocaleDateString(),
-                strategy: st.strategy === 'bullCall' ? 'Bull Call' : 
-                          st.strategy === 'ironCondor' ? 'Iron Condor' : 'Butterfly',
-                strikes: formatStoredStrikes(st),
-                contracts: st.contracts,
-                pnl: st.pnl || st.analysis?.maxProfit || 0,
-                notes: st.notes || '',
-                timestamp: new Date(st.executedAt).getTime()
-              }))
-              setTrades(convertedTrades)
+            onCloseTrade={async (id, closePrice) => {
+              try {
+                // Close trade in database
+                await TradeStorageApiService.closeTrade(id, closePrice)
+                // Reload trades from database
+                const storedTrades = await TradeStorageApiService.getAllTrades()
+                const convertedTrades: Trade[] = storedTrades.map(st => ({
+                  id: st.id,
+                  date: new Date(st.trade_date).toLocaleDateString(),
+                  strategy: formatStrategyName(st.strategy_type),
+                  strikes: st.strikes.join('/'),
+                  contracts: st.contracts,
+                  pnl: st.realized_pnl || 0,
+                  notes: st.notes || '',
+                  timestamp: new Date(st.created_at).getTime()
+                }))
+                setTrades(convertedTrades)
+              } catch (error) {
+                console.error('Failed to close trade:', error)
+              }
             }}
-            onRefresh={() => {
-              // Reload trades from storage
-              const storedTrades = TradeStorageService.getAllTrades()
-              const convertedTrades: Trade[] = storedTrades.map(st => ({
-                id: st.id,
-                date: new Date(st.executedAt).toLocaleDateString(),
-                strategy: st.strategy === 'bullCall' ? 'Bull Call' : 
-                          st.strategy === 'ironCondor' ? 'Iron Condor' : 'Butterfly',
-                strikes: formatStoredStrikes(st),
-                contracts: st.contracts,
-                pnl: st.pnl || st.analysis?.maxProfit || 0,
-                notes: st.notes || '',
-                timestamp: new Date(st.executedAt).getTime()
-              }))
-              setTrades(convertedTrades)
+            onRefresh={async () => {
+              try {
+                // Reload trades from database
+                const storedTrades = await TradeStorageApiService.getAllTrades()
+                const convertedTrades: Trade[] = storedTrades.map(st => ({
+                  id: st.id,
+                  date: new Date(st.trade_date).toLocaleDateString(),
+                  strategy: formatStrategyName(st.strategy_type),
+                  strikes: st.strikes.join('/'),
+                  contracts: st.contracts,
+                  pnl: st.realized_pnl || 0,
+                  notes: st.notes || '',
+                  timestamp: new Date(st.created_at).getTime()
+                }))
+                setTrades(convertedTrades)
+              } catch (error) {
+                console.error('Failed to refresh trades:', error)
+              }
             }}
           />
         </motion.div>
