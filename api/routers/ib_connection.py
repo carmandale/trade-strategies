@@ -209,12 +209,8 @@ async def check_connection_health():
 				headers={"Retry-After": "30"}
 			)
 	except HTTPException:
-		# Return the health status even if unhealthy
-		return HealthResponse(
-			healthy=False,
-			connected=False,
-			message="Connection is unhealthy"
-		)
+		# Re-raise HTTPException to maintain status code
+		raise
 	except Exception as e:
 		logger.error(f"Health check error: {str(e)}")
 		raise HTTPException(status_code=500, detail=str(e))
