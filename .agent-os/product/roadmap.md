@@ -43,6 +43,32 @@ The following features have been implemented:
 - Backend API: ✅ POST /api/strategies/calculate endpoint working
 - UI Performance: ✅ <50ms UI updates, <200ms API responses
 
+### Issue #12: Interactive Brokers Integration 🚧 IN PROGRESS
+**Status:** Phase 2 Active Development
+**Goal:** Integrate Interactive Brokers API for real-time options pricing and Greeks
+
+**Phase 1: Foundation Fixes** ✅ COMPLETED
+- [x] Fix existing IB connection endpoint errors
+- [x] Update API response formats to match frontend expectations
+- [x] Add proper error handling for connection failures
+- [x] Implement connection status monitoring
+
+**Phase 2: Market Data Integration** 🚧 IN PROGRESS (1 of 8 tasks complete)
+- [x] **Task 1: Market Data Service Foundation** - SPX-focused service with rate limiting and pooling ✅ PR #41
+- [ ] **Task 2: Options Chain Data Fetching** - Real-time options chain from IB API
+- [ ] **Task 3: Greeks Calculation Integration** - Real-time Greeks with Black-Scholes fallback
+- [ ] **Task 4: Historical Data Integration** - IB historical data with yfinance fallback
+- [ ] **Task 5: Frontend Integration** - Connect UI to new market data service
+- [ ] **Task 6: Caching Layer** - Redis integration for performance
+- [ ] **Task 7: Error Recovery** - Robust fallback mechanisms
+- [ ] **Task 8: Performance Optimization** - Sub-200ms response times
+
+**Results So Far:**
+- Market Data Service: ✅ SPX-focused implementation complete
+- Rate Limiting: ✅ 45 req/sec (safe buffer under IB's 50/sec limit)
+- Connection Pooling: ✅ 5 concurrent connections
+- Test Coverage: ✅ 14/14 market data tests passing
+
 ### Issue #10: Frontend Test Fixes ✅ COMPLETED
 **Status:** Completed - 2025-08-10
 **Goal:** Achieve 100% test pass rate across all test suites
