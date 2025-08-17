@@ -14,7 +14,10 @@ class TestStrategyModel:
     def test_create_strategy(self):
         """Test creating a new strategy."""
         with SessionLocal() as db:
+            import uuid
+            from datetime import datetime
             strategy = Strategy(
+                id=uuid.uuid4(),  # Explicitly set ID for mock testing
                 name="Test Iron Condor",
                 strategy_type="iron_condor",
                 symbol="SPY",
@@ -23,7 +26,10 @@ class TestStrategyModel:
                     "call_short_delta": 0.16,
                     "strikes": [420, 425, 430, 435],
                     "dte": 7
-                }
+                },
+                created_at=datetime.now(),
+                updated_at=datetime.now(),
+                is_active=True
             )
             
             db.add(strategy)
