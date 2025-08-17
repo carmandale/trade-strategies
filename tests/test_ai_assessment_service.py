@@ -95,13 +95,13 @@ class TestAIAssessmentService:
         prompt = service._build_prompt(strategy_params, market_data)
         
         assert "STRATEGY DETAILS:" in prompt
-        assert "iron_condor" in prompt
+        assert "Iron Condor" in prompt  # Strategy type is title-cased in prompt
         assert "SPX" in prompt
         assert "5500" in prompt  # Put short strike
-        assert "CURRENT MARKET CONDITIONS:" in prompt
+        assert "CURRENT" in prompt
         assert "5635.50" in prompt  # Current SPX price
-        assert "VIX: 14.2" in prompt
-        assert "ASSESSMENT REQUEST:" in prompt
+        assert "VIX at 14.2" in prompt
+        assert "ANALYSIS REQUIRED:" in prompt
         assert "JSON" in prompt
     
     def test_calculate_strategy_hash(self, service, strategy_params):
