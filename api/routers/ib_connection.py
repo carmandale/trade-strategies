@@ -139,6 +139,52 @@ async def reconnect_to_ib():
 		raise HTTPException(status_code=500, detail=str(e))
 
 
+@router.post("/connection/test", response_model=ConnectionResponse)
+async def test_connection(settings: SettingsUpdate):
+	"""Test IB connection with given settings without saving.
+	
+	Args:
+		settings: Connection settings to test
+		
+	Returns:
+		Test result with connection status
+	"""
+	try:
+		# Temporarily save current settings
+		current_settings = ib_connection_manager.connection_settings
+		
+		# Create temporary settings for testing
+		test_settings = SettingsUpdate(
+			host=settings.host or "127.0.0.1",
+			port=settings.port or 7497,
+			client_id=settings.client_id or 1,
+			account=settings.account
+		)
+		
+		# Apply test settings temporarily
+		ib_connection_manager.save_settings(test_settings.dict())
+		
+		# Attempt connection
+		result = ib_connection_manager.connect()
+		
+		# Disconnect after test
+		if result["success"]:
+			ib_connection_manager.disconnect()
+		
+		# Restore original settings if they existed
+		if current_settings:
+			ib_connection_manager.save_settings(current_settings.to_dict())
+		
+		return ConnectionResponse(
+			success=result["success"],
+			message=f"Test {'successful' if result['success'] else 'failed'}: {result['message']}",
+			status=result["status"]
+		)
+	except Exception as e:
+		logger.error(f"Connection test error: {str(e)}")
+		raise HTTPException(status_code=500, detail=str(e))
+
+
 @router.get("/connection/health", response_model=HealthResponse)
 async def check_connection_health():
 	"""Check IB connection health.

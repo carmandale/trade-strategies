@@ -54,6 +54,10 @@ class IBConnectionManager:
 	@property
 	def connection_settings(self) -> Optional[IBSettings]:
 		"""Get current connection settings with fresh database session."""
+		# Return cached settings if available (for testing)
+		if self._connection_settings:
+			return self._connection_settings
+			
 		try:
 			with self.get_db_session() as session:
 				settings = session.query(IBSettings).first()
@@ -68,6 +72,11 @@ class IBConnectionManager:
 		except Exception as e:
 			logger.error(f"Error getting connection settings: {e}")
 			return None
+	
+	@connection_settings.setter
+	def connection_settings(self, value: IBSettings):
+		"""Set connection settings (primarily for testing)."""
+		self._connection_settings = value
 	
 	def load_settings(self) -> Optional[IBSettings]:
 		"""Load connection settings from database."""
