@@ -63,6 +63,7 @@ class TestIBConnectionManager:
 		
 		mock_db.query.return_value.filter.return_value.first.return_value = mock_settings
 		mock_db.expunge = Mock()  # Mock the expunge method
+		mock_db.query.return_value.first.return_value = mock_settings  # Also mock direct query().first() call
 		
 		manager = IBConnectionManager()
 		settings = manager.load_settings()
@@ -75,22 +76,28 @@ class TestIBConnectionManager:
 	def test_load_settings_not_found(self, mock_get_db):
 		"""Test loading settings when none exist."""
 		mock_db = Mock()
-		mock_get_db.return_value = iter([mock_db])
+		mock_context = Mock()
+		mock_context.__enter__ = Mock(return_value=mock_db)
+		mock_context.__exit__ = Mock(return_value=None)
+		mock_get_db.return_value = mock_context
 		mock_db.query.return_value.filter.return_value.first.return_value = None
 		
 		manager = IBConnectionManager()
 		settings = manager.load_settings()
 		
 		assert settings is None
-		assert manager.connection_settings is None
+		assert manager._connection_settings is None  # Check internal cache directly
 	
-	@patch('ib_insync.IB')
+	@patch('api.services.ib_connection_manager.IB')
 	@patch('api.services.ib_connection_manager.IBConnectionManager.get_db_session')
 	def test_connect_success(self, mock_get_db, mock_ib_class):
 		"""Test successful connection to IB."""
-		# Setup mock DB
+		# Setup mock DB with context manager
 		mock_db = Mock()
-		mock_get_db.return_value = iter([mock_db])
+		mock_context = Mock()
+		mock_context.__enter__ = Mock(return_value=mock_db)
+		mock_context.__exit__ = Mock(return_value=None)
+		mock_get_db.return_value = mock_context
 		
 		# Setup mock settings
 		mock_settings = Mock(spec=IBSettings)
@@ -115,7 +122,7 @@ class TestIBConnectionManager:
 		
 		result = manager.connect()
 		
-		assert result is True
+		assert result["success"] is True
 		assert manager.is_connected is True
 		mock_client.connect.assert_called_once_with(
 			'127.0.0.1', 7497, clientId=1, timeout=10
@@ -126,13 +133,16 @@ class TestIBConnectionManager:
 		mock_db.add.assert_called()
 		mock_db.commit.assert_called()
 	
-	@patch('ib_insync.IB')
+	@patch('api.services.ib_connection_manager.IB')
 	@patch('api.services.ib_connection_manager.IBConnectionManager.get_db_session')
 	def test_connect_failure(self, mock_get_db, mock_ib_class):
 		"""Test failed connection to IB."""
-		# Setup mock DB
+		# Setup mock DB with context manager
 		mock_db = Mock()
-		mock_get_db.return_value = iter([mock_db])
+		mock_context = Mock()
+		mock_context.__enter__ = Mock(return_value=mock_db)
+		mock_context.__exit__ = Mock(return_value=None)
+		mock_get_db.return_value = mock_context
 		
 		# Setup mock settings
 		mock_settings = Mock(spec=IBSettings)
@@ -150,7 +160,7 @@ class TestIBConnectionManager:
 		
 		result = manager.connect()
 		
-		assert result is False
+		assert result["success"] is False
 		assert manager.is_connected is False
 		
 		# Verify error was logged
@@ -190,7 +200,7 @@ class TestIBConnectionManager:
 		
 		result = connection_manager.reconnect()
 		
-		assert result is True
+		assert result["success"] is True
 		assert connection_manager.reconnect_attempts == 1
 		mock_sleep.assert_called()
 	
@@ -210,7 +220,7 @@ class TestIBConnectionManager:
 		
 		result = connection_manager.reconnect()
 		
-		assert result is False
+		assert result["success"] is False
 		assert connection_manager.reconnect_attempts == 2
 		assert mock_sleep.call_count == 2
 	
@@ -276,7 +286,10 @@ class TestIBConnectionManager:
 	def test_save_settings(self, mock_get_db):
 		"""Test saving connection settings."""
 		mock_db = Mock()
-		mock_get_db.return_value = iter([mock_db])
+		mock_context = Mock()
+		mock_context.__enter__ = Mock(return_value=mock_db)
+		mock_context.__exit__ = Mock(return_value=None)
+		mock_get_db.return_value = mock_context
 		
 		# Mock existing settings query
 		mock_db.query.return_value.filter.return_value.first.return_value = None
@@ -302,7 +315,10 @@ class TestIBConnectionManager:
 	def test_update_existing_settings(self, mock_get_db):
 		"""Test updating existing connection settings."""
 		mock_db = Mock()
-		mock_get_db.return_value = iter([mock_db])
+		mock_context = Mock()
+		mock_context.__enter__ = Mock(return_value=mock_db)
+		mock_context.__exit__ = Mock(return_value=None)
+		mock_get_db.return_value = mock_context
 		
 		# Mock existing settings
 		existing_settings = Mock(spec=IBSettings)
@@ -391,13 +407,16 @@ class TestIBConnectionManager:
 	def test_log_connection_event(self, mock_get_db, connection_manager):
 		"""Test logging connection events."""
 		mock_db = Mock()
-		mock_get_db.return_value = iter([mock_db])
+		mock_context = Mock()
+		mock_context.__enter__ = Mock(return_value=mock_db)
+		mock_context.__exit__ = Mock(return_value=None)
+		mock_get_db.return_value = mock_context
 		
 		connection_manager._log_connection_event(
 			event_type='connect',
 			status='success',
 			account='DU123456',
-			metadata={'version': 176}
+			error=None
 		)
 		
 		mock_db.add.assert_called_once()
