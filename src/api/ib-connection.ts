@@ -13,7 +13,7 @@ interface IBSettings {
     client_id: number;
     username?: string;
     password?: string;
-    account_id?: string;  // Changed to account_id to match component
+    account?: string;  // Backend uses 'account', not 'account_id'
     auto_connect: boolean;
 }
 

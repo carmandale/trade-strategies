@@ -2,7 +2,7 @@
 import logging
 import asyncio
 from typing import Optional, Dict, Any, List
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from sqlalchemy.orm import Session
 from database.config import SessionLocal  # reuse unified engine/session config
 from api.models.ib_models import IBSettings, IBConnectionLog
@@ -54,6 +54,10 @@ class IBConnectionManager:
 	@property
 	def connection_settings(self) -> Optional[IBSettings]:
 		"""Get current connection settings with fresh database session."""
+		# Return cached settings if available (for testing)
+		if self._connection_settings:
+			return self._connection_settings
+			
 		try:
 			with self.get_db_session() as session:
 				settings = session.query(IBSettings).first()
@@ -68,6 +72,11 @@ class IBConnectionManager:
 		except Exception as e:
 			logger.error(f"Error getting connection settings: {e}")
 			return None
+	
+	@connection_settings.setter
+	def connection_settings(self, value: IBSettings):
+		"""Set connection settings (primarily for testing)."""
+		self._connection_settings = value
 	
 	def load_settings(self) -> Optional[IBSettings]:
 		"""Load connection settings from database."""
@@ -96,7 +105,7 @@ class IBConnectionManager:
 				"account": self.account,
 				"host": settings.host if settings else None,
 				"port": settings.port if settings else None,
-				"last_check": datetime.utcnow().isoformat() + "Z"
+				"last_check": datetime.now(timezone.utc).isoformat()
 			}
 		except Exception as e:
 			logger.error(f"Error getting connection status: {e}")
@@ -106,7 +115,7 @@ class IBConnectionManager:
 				"host": None,
 				"port": None,
 				"error": str(e),
-				"last_check": datetime.utcnow().isoformat() + "Z"
+				"last_check": datetime.now(timezone.utc).isoformat()
 			}
 	
 	def save_settings(self, settings_data: Dict[str, Any]) -> bool:
@@ -280,7 +289,7 @@ class IBConnectionManager:
 					account=account,
 					error_message=error,
 					event_metadata={
-						"timestamp": datetime.utcnow().isoformat(),
+						"timestamp": datetime.now(timezone.utc).isoformat(),
 						"connection_manager": "IBConnectionManager"
 					}
 				)
