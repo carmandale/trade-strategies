@@ -60,13 +60,16 @@ class TestIBConnectionEndpoints:
 	@patch('api.routers.ib_connection.ib_connection_manager')
 	def test_connect_to_ib(self, mock_manager):
 		"""Test POST /api/v1/ib/connection/connect endpoint."""
-		mock_manager.connect.return_value = True
-		mock_manager.get_connection_status.return_value = {
-			'connected': True,
-			'account': 'DU123456',
-			'host': '127.0.0.1',
-			'port': 7497,
-			'last_check': datetime.now(timezone.utc).isoformat()
+		mock_manager.connect.return_value = {
+			"success": True,
+			"message": "Connected to IB account DU123456",
+			"status": {
+				'connected': True,
+				'account': 'DU123456',
+				'host': '127.0.0.1',
+				'port': 7497,
+				'last_check': datetime.now(timezone.utc).isoformat()
+			}
 		}
 		
 		response = client.post("/api/v1/ib/connection/connect")
@@ -74,20 +77,23 @@ class TestIBConnectionEndpoints:
 		assert response.status_code == 200
 		data = response.json()
 		assert data['success'] is True
-		assert data['message'] == 'Connected to Interactive Brokers'
+		assert 'Connected to IB' in data['message']
 		assert data['status']['connected'] is True
 		mock_manager.connect.assert_called_once()
 	
 	@patch('api.routers.ib_connection.ib_connection_manager')
 	def test_connect_to_ib_failure(self, mock_manager):
 		"""Test connect endpoint when connection fails."""
-		mock_manager.connect.return_value = False
-		mock_manager.get_connection_status.return_value = {
-			'connected': False,
-			'account': None,
-			'host': None,
-			'port': None,
-			'last_check': datetime.now(timezone.utc).isoformat()
+		mock_manager.connect.return_value = {
+			"success": False,
+			"message": "Failed to connect to IB",
+			"status": {
+				'connected': False,
+				'account': None,
+				'host': None,
+				'port': None,
+				'last_check': datetime.now(timezone.utc).isoformat()
+			}
 		}
 		
 		response = client.post("/api/v1/ib/connection/connect")
@@ -100,13 +106,16 @@ class TestIBConnectionEndpoints:
 	@patch('api.routers.ib_connection.ib_connection_manager')
 	def test_disconnect_from_ib(self, mock_manager):
 		"""Test POST /api/v1/ib/connection/disconnect endpoint."""
-		mock_manager.disconnect.return_value = None
-		mock_manager.get_connection_status.return_value = {
-			'connected': False,
-			'account': None,
-			'host': None,
-			'port': None,
-			'last_check': datetime.now(timezone.utc).isoformat()
+		mock_manager.disconnect.return_value = {
+			"success": True,
+			"message": "Disconnected from IB",
+			"status": {
+				'connected': False,
+				'account': None,
+				'host': None,
+				'port': None,
+				'last_check': datetime.now(timezone.utc).isoformat()
+			}
 		}
 		
 		response = client.post("/api/v1/ib/connection/disconnect")
@@ -114,20 +123,23 @@ class TestIBConnectionEndpoints:
 		assert response.status_code == 200
 		data = response.json()
 		assert data['success'] is True
-		assert data['message'] == 'Disconnected from Interactive Brokers'
+		assert 'Disconnected' in data['message']
 		assert data['status']['connected'] is False
 		mock_manager.disconnect.assert_called_once()
 	
 	@patch('api.routers.ib_connection.ib_connection_manager')
 	def test_reconnect_to_ib(self, mock_manager):
 		"""Test POST /api/v1/ib/connection/reconnect endpoint."""
-		mock_manager.reconnect.return_value = True
-		mock_manager.get_connection_status.return_value = {
-			'connected': True,
-			'account': 'DU123456',
-			'host': '127.0.0.1',
-			'port': 7497,
-			'last_check': datetime.now(timezone.utc).isoformat()
+		mock_manager.reconnect.return_value = {
+			"success": True,
+			"message": "Connected to IB account DU123456",
+			"status": {
+				'connected': True,
+				'account': 'DU123456',
+				'host': '127.0.0.1',
+				'port': 7497,
+				'last_check': datetime.now(timezone.utc).isoformat()
+			}
 		}
 		
 		response = client.post("/api/v1/ib/connection/reconnect")
@@ -135,20 +147,23 @@ class TestIBConnectionEndpoints:
 		assert response.status_code == 200
 		data = response.json()
 		assert data['success'] is True
-		assert data['message'] == 'Reconnected to Interactive Brokers'
+		assert 'Connected' in data['message']
 		assert data['status']['connected'] is True
 		mock_manager.reconnect.assert_called_once()
 	
 	@patch('api.routers.ib_connection.ib_connection_manager')
 	def test_reconnect_to_ib_failure(self, mock_manager):
 		"""Test reconnect endpoint when reconnection fails."""
-		mock_manager.reconnect.return_value = False
-		mock_manager.get_connection_status.return_value = {
-			'connected': False,
-			'account': None,
-			'host': None,
-			'port': None,
-			'last_check': datetime.now(timezone.utc).isoformat()
+		mock_manager.reconnect.return_value = {
+			"success": False,
+			"message": "Failed to connect to IB",
+			"status": {
+				'connected': False,
+				'account': None,
+				'host': None,
+				'port': None,
+				'last_check': datetime.now(timezone.utc).isoformat()
+			}
 		}
 		
 		response = client.post("/api/v1/ib/connection/reconnect")
@@ -156,7 +171,7 @@ class TestIBConnectionEndpoints:
 		assert response.status_code == 500
 		data = response.json()
 		assert 'detail' in data
-		assert 'Failed to reconnect' in data['detail']
+		assert 'Failed to connect' in data['detail']
 	
 	@patch('api.routers.ib_connection.ib_connection_manager')
 	def test_check_connection_health(self, mock_manager):
@@ -184,6 +199,7 @@ class TestIBConnectionEndpoints:
 		data = response.json()
 		assert data['healthy'] is False
 		assert data['connected'] is False
+		mock_manager.check_connection.assert_called_once()
 
 
 class TestIBSettingsEndpoints:
